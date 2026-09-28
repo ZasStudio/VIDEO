@@ -1,0 +1,13 @@
+{
+  "voiceMix": true,
+  "sections": [
+    { "role": "intro", "bars": 4 },
+    { "role": "grooveA", "bars": 14, "start": "drop" },
+    { "role": "break", "bars": 6 },
+    { "role": "grooveB", "bars": 12, "start": "drop" },
+    { "role": "grooveB", "bars": 10, "start": "fill" },
+    { "role": "grooveB", "bars": 11, "start": "fill" },
+    { "role": "build", "bars": 5 },
+    { "role": "final", "bars": 6, "hitBar": 2 }
+  ]
+}

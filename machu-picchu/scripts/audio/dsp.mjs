@@ -615,16 +615,47 @@ export function compressor(buf, { thresholdDb = -18, ratio = 2, kneeDb = 6, atta
   return { buf, maxGrDb: maxGr, meanGrDb: sumGr / n };
 }
 
+// 4x-oversampled inter-sample peak estimate: windowed-sinc (32 taps)
+// interpolation at i + 1/4, i + 1/2 and i + 3/4. Shared by the true-peak
+// limiter and the verification, so both measure peaks the same way.
+const TP_OS = 4;
+const TP_HALF = 16;
+const TP_TAPS = Array.from({ length: TP_OS - 1 }, (_, p0) => {
+  const h = new Float64Array(2 * TP_HALF);
+  for (let k = -TP_HALF + 1; k <= TP_HALF; k++) {
+    const x = k - (p0 + 1) / TP_OS;
+    h[k + TP_HALF - 1] = (Math.sin(Math.PI * x) / (Math.PI * x)) * (0.5 + 0.5 * Math.cos((Math.PI * x) / TP_HALF));
+  }
+  return h;
+});
+export function interSamplePeak(x, i) {
+  let m = 0;
+  for (const h of TP_TAPS) {
+    let s = 0;
+    for (let k = 0; k < h.length; k++) {
+      const j = i + k - TP_HALF + 1;
+      if (j >= 0 && j < x.length) s += x[j] * h[k];
+    }
+    if (Math.abs(s) > m) m = Math.abs(s);
+  }
+  return m;
+}
+
 // Look-ahead peak limiter (stereo-linked). The gain is computed from a
 // forward-looking window minimum followed by a box filter of the same length,
 // which guarantees the gain has fully ramped down when the peak arrives.
-export function limiter(buf, { ceilingDb = -1.2, lookSec = 0.005, releaseSec = 0.12 } = {}) {
+// truePeak: also limit the inter-sample peaks (checked wherever a sample pair
+// reaches half the ceiling), so the 4x-oversampled peak stays at the ceiling.
+export function limiter(buf, { ceilingDb = -1.2, lookSec = 0.005, releaseSec = 0.12, truePeak = false } = {}) {
   const n = buf.L.length;
   const ceil = dbToGain(ceilingDb);
   const la = Math.max(1, Math.round(lookSec * SR));
   const req = new Float64Array(n);
   for (let i = 0; i < n; i++) {
-    const p = Math.max(Math.abs(buf.L[i]), Math.abs(buf.R[i]));
+    let p = Math.max(Math.abs(buf.L[i]), Math.abs(buf.R[i]));
+    if (truePeak && i + 1 < n && Math.max(p, Math.abs(buf.L[i + 1]), Math.abs(buf.R[i + 1])) >= 0.5 * ceil) {
+      p = Math.max(p, interSamplePeak(buf.L, i), interSamplePeak(buf.R, i));
+    }
     req[i] = p > ceil ? ceil / p : 1;
   }
   const m = new Float64Array(n);
@@ -656,4 +687,56 @@ export function limiter(buf, { ceilingDb = -1.2, lookSec = 0.005, releaseSec = 0
     buf.R[i] = clamp(buf.R[i] * g, -ceil, ceil);
   }
   return { buf, maxReductionDb: gainToDb(minGain) };
+}
+
+// Dynamic band cut (a dynamic EQ, like a wide de-esser): a peaking cut around
+// f0 whose depth follows the level in that band, so it only acts while the
+// source actually has energy there. Stereo-linked. The band signal is the SVF's
+// unity-gain band-pass, so x + (g - 1) * band is an exact peaking EQ of gain g.
+// thresholdDb omitted = automatic: median band level while active + autoOffsetDb.
+// Returns stats (dB): threshold, mean cut while active, max cut, active seconds.
+export function dynBandCut(buf, { f0 = 2000, q = 0.7, ratio = 3, maxCutDb = 6, attack = 0.005, release = 0.12, thresholdDb, autoOffsetDb = -4.5 } = {}) {
+  const n = buf.L.length;
+  const aA = Math.exp(-1 / (attack * SR));
+  const aR = Math.exp(-1 / (release * SR));
+  const envelope = (fn) => {
+    const fl = new SVF(f0, q);
+    const fr = new SVF(f0, q);
+    let env = 0;
+    for (let i = 0; i < n; i++) {
+      fl.tick(buf.L[i]);
+      fr.tick(buf.R[i]);
+      const bl = fl.band * fl.k;
+      const br = fr.band * fr.k;
+      const lvl = Math.max(Math.abs(bl), Math.abs(br));
+      env = lvl > env ? aA * env + (1 - aA) * lvl : aR * env + (1 - aR) * lvl;
+      fn(i, env, bl, br);
+    }
+  };
+  // "active" = within 30 dB of the loud end of the band level (99.5th percentile)
+  const sub = [];
+  envelope((i, env) => {
+    if ((i & 15) === 0) sub.push(gainToDb(env + 1e-12));
+  });
+  sub.sort((a, b) => a - b);
+  const floorDb = sub[Math.floor(sub.length * 0.995)] - 30;
+  const active = sub.filter((v) => v > floorDb);
+  const thr = thresholdDb ?? active[Math.floor(active.length / 2)] + autoOffsetDb;
+  let maxCut = 0;
+  let sumCut = 0;
+  let nAct = 0;
+  envelope((i, env, bl, br) => {
+    const envDb = gainToDb(env + 1e-12);
+    const over = envDb - thr;
+    const cut = over > 0 ? Math.min(maxCutDb, over * (1 - 1 / ratio)) : 0;
+    const g = dbToGain(-cut) - 1;
+    buf.L[i] += g * bl;
+    buf.R[i] += g * br;
+    if (envDb > floorDb) {
+      sumCut += cut;
+      nAct++;
+    }
+    if (cut > maxCut) maxCut = cut;
+  });
+  return { thresholdDb: thr, meanCutDb: nAct ? sumCut / nAct : 0, maxCutDb: maxCut, activeSec: nAct / SR };
 }
