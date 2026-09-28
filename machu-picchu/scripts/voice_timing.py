@@ -217,6 +217,152 @@ def align(real, sr, tts, words):
     return starts
 
 
+# ----------------------------------------------------------------------------- phrases
+HARD = (".", "!", "?", ":", "…")
+
+
+def phrase_marks(tts):
+    """For every spoken word: 'hard' if a pause is expected before it (sentence end, "...",
+    a [tag]), 'soft' after a comma, '' otherwise."""
+    marks = []
+    pending = ""
+    for tok in re.findall(r"\[[^\]]*\]|\S+", tts):
+        if tok.startswith("["):
+            pending = "hard"
+            continue
+        w = tok.strip(PUNCT)
+        if not w:
+            pending = "hard"
+            continue
+        if tok[0] in "¡¿." or tok.startswith("…"):
+            pending = "hard"
+        marks.append(pending if marks else "hard")
+        tail = tok[len(tok.rstrip(PUNCT)) :]
+        pending = "hard" if any(c in tail for c in HARD) else ("soft" if "," in tail else "")
+    return marks
+
+
+def speech_segments(x, sr, rel_db=35, min_gap_s=0.12):
+    """(start, end) seconds of the stretches of speech, split at pauses of min_gap_s or more."""
+    db, hop = rms_db(x, sr, win_s=0.03, hop_s=0.01)
+    on = db > db.max() - rel_db
+    segs = []
+    start = None
+    gap = 0
+    end = 0
+    for i, v in enumerate(on):
+        if v:
+            if start is None:
+                start = i
+            gap = 0
+            end = i
+        elif start is not None:
+            gap += 1
+            if gap * hop / sr >= min_gap_s:
+                segs.append((start * hop / sr, (end + 1) * hop / sr))
+                start = None
+    if start is not None:
+        segs.append((start * hop / sr, (end + 1) * hop / sr))
+    return segs
+
+
+def match_pauses(marks, starts, segs):
+    """Pairs the expected phrase breaks (punctuation, tags) with the real pauses in the clip.
+
+    Monotonic alignment (edit distance) between the breaks, at their DTW-estimated times,
+    and the speech onsets that follow each pause. Leaving a long pause without a break is
+    expensive, so a break the global DTW misplaced by a second still finds its pause.
+    Returns {word index: onset time}."""
+    breaks = [k for k in range(1, len(marks)) if marks[k]]
+    gaps = [(segs[j][0], segs[j][0] - segs[j - 1][1]) for j in range(1, len(segs))]
+    n, m = len(breaks), len(gaps)
+    INF = float("inf")
+    D = np.full((n + 1, m + 1), INF)
+    D[0, 0] = 0
+    move = {}
+    for i in range(n + 1):
+        for j in range(m + 1):
+            if i == 0 and j == 0:
+                continue
+            best = INF
+            if i > 0 and j > 0:
+                d = abs(starts[breaks[i - 1]] - gaps[j - 1][0])
+                if d < 2.5 and D[i - 1, j - 1] + d < best:
+                    best, move[i, j] = D[i - 1, j - 1] + d, "m"
+            if i > 0:
+                c = D[i - 1, j] + (0.5 if marks[breaks[i - 1]] == "hard" else 0.1)
+                if c < best:
+                    best, move[i, j] = c, "b"
+            if j > 0:
+                c = D[i, j - 1] + 1.5 * gaps[j - 1][1]
+                if c < best:
+                    best, move[i, j] = c, "g"
+            D[i, j] = best
+    out = {}
+    i, j = n, m
+    while i > 0 or j > 0:
+        mv = move[i, j]
+        if mv == "m":
+            out[breaks[i - 1]] = gaps[j - 1][0]
+            i, j = i - 1, j - 1
+        elif mv == "b":
+            i -= 1
+        else:
+            j -= 1
+    return out
+
+
+def refine(real, sr, tts, words, starts):
+    """Moves phrase starts onto the real pauses, then re-aligns each phrase on its own
+    (eSpeak's pauses never match the real ones, which is what throws the global DTW off).
+    Returns (starts, ends)."""
+    marks = phrase_marks(tts)
+    segs = speech_segments(real, sr)
+    snapped = match_pauses(marks, starts, segs)
+    heads = [0] + sorted(snapped)
+    t_head = {0: segs[0][0] if segs else 0.0, **snapped}
+    heads.append(len(words))
+    out_s, out_e = [], []
+    for h in range(len(heads) - 1):
+        k0, k1 = heads[h], heads[h + 1]
+        t0 = t_head[k0]
+        t1 = t_head[k1] if k1 < len(words) else len(real) / sr
+        # The phrase ends where its last stretch of speech ends.
+        ends = [b for a, b in segs if a < t1 - 0.02 and b > t0]
+        t1 = min(t1, max(ends)) if ends else t1
+        sub = real[int(t0 * sr) : int(t1 * sr)]
+        local = align(sub, sr, " ".join(words[k0:k1]), words[k0:k1]) if k1 - k0 > 1 and len(sub) > sr * 0.2 else [0.0]
+        if local is None:
+            local = proportional(sub, sr, words[k0:k1])
+            local = [v - local[0] for v in local]
+        local[0] = 0.0
+        for k, v in enumerate(local):
+            out_s.append(t0 + v)
+            out_e.append(t0 + local[k + 1] if k + 1 < len(local) else t1)
+    for k in range(1, len(out_s)):
+        out_s[k] = max(out_s[k], out_s[k - 1] + 0.04)
+    return out_s, out_e
+
+
+def cap_pauses(x, sr, max_s=1.4, fade_s=0.03):
+    """Shortens pauses inside a line to max_s (cuts the middle of the silence, with a crossfade)."""
+    segs = speech_segments(x, sr, rel_db=40, min_gap_s=0.2)
+    fade = int(fade_s * sr)
+    out = x
+    # From the end so earlier positions stay valid.
+    for (a0, b0), (a1, _) in reversed(list(zip(segs, segs[1:]))):
+        gap = a1 - b0
+        if gap <= max_s:
+            continue
+        cut0 = int((b0 + max_s / 2) * sr)
+        cut1 = int((a1 - max_s / 2) * sr)
+        head, tail = out[: cut0 + fade].copy(), out[cut1:].copy()
+        ramp = np.linspace(1, 0, fade)
+        head[-fade:] = head[-fade:] * ramp + tail[:fade] * (1 - ramp)
+        out = np.concatenate([head, tail[fade:]])
+    return out
+
+
 def proportional(real, sr, words):
     """Fallback: spread words over the voiced span by letter count."""
     s, e = trim_bounds(real, sr)
@@ -302,14 +448,14 @@ def main():
             raise SystemExit(f"{lid}: captions cover {caption_word_count(line['captions'])} words, text has {len(words)}")
         x, sr = load_clip(raw_dir, lid, tmp_dir)
         a, b = trim_bounds(x, sr)
-        x = level(x[a:b].copy(), sr)
+        x = level(cap_pauses(x[a:b].copy(), sr), sr)
         fade = int(0.01 * sr)
         x[:fade] *= np.linspace(0, 1, fade)
         x[-fade:] *= np.linspace(1, 0, fade)
         write_wav(os.path.join(out_dir, f"{lid}.wav"), x, sr)
         starts = align(x, sr, line["tts"], words) or proportional(x, sr, words)
-        end = voiced_end(x, sr)
-        spans = [[round(s, 3), round((starts[k + 1] if k + 1 < len(starts) else end), 3)] for k, s in enumerate(starts)]
+        starts, ends = refine(x, sr, line["tts"], words, starts)
+        spans = [[round(s, 3), round(e, 3)] for s, e in zip(starts, ends)]
         env, acc = frame_envelope(x, sr)
         result["lines"][lid] = {"duration": round(len(x) / sr, 3), "words": spans, "env": env, "accents": acc}
         peak = 20 * np.log10(np.abs(x).max())
