@@ -153,17 +153,16 @@ const ExportDialog: React.FC<{frame: number}> = ({frame}) => {
   );
 };
 
-const STEPS = [
+export const EDIT_STEPS = [
   {from: 2, to: 56, n: '1', label: 'IMPORTA'},
   {from: 58, to: 106, n: '2', label: 'CORTA'},
   {from: 110, to: 158, n: '3', label: 'AJUSTA'},
   {from: 162, to: 222, n: '4', label: 'EXPORTA'},
 ];
 
-export const EditingScene: React.FC = () => {
-  const frame = useCurrentFrame();
-  const g = frame + 375; // global frame for continuous motion
-  const cam: Cam = drift(
+/** Camera over the interface for a given frame (shared with the After Effects export). */
+export const editingCam = (frame: number): Cam =>
+  drift(
     camPath(frame, {fx: 1150, fy: 800, z: 1.15}, [
       {at: 0, dur: 10, cam: {fx: 780, fy: 800, z: 1.2}},
       {at: 58, dur: 14, cam: {fx: 1000, fy: 800, z: 1.45}},
@@ -172,6 +171,11 @@ export const EditingScene: React.FC = () => {
     frame,
     0.6,
   );
+
+export const EditingScene: React.FC<{plate?: boolean}> = ({plate}) => {
+  const frame = useCurrentFrame();
+  const g = frame + 375; // global frame for continuous motion
+  const cam: Cam = editingCam(frame);
   const tool: ToolId = frame >= 64 && frame < 114 ? 'razor' : 'select';
   const cur = path(frame, CURSOR);
   const dragging = DRAGS.find((d) => frame >= d.from && frame < d.to);
@@ -223,8 +227,10 @@ export const EditingScene: React.FC = () => {
           }}
         />
       </CameraView>
+      {plate ? null : (
+        <>
 
-      {STEPS.map((s) => (
+      {EDIT_STEPS.map((s) => (
         <Sticker key={s.n} frame={frame} start={s.from} exit={s.to} x={1440} y={170} rotate={-5} size={96} bg={C.yellow}>
           <span style={{color: C.red, WebkitTextStroke: `3px ${C.ink}`}}>{s.n}</span> · {s.label}
         </Sticker>
@@ -243,6 +249,8 @@ export const EditingScene: React.FC = () => {
       <SpeechBubble frame={frame} start={196} exit={222} x={1610} y={800} text="¡Video listo!" size={42} />
       <CornerMarks frame={frame} start={0} />
       <Grain frame={g} />
+        </>
+      )}
     </AbsoluteFill>
   );
 };

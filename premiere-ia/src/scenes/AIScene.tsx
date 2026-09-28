@@ -12,7 +12,7 @@ import {TLClip} from '../ui/Timeline';
 import {DEFAULT_CLIPS} from '../ui/clips';
 import {L, TL, monitorFrame, trackY} from '../ui/layout';
 
-const SEG = 105; // frames per feature (3.5 s)
+export const SEG = 105; // frames per feature (3.5 s)
 
 const uiX = (t: number) => L.timeline.x + TL.headerW + t * TL.pxPerSec;
 const v1Y = L.timeline.y + trackY('V1') + 23;
@@ -150,7 +150,7 @@ const ReframeOverlay: React.FC<{lf: number; w: number; h: number}> = ({lf, w, h}
 
 // ---------- Scene ----------
 
-const FEATURES = [
+export const FEATURES = [
   {num: 'IA 1', label: 'TRANSCRIPCIÓN', caption: 'Borras el texto… ¡y el video se corta solo!', bubble: '¡Edita borrando texto!'},
   {num: 'IA 2', label: 'SUBTÍTULOS AUTOMÁTICOS', caption: 'Se generan y se traducen en segundos', bubble: '¡Y en otros idiomas!'},
   {num: 'IA 3', label: 'MEJORAR VOZ', caption: 'Quita el ruido: voz clara, como de estudio', bubble: '¡Adiós ruido!'},
@@ -158,13 +158,9 @@ const FEATURES = [
   {num: 'IA 5', label: 'EXTENSIÓN GENERATIVA', caption: 'La IA crea frames nuevos para alargar tu clip', bubble: '¡Frames hechos por IA!'},
 ];
 
-export const AIScene: React.FC = () => {
-  const frame = useCurrentFrame();
-  const g = frame + 675;
-  const fi = Math.min(4, Math.floor(frame / SEG));
-  const lf = frame - fi * SEG;
-
-  const cam: Cam = drift(
+/** Camera over the interface for a given frame (shared with the After Effects export). */
+export const aiCam = (frame: number): Cam =>
+  drift(
     camPath(frame, {fx: 960, fy: 545, z: 0.9}, [
       {at: 0, dur: 16, cam: {fx: 1250, fy: 520, z: 1.18}, easing: EASE_OUT},
       {at: 100, dur: 14, cam: {fx: 1235, fy: 380, z: 1.32}},
@@ -177,6 +173,14 @@ export const AIScene: React.FC = () => {
     frame,
     0.5,
   );
+
+export const AIScene: React.FC<{plate?: boolean}> = ({plate}) => {
+  const frame = useCurrentFrame();
+  const g = frame + 675;
+  const fi = Math.min(4, Math.floor(frame / SEG));
+  const lf = frame - fi * SEG;
+
+  const cam: Cam = aiCam(frame);
 
   // --- per-feature UI state ---
   let clips: TLClip[] = AFTER;
@@ -268,6 +272,8 @@ export const AIScene: React.FC = () => {
           }}
         />
       </CameraView>
+      {plate ? null : (
+        <>
 
       {/* AI glow frame */}
       <div style={{position: 'absolute', inset: 0, boxShadow: `inset 0 0 140px ${C.ai}55`, pointerEvents: 'none'}} />
@@ -319,6 +325,8 @@ export const AIScene: React.FC = () => {
       })}
       <CornerMarks frame={frame} start={0} color="rgba(185,140,255,0.8)" />
       <Grain frame={g} />
+        </>
+      )}
     </AbsoluteFill>
   );
 };

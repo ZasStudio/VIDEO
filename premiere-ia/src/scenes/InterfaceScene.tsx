@@ -10,7 +10,7 @@ import {L, Rect} from '../ui/layout';
 
 const START: Cam = {fx: 960, fy: 600, z: 0.45, rx: 30, ry: -26, rz: 8};
 
-const STEPS: {rect: Rect; title: string; desc: string; from: number; to: number; cam: Cam; labelSide?: 'top' | 'right'}[] = [
+export const INTERFACE_STEPS: {rect: Rect; title: string; desc: string; from: number; to: number; cam: Cam; labelSide?: 'top' | 'right'}[] = [
   {rect: L.project, title: 'PROYECTO', desc: 'Importa y organiza tus clips', from: 30, to: 64, cam: {fx: 820, fy: 660, z: 0.86}},
   {rect: L.source, title: 'MONITOR DE ORIGEN', desc: 'Revisa y marca cada clip', from: 66, to: 100, cam: {fx: 760, fy: 440, z: 0.86}},
   {rect: L.program, title: 'MONITOR DE PROGRAMA', desc: 'Así se ve tu video final', from: 102, to: 136, cam: {fx: 1080, fy: 440, z: 0.88}},
@@ -18,17 +18,21 @@ const STEPS: {rect: Rect; title: string; desc: string; from: number; to: number;
   {rect: L.tools, title: 'HERRAMIENTAS', desc: 'Selección (V) · Cuchilla (C)', from: 174, to: 206, cam: {fx: 820, fy: 760, z: 0.95}, labelSide: 'right'},
 ];
 
-export const InterfaceScene: React.FC = () => {
-  const frame = useCurrentFrame();
-  const cam = drift(
+/** Camera over the interface for a given frame (shared with the After Effects export). */
+export const interfaceCam = (frame: number): Cam =>
+  drift(
     camPath(frame, START, [
       {at: 0, dur: 26, cam: {fx: 960, fy: 560, z: 0.8}, easing: EASE_OUT},
-      ...STEPS.map((s) => ({at: s.from - 4, dur: 16, cam: s.cam})),
+      ...INTERFACE_STEPS.map((s) => ({at: s.from - 4, dur: 16, cam: s.cam})),
       {at: 206, dur: 19, cam: {fx: 1150, fy: 800, z: 1.15}},
     ]),
     frame,
   );
-  const active = STEPS.find((s) => frame >= s.from && frame < s.to + 2);
+
+export const InterfaceScene: React.FC<{plate?: boolean}> = ({plate}) => {
+  const frame = useCurrentFrame();
+  const cam = interfaceCam(frame);
+  const active = INTERFACE_STEPS.find((s) => frame >= s.from && frame < s.to + 2);
   const playhead = 1.2 + frame / 30;
 
   return (
@@ -45,7 +49,9 @@ export const InterfaceScene: React.FC = () => {
           }}
         />
       </CameraView>
-      {STEPS.map((s) => {
+      {plate ? null : (
+        <>
+      {INTERFACE_STEPS.map((s) => {
         const r = toScreen(s.rect, cam);
         const lx = s.labelSide === 'right' ? r.x + r.w + 26 : r.x + 10;
         const ly = s.labelSide === 'right' ? r.y + 160 : r.y - 14;
@@ -63,6 +69,8 @@ export const InterfaceScene: React.FC = () => {
       <CornerMarks frame={frame} start={0} />
       <Grain frame={frame} />
       <div style={{position: 'absolute', inset: 0, background: '#000', opacity: ramp(frame, 0, 1, [0, 0])}} />
+        </>
+      )}
     </AbsoluteFill>
   );
 };

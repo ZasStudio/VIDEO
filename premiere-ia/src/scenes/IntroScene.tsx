@@ -7,12 +7,13 @@ import {SpeechBubble} from '../mg/Avatar';
 import {BlockTitle, CornerMarks, Grain, Sparkle, Sticker, Ticker, UrbanBackground} from '../mg/Urban';
 import {C, FONT} from '../theme';
 
-const SHEEP_H = 760;
-const GROUND = 1000;
+export const INTRO_SHEEP_H = 760;
+export const INTRO_GROUND = 1000;
+const SHEEP_H = INTRO_SHEEP_H;
+const GROUND = INTRO_GROUND;
 
-export const IntroScene: React.FC = () => {
-  const frame = useCurrentFrame();
-
+/** Sheep pose + placement for a given frame (shared with the After Effects export). */
+export const introChoreo = (frame: number) => {
   // --- sheep choreography ---
   const walkX = ramp(frame, 0, 58, [-420, 470], EASE_OUT);
   const settle = ramp(frame, 50, 66, [0, 1], EASE_IN_OUT);
@@ -45,6 +46,13 @@ export const IntroScene: React.FC = () => {
   pose = {...pose, blink: blinkAt(frame, 20)};
 
   const zoom = 1 + 0.06 * ramp(frame, 100, 150, [0, 1], EASE_IN_OUT);
+
+  return {pose, walkX, zoom};
+};
+
+export const IntroScene: React.FC = () => {
+  const frame = useCurrentFrame();
+  const {pose, walkX, zoom} = introChoreo(frame);
 
   return (
     <AbsoluteFill style={{overflow: 'hidden'}}>

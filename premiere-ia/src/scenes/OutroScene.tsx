@@ -6,13 +6,12 @@ import {EASE_IN_OUT, pop, ramp} from '../anim';
 import {BlockTitle, Burst, CornerMarks, Grain, Sparkle, Sticker, Ticker, UrbanBackground} from '../mg/Urban';
 import {C, FONT} from '../theme';
 
-const HIT = 75; // local frame of the final musical hit (global 1275 = 42.5 s)
+export const HIT = 75; // local frame of the final musical hit (global 1275 = 42.5 s)
 
-export const OutroScene: React.FC = () => {
-  const frame = useCurrentFrame();
+/** Choreography for the closing scene (shared with the After Effects export). */
+export const outroChoreo = (frame: number) => {
   const g = frame + 1200;
   const poster = frame >= HIT;
-
   // Dance, then the poster pose (walking in place + pointing, like the reference art).
   const beat = (g / 18.75) * Math.PI;
   const dance = idlePose(g, 1.8, {
@@ -33,6 +32,15 @@ export const OutroScene: React.FC = () => {
   const sheepX = poster ? 960 : 560;
   const slam = poster ? pop(frame, HIT, {damping: 9, stiffness: 180}) : 1;
   const fade = ramp(frame, 138, 150, [0, 1], EASE_IN_OUT);
+
+  return {p, sheepH, sheepX, slam, fade, poster};
+};
+
+export const OutroScene: React.FC = () => {
+  const frame = useCurrentFrame();
+  const g = frame + 1200;
+
+  const {p, sheepH, sheepX, slam, fade, poster} = outroChoreo(frame);
 
   return (
     <AbsoluteFill style={{overflow: 'hidden', background: '#000'}}>

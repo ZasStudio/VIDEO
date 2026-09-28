@@ -6,6 +6,15 @@ import {C, FONT} from '../theme';
 
 // Streamer-style facecam with the sheep avatar + comic speech bubbles.
 
+/** Pose of the sheep inside the facecam (shared with the After Effects export). */
+export const faceCamPose = (frame: number, talking: boolean, poseOverride?: Partial<SheepPose>) =>
+  idlePose(frame, 1, {
+    blink: blinkAt(frame, 7),
+    mouth: talking ? 'talk' : 'smile',
+    mouthOpen: talking ? talkAt(frame) : 0,
+    ...poseOverride,
+  });
+
 export const FaceCam: React.FC<{
   frame: number;
   start: number;
@@ -21,12 +30,7 @@ export const FaceCam: React.FC<{
   const s = pop(frame, start, {damping: 10, stiffness: 160});
   const out = exit !== undefined ? ramp(frame, exit, exit + 10, [1, 0], EASE_IN_OUT) : 1;
   if (out <= 0) return null;
-  const pose = idlePose(frame, 1, {
-    blink: blinkAt(frame, 7),
-    mouth: talking ? 'talk' : 'smile',
-    mouthOpen: talking ? talkAt(frame) : 0,
-    ...poseOverride,
-  });
+  const pose = faceCamPose(frame, !!talking, poseOverride);
   const H = d * 1.45;
   const W = (H * 880) / 1160;
   const dot = Math.floor(frame / 15) % 2 === 0;

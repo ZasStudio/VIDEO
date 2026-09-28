@@ -6,13 +6,12 @@ import {EASE_IN_OUT, pop, ramp, rand} from '../anim';
 import {BlockTitle, Burst, CornerMarks, Grain, Sparkle, Sticker, UrbanBackground} from '../mg/Urban';
 import {C} from '../theme';
 
-const SHEEP_H = 700;
+export const CARD_SHEEP_H = 700;
+const SHEEP_H = CARD_SHEEP_H;
 
-// Bar 9 of the music: a break that builds up to the AI section.
-export const AICardScene: React.FC = () => {
-  const frame = useCurrentFrame();
+/** Choreography for the break scene (shared with the After Effects export). */
+export const cardChoreo = (frame: number) => {
   const g = frame + 600;
-
   const land = pop(frame, 2, {damping: 12, stiffness: 140});
   const y = (1 - land) * 700;
   const squash = frame > 10 && frame < 22 ? 1 - 0.12 * Math.sin(((frame - 10) / 12) * Math.PI) : 1;
@@ -26,6 +25,16 @@ export const AICardScene: React.FC = () => {
   const gx = glitch ? (rand(Math.floor(frame / 2) + 3) - 0.5) * 26 : 0;
   const gy = glitch ? (rand(Math.floor(frame / 2) + 9) - 0.5) * 10 : 0;
   const zoom = 1 + 0.12 * ramp(frame, 50, 75, [0, 1], EASE_IN_OUT);
+
+  return {p, y, shake, glitch, gx, gy, zoom};
+};
+
+// Bar 9 of the music: a break that builds up to the AI section.
+export const AICardScene: React.FC = () => {
+  const frame = useCurrentFrame();
+  const g = frame + 600;
+
+  const {p, y, shake, glitch, gx, gy, zoom} = cardChoreo(frame);
 
   return (
     <AbsoluteFill style={{overflow: 'hidden'}}>

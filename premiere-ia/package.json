@@ -23,8 +23,10 @@
     "@remotion/eslint-config-flat": "4.0.529",
     "@types/react": "19.2.7",
     "@types/web": "0.0.166",
+    "acorn": "^8.18.0",
     "eslint": "9.19.0",
     "prettier": "3.8.1",
+    "tsx": "^4.23.15",
     "typescript": "5.9.3"
   },
   "scripts": {
