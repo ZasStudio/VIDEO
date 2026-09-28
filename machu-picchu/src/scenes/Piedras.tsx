@@ -9,12 +9,13 @@ import {
   ramp,
   rand,
   windowIn,
-  wordPulse,
 } from "../anim";
+import { ClawdPip } from "../overlay/ClawdPip";
 import { Burst, Card } from "../overlay/Graphics";
 import { TitleCanvas, TitleSlam } from "../overlay/TitleOverlay";
-import { WORD_FRAMES } from "../script";
-import { FONT, SCENES } from "../theme";
+import { talkPose } from "../talk";
+import { FONT } from "../theme";
+import { SCENES, lineEnd, lineStart, wordAt } from "../timeline";
 import { Clawd } from "../three/Clawd";
 import { Vec3, lerp3, projectToScreen } from "../three/CameraRig";
 import { DustPuff, Sparks, Twinkles } from "../three/Effects3D";
@@ -24,8 +25,8 @@ import { CementBag, Chisel, HammerStone, NoSign, Paper } from "../three/Props";
 import { LOOKS } from "../three/Text3D";
 import { Shake, Stage } from "./common";
 
-// 24-34 s: SECRETO #1: granite from the same mountain, fitted without mortar,
-// not even a sheet of paper fits, carved with harder stones and bronze.
+// SECRETO #1: granite from the same mountain, fitted without mortar, not even a sheet
+// of paper fits, carved with harder stones and bronze. Everything follows Clawd's words.
 
 const WALL_POS: Vec3 = [-2.9, 0, -0.8];
 const WALL_W = 7.4;
@@ -34,7 +35,6 @@ const DEPTH = 1.15;
 const QUARRY: Vec3 = [5.4, 0, -2.4];
 const CLAWD_AT: Vec3 = [-5.2, 0, 3.0];
 
-export const PIEDRAS_LANDINGS: number[] = [];
 
 const useWall = () =>
   useMemo(
@@ -53,30 +53,37 @@ const useWall = () =>
 const order = (blocks: BlockDef[]) =>
   [...blocks].sort((a, b) => a.row - b.row || a.cx - b.cx);
 
-export const landingFrames = () => {
-  const wall = buildWall({
-    width: WALL_W,
-    height: WALL_H,
-    rows: 4,
-    seed: 12,
-    minBlock: 1.3,
-    maxBlock: 2.5,
-  });
-  return order(wall).map((_, k) => 762 + Math.round(k * 4.6));
+/** Frames where the 16 wall blocks land: spread over "cortaban ... rompecabezas". */
+export const landingFrames = (count = 16) => {
+  const a = wordAt("L10", 2) + 12;
+  const b = wordAt("L10", 14) + 4;
+  return Array.from({ length: count }, (_, k) => a + Math.round((k * (b - a)) / (count - 1)));
 };
-
-const HIT1 = 950;
-const HIT2 = 966;
 
 export const Piedras: React.FC = () => {
   const frame = useCurrentFrame();
-  const g = frame + SCENES.piedras.from;
+  const S = SCENES.piedras;
+  const g = frame + S.from;
+  const END = S.from + S.duration;
   const wall = useWall();
   const sorted = useMemo(() => order(wall), [wall]);
-  const landAt = useMemo(
-    () => new Map(sorted.map((b, k) => [b.index, 762 + Math.round(k * 4.6)])),
-    [sorted],
-  );
+  const landAt = useMemo(() => {
+    const lands = landingFrames(sorted.length);
+    return new Map(sorted.map((b, k) => [b.index, lands[k]]));
+  }, [sorted]);
+  // Cues from the narration.
+  const T1 = wordAt("L09", 0) + 3;
+  const T2 = wordAt("L09", 3) + 3;
+  const TITLE_OUT = lineEnd("L09") + 6;
+  const BUILD0 = wordAt("L10", 2);
+  const L11 = lineStart("L11");
+  const L12 = lineStart("L12");
+  const PAPER_IN = wordAt("L11", 5);
+  const PAPER_HIT = wordAt("L11", 10);
+  const PAPER_FAIL = wordAt("L11", 11);
+  const HIT1 = wordAt("L12", 4);
+  const HIT2 = HIT1 + 16;
+  const BRONZE = wordAt("L12", 13);
 
   // The seam the paper tries to enter: horizontal joint between rows 1 and 2, near the centre.
   const jx = WALL_W * 0.52;
@@ -94,7 +101,7 @@ export const Piedras: React.FC = () => {
   ];
 
   // Camera: wide orbit -> close-up on the seam -> medium on the hammer strikes.
-  const orbit = keyframes(g, [720, 870], [-0.22, 0.1], (x) => x);
+  const orbit = keyframes(g, [S.from, L11 - 12], [-0.22, 0.1], (x) => x);
   const wideR = 15.8;
   const wide = {
     position: [
@@ -113,9 +120,9 @@ export const Piedras: React.FC = () => {
     target: [HITP[0] - 0.8, HITP[1] - 0.9, HITP[2]] as Vec3,
   };
   const kClose =
-    ramp(g, 870, 884, [0, 1], EASE_IN_OUT) *
-    (1 - ramp(g, 928, 942, [0, 1], EASE_IN_OUT));
-  const kMed = ramp(g, 930, 944, [0, 1], EASE_IN_OUT);
+    ramp(g, L11 - 16, L11 + 4, [0, 1], EASE_IN_OUT) *
+    (1 - ramp(g, L12 - 18, L12, [0, 1], EASE_IN_OUT));
+  const kMed = ramp(g, L12 - 16, L12 + 2, [0, 1], EASE_IN_OUT);
   let position = lerp3(wide.position, close.position, kClose);
   let tgt = lerp3(wide.target, close.target, kClose);
   position = lerp3(position, medium.position, kMed);
@@ -124,7 +131,7 @@ export const Piedras: React.FC = () => {
 
   const anim = (b: BlockDef) => {
     const L = landAt.get(b.index)!;
-    const start = L - 12;
+    const start = L - 16;
     if (g < start)
       return { pos: [0, 0, 0] as Vec3, rot: [0, 0, 0] as Vec3, visible: false };
     const rest: Vec3 = [WALL_POS[0] + b.cx, WALL_POS[1] + b.cy, WALL_POS[2]];
@@ -148,17 +155,17 @@ export const Piedras: React.FC = () => {
       scale = 0.45 + 0.55 * t;
     } else {
       const d = g - L;
-      pos = [0, 0.14 * Math.abs(Math.sin(d * 0.9)) * Math.exp(-d / 3), 0];
+      pos = [0, 0.12 * Math.abs(Math.sin(d * 0.7)) * Math.exp(-d / 4), 0];
     }
     // Hammer strikes shake the top-right block.
     if (b.index === target.index) {
       for (const h of [HIT1, HIT2]) {
         const d = g - h;
-        if (d >= 0 && d < 8)
+        if (d >= 0 && d < 10)
           pos = [
-            pos[0] + Math.sin(d * 3) * 0.05 * (1 - d / 8),
+            pos[0] + Math.sin(d * 2.5) * 0.05 * (1 - d / 10),
             pos[1],
-            pos[2] - 0.06 * (1 - d / 8),
+            pos[2] - 0.06 * (1 - d / 10),
           ];
       }
     }
@@ -166,40 +173,42 @@ export const Piedras: React.FC = () => {
   };
 
   // Paper test.
-  const pIn = ramp(g, 874, 892, [0, 1], EASE_OUT);
-  const bend = ramp(g, 892, 900, [0, 1], EASE_OUT) * 0.9;
-  const fall = ramp(g, 900, 918, [0, 1], EASE_IN);
+  const pIn = ramp(g, PAPER_IN, PAPER_HIT, [0, 1], EASE_OUT);
+  const bend = ramp(g, PAPER_HIT, PAPER_FAIL + 4, [0, 1], EASE_OUT) * 0.9;
+  const fall = ramp(g, PAPER_FAIL + 4, PAPER_FAIL + 26, [0, 1], EASE_IN);
   const paperPos: Vec3 = [
     J[0] + 2.4 * (1 - pIn) + fall * 0.6,
     J[1] + 0.02 - fall * 3.5,
     J[2] + 0.58 + 2.2 * (1 - pIn) + fall * 1.0,
   ];
-  const paperShown = g >= 872 && g < 922;
+  const paperShown = g >= PAPER_IN - 2 && g < PAPER_FAIL + 28;
   const jScreen = projectToScreen(cam, J);
-  const xShow = pop(g, 900, { damping: 9, stiffness: 240 });
+  const xShow = pop(g, PAPER_FAIL, { damping: 11, stiffness: 200 });
+  const MAG_IN = wordAt("L11", 0);
+  const MAG_OUT = lineEnd("L11") + 6;
 
   // Hammerstone swing.
   const swing = (h: number) => {
     const d = g - h;
-    if (d < -8) return 1;
-    if (d < 0) return ramp(d, -8, 0, [1, 0], EASE_IN);
-    return ramp(d, 0, 7, [0, 1], EASE_OUT);
+    if (d < -9) return 1;
+    if (d < 0) return ramp(d, -9, 0, [1, 0], EASE_IN);
+    return ramp(d, 0, 9, [0, 1], EASE_OUT);
   };
-  const hs = Math.min(swing(HIT1), g < HIT1 + 8 ? 1 : swing(HIT2));
-  const hammerIn = ramp(g, 936, 944, [0, 1], EASE_OUT);
-  const hammerOut = ramp(g, 1012, 1018, [0, 1], EASE_IN);
+  const hs = Math.min(swing(HIT1), g < HIT1 + 9 ? 1 : swing(HIT2));
+  const hammerIn = ramp(g, L12 - 10, L12 + 4, [0, 1], EASE_OUT);
+  const hammerOut = ramp(g, END - 16, END - 6, [0, 1], EASE_IN);
   const hammerPos: Vec3 = [
     HITP[0] + 0.9 + hs * 1.6 + (1 - hammerIn) * 5,
     HITP[1] + 0.2 + hs * 1.4,
     HITP[2] + 0.8 + hs * 0.5,
   ];
-  const chiselK = pop(g, 1000, { damping: 10, stiffness: 180 });
-  const talk = wordPulse(g, WORD_FRAMES);
+  const chiselK = pop(g, BRONZE, { damping: 12, stiffness: 160 });
   const flinch = [HIT1, HIT2].some((h) => g >= h && g < h + 6) ? 1 : 0;
-  const cheer = windowIn(g, 1000, 1030, 4);
-  const lookAtWall = ramp(g, 760, 770);
+  const cheer = windowIn(g, wordAt("L12", 15), END, 6);
+  const lookAtWall = ramp(g, BUILD0, BUILD0 + 12);
+  const BAG = wordAt("L10", 15);
   const bagK =
-    pop(g, 856, { damping: 10, stiffness: 200 }) * (1 - ramp(g, 868, 874));
+    pop(g, BAG, { damping: 12, stiffness: 170 }) * (1 - ramp(g, lineEnd("L10") + 4, lineEnd("L10") + 14));
   const labelHammer = projectToScreen(cam, [
     hammerPos[0],
     hammerPos[1] + 1.3,
@@ -231,7 +240,7 @@ export const Piedras: React.FC = () => {
       <Shake
         frame={g}
         impacts={[
-          { at: 720, amp: 18, dur: 14 },
+          { at: S.from, amp: 16, dur: 16 },
           { at: HIT1, amp: 9 },
           { at: HIT2, amp: 9 },
         ]}
@@ -274,10 +283,11 @@ export const Piedras: React.FC = () => {
               size={2.2}
               pose={{
                 hat: 1,
-                squash: 1 - 0.06 * talk,
-                hop: talk * 0.5 + cheer * Math.abs(Math.sin(g * 0.5)) * 1.2,
-                armL: 0.25 * talk + cheer * 1.3,
-                armR: 0.25 * talk + cheer * 1.3,
+                ...talkPose(g, {
+                  hop: cheer * Math.abs(Math.sin(g * 0.35)) * 1.1,
+                  armL: cheer * 1.2,
+                  armR: cheer * 1.2,
+                }),
                 lookX: 0.7,
                 lookY: 0.2,
                 eyeScale: flinch ? 0.25 : 1 + cheer * 0.2,
@@ -306,7 +316,7 @@ export const Piedras: React.FC = () => {
               <Paper bend={bend} />
             </group>
           ) : null}
-          {g >= 936 ? (
+          {g >= L12 - 10 ? (
             <group
               position={hammerPos}
               rotation={[0.3, -0.4, 0.4 + hs * 0.6]}
@@ -330,14 +340,14 @@ export const Piedras: React.FC = () => {
           ) : null}
           <Twinkles
             frame={g}
-            at={1000}
+            at={BRONZE}
             position={[HITP[0] + 1.2, HITP[1] - 1.9, HITP[2] + 1.6]}
             radius={1.3}
             count={10}
           />
         </Stage>
         {/* Magnifier on the seam + red X. */}
-        {g >= 884 && g < 932 ? (
+        {g >= MAG_IN && g < MAG_OUT ? (
           <div
             style={{
               position: "absolute",
@@ -349,11 +359,11 @@ export const Piedras: React.FC = () => {
               border: "12px solid #fff",
               boxShadow:
                 "0 0 0 8px rgba(0,0,0,0.35), 0 10px 30px rgba(0,0,0,0.4)",
-              transform: `scale(${pop(g, 884, { damping: 12, stiffness: 200 }) * (1 - ramp(g, 926, 932))})`,
+              transform: `scale(${pop(g, MAG_IN, { damping: 13, stiffness: 170 }) * (1 - ramp(g, MAG_OUT - 8, MAG_OUT))})`,
             }}
           />
         ) : null}
-        {g >= 900 && g < 932 ? (
+        {g >= PAPER_FAIL && g < MAG_OUT ? (
           <svg
             width={260}
             height={260}
@@ -362,7 +372,7 @@ export const Piedras: React.FC = () => {
               position: "absolute",
               left: jScreen.x + 110,
               top: jScreen.y - 230,
-              transform: `scale(${xShow * (1 - ramp(g, 926, 932))}) rotate(${(1 - xShow) * 30}deg)`,
+              transform: `scale(${xShow * (1 - ramp(g, MAG_OUT - 8, MAG_OUT))}) rotate(${(1 - xShow) * 30}deg)`,
             }}
           >
             <path
@@ -381,8 +391,8 @@ export const Piedras: React.FC = () => {
         ) : null}
         <Card
           frame={g}
-          at={976}
-          out={1010}
+          at={wordAt("L12", 6)}
+          out={wordAt("L12", 12)}
           x={Math.min(1600, labelHammer.x + 40)}
           y={Math.max(160, labelHammer.y - 140)}
           title="PIEDRA MÁS DURA"
@@ -392,8 +402,8 @@ export const Piedras: React.FC = () => {
         />
         <Card
           frame={g}
-          at={1002}
-          out={1014}
+          at={wordAt("L12", 15)}
+          out={END - 14}
           x={chiselScreen.x - 260}
           y={chiselScreen.y - 170}
           title="BRONCE"
@@ -402,8 +412,8 @@ export const Piedras: React.FC = () => {
         />
         <Card
           frame={g}
-          at={804}
-          out={834}
+          at={wordAt("L10", 6) - 2}
+          out={wordAt("L10", 9)}
           x={quarryScreen.x}
           y={quarryScreen.y - 130}
           title="CANTERA"
@@ -427,12 +437,12 @@ export const Piedras: React.FC = () => {
           color="#FFD24A"
           size={300}
         />
-        {g < 764 ? (
+        {g < TITLE_OUT + 14 ? (
           <TitleCanvas>
             <TitleSlam
               frame={g}
-              at={722}
-              out={754}
+              at={T1}
+              out={TITLE_OUT}
               exit="up"
               lines={[
                 { text: "SECRETO #1", size: 2.0, look: LOOKS.gold, y: 1.0 },
@@ -441,14 +451,14 @@ export const Piedras: React.FC = () => {
                   size: 1.2,
                   look: LOOKS.white,
                   y: -1.2,
-                  delay: 13,
+                  delay: T2 - T1,
                 },
               ]}
             />
           </TitleCanvas>
         ) : null}
       </Shake>
-      {g >= 884 && g < 932 ? (
+      {g >= MAG_IN && g < MAG_OUT ? (
         <div
           style={{
             position: "absolute",
@@ -459,12 +469,14 @@ export const Piedras: React.FC = () => {
             color: "#fff",
             WebkitTextStroke: "10px #000",
             paintOrder: "stroke fill",
-            transform: `scale(${pop(g, 890) * (1 - ramp(g, 926, 932))})`,
+            transform: `scale(${pop(g, MAG_IN + 6) * (1 - ramp(g, MAG_OUT - 8, MAG_OUT))})`,
           }}
         >
           0 mm
         </div>
       ) : null}
+      {/* Clawd is off frame in the close-ups: keep it on screen while it talks. */}
+      <ClawdPip g={g} from={L11 - 10} to={END - 12} />
     </AbsoluteFill>
   );
 };

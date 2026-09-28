@@ -1,0 +1,29 @@
+{
+  "voice": "Nerea Escudero (ElevenLabs v3 via Magnific), stability 0.45, speed 0.95",
+  "notes": "tts = exact text sent to TTS ([tags] are performance cues, not spoken; 'Clod' is how Clawd is pronounced). captions: chunks separated by ' / ', one token per spoken word; TOKEN{n} spans n spoken words, TOKEN^y|o|g|r|c = highlight colour, ~TOKEN = spoken but hidden (shown as a 3D title). '_' becomes a non-breaking space. null = no captions (the line is a 3D title).",
+  "lines": [
+    {"id": "L01", "scene": "hook", "tts": "Sin ruedas... [pause 0.5s] sin hierro... [pause 0.5s] ¡y sin cemento! [pause 0.4s] [curious] ¿Cómo lo hicieron?", "captions": null},
+    {"id": "L02", "scene": "intro", "tts": "[cheerful] ¡Hola! Soy Clod. Y hoy te voy a contar cómo se construyó... ¡Machu Picchu!", "captions": "¡HOLA! SOY CLAWD^o / Y HOY TE VOY A CONTAR / CÓMO SE CONSTRUYÓ... / ¡MACHU^y PICCHU!^y"},
+    {"id": "L03", "scene": "datos", "tts": "Machu Picchu está en Cusco, Perú... ¡a dos mil cuatrocientos treinta metros sobre el nivel del mar!", "captions": "MACHU PICCHU ESTÁ / EN CUSCO,^y PERÚ...^y / ¡A 2.430{4}^g METROS / SOBRE EL NIVEL DEL MAR!"},
+    {"id": "L04", "scene": "datos", "tts": "Los incas la construyeron hacia el año mil cuatrocientos cincuenta...", "captions": "LOS INCAS LA CONSTRUYERON / HACIA EL AÑO 1450...{3}^y"},
+    {"id": "L05", "scene": "inca", "tts": "...por orden de Pachacútec, [pause 0.2s] el gran emperador inca.", "captions": "POR ORDEN DE ~PACHACÚTEC / EL GRAN EMPERADOR INCA."},
+    {"id": "L06", "scene": "reto", "tts": "Pero construir aquí era un reto enorme. [pause 0.3s] Caen casi dos mil milímetros de lluvia al año...", "captions": "PERO CONSTRUIR AQUÍ / ERA UN RETO ENORME.^r / CAEN CASI 2.000_mm{3}^c / DE LLUVIA AL AÑO..."},
+    {"id": "L07", "scene": "reto", "tts": "[nervous] ...y la tierra tiembla muy seguido.", "captions": "Y LA TIERRA TIEMBLA^r / MUY SEGUIDO."},
+    {"id": "L08", "scene": "reto", "tts": "[dramatic] ¡Parecía imposible!", "captions": null},
+    {"id": "L09", "scene": "piedras", "tts": "[excited] Secreto número uno: [pause 0.3s] ¡las piedras!", "captions": null},
+    {"id": "L10", "scene": "piedras", "tts": "Los incas cortaban bloques de granito del mismo cerro... [pause 0.3s] y los encajaban como un rompecabezas, ¡sin nada de cemento!", "captions": "LOS INCAS CORTABAN / BLOQUES DE GRANITO^y / DEL MISMO CERRO... / Y LOS ENCAJABAN / COMO UN ROMPECABEZAS, / ¡SIN NADA DE CEMENTO!^r"},
+    {"id": "L11", "scene": "piedras", "tts": "[amazed] Las juntas son tan perfectas... que ni una hoja de papel cabe entre ellas.", "captions": "LAS JUNTAS SON / TAN PERFECTAS...^y / QUE NI UNA HOJA^y DE PAPEL^y / CABE ENTRE ELLAS."},
+    {"id": "L12", "scene": "piedras", "tts": "Y los tallaban a golpes, con piedras más duras que el granito... y herramientas de bronce.", "captions": "Y LOS TALLABAN A GOLPES, / CON PIEDRAS MÁS DURAS / QUE EL GRANITO... / Y HERRAMIENTAS DE BRONCE.^y"},
+    {"id": "L13", "scene": "sismos", "tts": "[excited] Secreto número dos: [pause 0.3s] ¡es antisísmico!", "captions": null},
+    {"id": "L14", "scene": "sismos", "tts": "Sus puertas y ventanas tienen forma de trapecio... [pause 0.3s] y los muros se inclinan un poquito hacia dentro.", "captions": "SUS PUERTAS Y VENTANAS / TIENEN FORMA DE TRAPECIO...^y / Y LOS MUROS SE INCLINAN^g / UN POQUITO HACIA DENTRO."},
+    {"id": "L15", "scene": "sismos", "tts": "Así, cuando tiembla... las piedras bailan... [excited] ¡y vuelven a su lugar!", "captions": "ASÍ, CUANDO TIEMBLA...^r / LAS PIEDRAS BAILAN...^y / ¡Y VUELVEN A SU LUGAR!^g"},
+    {"id": "L16", "scene": "subsuelo", "tts": "[excited] Secreto número tres: [pause 0.3s] ¡bajo tierra!", "captions": null},
+    {"id": "L17", "scene": "subsuelo", "tts": "Las terrazas se rellenaban por capas: [pause 0.2s] piedras grandes, grava, arena... y tierra.", "captions": "LAS TERRAZAS SE RELLENABAN / POR CAPAS:^y / PIEDRAS GRANDES, GRAVA, / ARENA... Y TIERRA."},
+    {"id": "L18", "scene": "subsuelo", "tts": "Así, el agua de la lluvia se filtra hacia abajo... sin destruir nada.", "captions": "ASÍ, EL AGUA DE LA LLUVIA^c / SE FILTRA HACIA ABAJO...^c / SIN DESTRUIR NADA."},
+    {"id": "L19", "scene": "subsuelo", "tts": "[amazed] De hecho, cerca del sesenta por ciento de la obra está bajo tierra... [pause 0.3s] ¡con ciento veintinueve canales de drenaje!", "captions": "DE HECHO, CERCA DEL 60%{3}^y / DE LA OBRA / ESTÁ BAJO TIERRA... / ¡CON 129{2}^c CANALES / DE DRENAJE!"},
+    {"id": "L20", "scene": "mita", "tts": "[curious] ¿Y quién construyó todo esto? [pause 0.4s] Miles de personas... trabajando por turnos.", "captions": "¿Y QUIÉN CONSTRUYÓ / TODO ESTO? / MILES DE PERSONAS...^y / TRABAJANDO POR TURNOS."},
+    {"id": "L21", "scene": "mita", "tts": "Ese sistema se llamaba... [pause 0.3s] ¡mita!", "captions": "ESE SISTEMA SE LLAMABA... ~MIT'A"},
+    {"id": "L22", "scene": "final", "tts": "Más de quinientos años después... [pause 0.4s] [excited] ¡Machu Picchu sigue en pie!", "captions": "MÁS DE 500 AÑOS DESPUÉS... / MACHU^y PICCHU^y ~SIGUE ~EN ~PIE"},
+    {"id": "L23", "scene": "final", "tts": "[cheerful] Por algo es una de las maravillas del mundo. [pause 0.3s] ¡Hasta la próxima!", "captions": "POR ALGO ES UNA DE / LAS MARAVILLAS DEL MUNDO.^y / ¡HASTA LA PRÓXIMA!^o"}
+  ]
+}

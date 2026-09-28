@@ -14,9 +14,7 @@ import { Subsuelo } from "./scenes/Subsuelo";
 import { Mita } from "./scenes/Mita";
 import { Final } from "./scenes/Final";
 import { ZoomCut } from "./scenes/common";
-import { SCENES } from "./theme";
-
-type SceneKey = keyof typeof SCENES;
+import { SCENES, SceneKey } from "./timeline";
 
 // Scenes that continue the previous shot without a punch cut.
 const NO_CUT_IN: SceneKey[] = ["hook", "datos"];

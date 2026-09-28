@@ -1,10 +1,11 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
-import { EASE_OUT, pop, ramp, windowIn, wordPulse } from "../anim";
-import { Burst, Confetti, Flash } from "../overlay/Graphics";
+import { EASE_OUT, pop, ramp, windowIn } from "../anim";
+import { Burst, Card, Confetti, Flash } from "../overlay/Graphics";
 import { TitleCanvas, TitleSlam } from "../overlay/TitleOverlay";
-import { WORD_FRAMES } from "../script";
-import { FONT, SCENES } from "../theme";
+import { talkPose } from "../talk";
+import { FONT } from "../theme";
+import { SCENES, wordAt } from "../timeline";
 import { Clawd } from "../three/Clawd";
 import { Vec3 } from "../three/CameraRig";
 import { Twinkles } from "../three/Effects3D";
@@ -13,9 +14,8 @@ import { Atmosphere, World } from "../three/World";
 import { SMOOTH, Shake, Stage, pathCam } from "./common";
 import { CLAWD_SIZE, CLAWD_SPOT } from "./places";
 
-// 56-60 s: golden hour. "Más de 500 años después... ¡sigue en pie!"
-
-const HIT = 1740;
+// Golden hour. "Más de 500 años después... ¡Machu Picchu sigue en pie!" The word "sigue"
+// sits on a bar line (see timeline.ts), where the music hits.
 
 const camPos = pathCam([
   [34, 24, 78],
@@ -44,9 +44,16 @@ const Star: React.FC<{ size?: number }> = ({ size = 46 }) => (
 
 export const Final: React.FC = () => {
   const frame = useCurrentFrame();
-  const g = frame + SCENES.final.from;
-  const u = ramp(g, 1680, HIT + 6, [0, 1], SMOOTH);
-  const drift = ramp(g, HIT + 6, 1800, [0, 1], (x) => x);
+  const S = SCENES.final;
+  const g = frame + S.from;
+  const END = S.from + S.duration;
+  // Cues from the narration.
+  const YEARS = wordAt("L22", 2);
+  const HIT = wordAt("L22", 7);
+  const BADGE = wordAt("L23", 6);
+  const BYE = wordAt("L23", 9) - 4;
+  const u = ramp(g, S.from, HIT + 6, [0, 1], SMOOTH);
+  const drift = ramp(g, HIT + 6, END, [0, 1], (x) => x);
   const p = camPos(u);
   const position: Vec3 = [
     p[0] - drift * 0.5,
@@ -54,14 +61,20 @@ export const Final: React.FC = () => {
     p[2] - drift * 1.2,
   ];
   const target = camTarget(u);
-  const talk = wordPulse(g, WORD_FRAMES);
-  const wave = windowIn(g, HIT + 2, 1800, 5);
-  const jump =
-    g >= HIT && g < HIT + 14 ? Math.sin(((g - HIT) / 14) * Math.PI) * 2.4 : 0;
-  const badge = pop(g, 1756, { damping: 10, stiffness: 170 });
+  const wave = windowIn(g, BYE, END + 20, 8);
+  const JUMP = 18;
+  const inJump = g >= HIT && g < HIT + JUMP;
+  const jump = inJump ? Math.sin(((g - HIT) / JUMP) * Math.PI) * 2.4 : 0;
+  const badge = pop(g, BADGE, { damping: 12, stiffness: 150 });
   return (
     <AbsoluteFill>
-      <Shake frame={g} impacts={[{ at: HIT, amp: 22, dur: 16 }]}>
+      <Shake
+        frame={g}
+        impacts={[
+          { at: S.from, amp: 12, dur: 14 },
+          { at: HIT, amp: 22, dur: 18 },
+        ]}
+      >
         <AbsoluteFill
           style={{ filter: "saturate(1.25) contrast(1.06) brightness(1.08)" }}
         >
@@ -83,17 +96,18 @@ export const Final: React.FC = () => {
             >
               <Clawd
                 size={CLAWD_SIZE}
-                pose={{
-                  hat: 1,
-                  squash: g >= HIT && g < HIT + 14 ? 1.1 : 1 - 0.06 * talk,
-                  hop: talk * 0.5,
-                  armR:
-                    wave * (1.25 + 0.3 * Math.sin(g * 0.7)) +
-                    talk * 0.3 * (1 - wave),
-                  armL: g >= HIT && g < HIT + 14 ? 1.2 : 0.15 * talk,
-                  eyeScale: g >= HIT && g < HIT + 10 ? 1.25 : 1,
-                  blink: [1712, 1784].some((b) => g >= b && g < b + 3) ? 1 : 0,
-                }}
+                pose={
+                  inJump
+                    ? { hat: 1, squash: 1.1, armL: 1.2, armR: 1.2, eyeScale: 1.25 }
+                    : talkPose(
+                        g,
+                        {
+                          hat: 1,
+                          armR: wave * (1.25 + 0.3 * Math.sin((g - BYE) * 0.45)),
+                        },
+                        1 - wave * 0.5,
+                      )
+                }
               />
             </group>
             <Twinkles
@@ -112,7 +126,7 @@ export const Final: React.FC = () => {
             <TitleSlam
               frame={g}
               at={HIT}
-              out={1830}
+              out={END + 30}
               lines={[
                 {
                   text: "¡SIGUE EN PIE!",
@@ -124,7 +138,18 @@ export const Final: React.FC = () => {
             />
           </TitleCanvas>
         ) : null}
-        {g >= 1756 ? (
+        <Card
+          frame={g}
+          at={YEARS}
+          out={HIT - 16}
+          x={960}
+          y={250}
+          title="+500 AÑOS"
+          sub="DE HISTORIA"
+          rotate={-3}
+          gradient="linear-gradient(135deg, #FF8A3D 0%, #D6336C 100%)"
+        />
+        {g >= BADGE ? (
           <div
             style={{
               position: "absolute",
@@ -161,13 +186,13 @@ export const Final: React.FC = () => {
         <Confetti frame={g} at={HIT} count={140} />
       </Shake>
       <Flash frame={g} at={HIT} dur={8} peak={0.7} />
-      <Flash frame={g} at={1680} dur={7} peak={0.8} />
+      <Flash frame={g} at={S.from} dur={10} peak={0.8} />
       {/* Warm grade that intensifies at the end. */}
       <AbsoluteFill
         style={{
           background:
             "linear-gradient(180deg, rgba(255,140,60,0) 40%, rgba(255,120,60,0.18) 100%)",
-          opacity: ramp(g, 1680, 1720, [0, 1], EASE_OUT),
+          opacity: ramp(g, S.from, S.from + 60, [0, 1], EASE_OUT),
           pointerEvents: "none",
         }}
       />

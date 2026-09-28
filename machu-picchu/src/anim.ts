@@ -60,21 +60,6 @@ export const keyframes = (
   easing: (t: number) => number = EASE_IN_OUT,
 ) => interpolate(frame, frames, values, { ...CLAMP, easing });
 
-/** Squash pulse (0..1) that fires on every spoken word. */
-export const wordPulse = (frame: number, wordFrames: number[], decay = 5) => {
-  let v = 0;
-  for (const w of wordFrames) {
-    const d = frame - w;
-    if (d < 0 || d > decay * 3) continue;
-    v = Math.max(
-      v,
-      Math.exp(-d / decay) *
-        Math.sin(Math.min(Math.PI, (d / 3) * Math.PI) + 0.4),
-    );
-  }
-  return Math.max(0, v);
-};
-
 /** Camera/screen shake from a list of impacts. Returns offsets in pixels and degrees. */
 export const shake = (
   frame: number,

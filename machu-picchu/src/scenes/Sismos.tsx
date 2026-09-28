@@ -7,12 +7,11 @@ import {
   ramp,
   rand,
   windowIn,
-  wordPulse,
 } from "../anim";
 import { Burst, Card } from "../overlay/Graphics";
 import { TitleCanvas, TitleSlam } from "../overlay/TitleOverlay";
-import { WORD_FRAMES } from "../script";
-import { SCENES } from "../theme";
+import { talkPose } from "../talk";
+import { SCENES, lineEnd, wordAt } from "../timeline";
 import { Clawd } from "../three/Clawd";
 import { Vec3, lerp3, projectToScreen } from "../three/CameraRig";
 import { Twinkles } from "../three/Effects3D";
@@ -31,8 +30,6 @@ const LEAN = 0.12;
 const DOOR = { bottom: 1.9, top: 1.4, height: (H / ROWS) * 3 };
 const DEPTH = 1.2;
 const WALL_POS: Vec3 = [-W / 2 - 0.6, 0, -0.6];
-const QUAKE_IN = 1166;
-const SETTLE = 1216;
 
 /** A glowing segment from a to b (wall-local 2D coords) that grows with k (0..1). */
 const GlowLine: React.FC<{
@@ -74,7 +71,20 @@ const seq = (g: number, from: number, dur: number) =>
 
 export const Sismos: React.FC = () => {
   const frame = useCurrentFrame();
-  const g = frame + SCENES.sismos.from;
+  const S = SCENES.sismos;
+  const g = frame + S.from;
+  const END = S.from + S.duration;
+  // Cues from the narration.
+  const T1 = wordAt("L13", 0) + 3;
+  const T2 = wordAt("L13", 4) + 2;
+  const TITLE_OUT = lineEnd("L13") + 6;
+  const DOOR_AT = wordAt("L14", 5);
+  const DOOR_ICON = wordAt("L14", 7);
+  const WALLS = wordAt("L14", 10);
+  const PLUMB = wordAt("L14", 12);
+  const ARROWS = wordAt("L14", 15);
+  const QUAKE_IN = wordAt("L15", 2);
+  const SETTLE = wordAt("L15", 7);
   const wall = useMemo(
     () =>
       buildWall({
@@ -90,7 +100,7 @@ export const Sismos: React.FC = () => {
     [],
   );
 
-  const quake = windowIn(g, QUAKE_IN, SETTLE, 3);
+  const quake = windowIn(g, QUAKE_IN, SETTLE, 6);
   const anim = (b: BlockDef) => {
     if (quake <= 0.001)
       return { pos: [0, 0, 0] as Vec3, rot: [0, 0, 0] as Vec3 };
@@ -99,23 +109,23 @@ export const Sismos: React.FC = () => {
     const amp = quake * (0.12 + (0.1 * b.row) / ROWS);
     return {
       pos: [
-        Math.sin(g * f * 1.3 + ph) * amp * 0.5,
-        Math.abs(Math.sin(g * f + ph)) * amp * 1.6,
-        Math.cos(g * f * 0.9 + ph) * amp * 0.3,
+        Math.sin(g * f * 0.75 + ph) * amp * 0.5,
+        Math.abs(Math.sin(g * f * 0.6 + ph)) * amp * 1.6,
+        Math.cos(g * f * 0.55 + ph) * amp * 0.3,
       ] as Vec3,
-      rot: [0, 0, Math.sin(g * f * 1.1 + ph) * amp * 0.25] as Vec3,
+      rot: [0, 0, Math.sin(g * f * 0.65 + ph) * amp * 0.25] as Vec3,
     };
   };
   const islandShake: Vec3 = [
-    Math.sin(g * 2.1) * 0.12 * quake,
+    Math.sin(g * 1.3) * 0.12 * quake,
     0,
-    Math.cos(g * 1.7) * 0.05 * quake,
+    Math.cos(g * 1.05) * 0.05 * quake,
   ];
 
-  const u = ramp(g, 1020, 1260, [0, 1], (x) => x);
+  const u = ramp(g, S.from, END, [0, 1], (x) => x);
   const orbit =
-    ramp(g, 1100, 1150, [0, 1], EASE_IN_OUT) *
-    (1 - ramp(g, 1210, 1240, [0, 1], EASE_IN_OUT));
+    ramp(g, WALLS - 20, WALLS + 25, [0, 1], EASE_IN_OUT) *
+    (1 - ramp(g, SETTLE - 10, SETTLE + 30, [0, 1], EASE_IN_OUT));
   const base = lerp3([1.2, 3.1, 15.8], [0.6, 2.9, 13.6], u);
   const position: Vec3 = [
     base[0] - orbit * 5.5,
@@ -131,10 +141,9 @@ export const Sismos: React.FC = () => {
   const d1: [number, number] = [cx - DOOR.top / 2, DOOR.height];
   const d2: [number, number] = [cx + DOOR.top / 2, DOOR.height];
   const d3: [number, number] = [cx + DOOR.bottom / 2, 0];
-  const traceDoor = g >= 1088 && g < SETTLE - 50;
-  const traceWall = g >= 1112 && g < QUAKE_IN;
-  const talk = wordPulse(g, WORD_FRAMES);
-  const cheer = windowIn(g, SETTLE + 2, 1260, 4);
+  const traceDoor = g >= DOOR_AT - 2 && g < QUAKE_IN - 4;
+  const traceWall = g >= WALLS - 2 && g < QUAKE_IN;
+  const cheer = windowIn(g, SETTLE + 2, END, 6);
   const check = pop(g, SETTLE + 4, { damping: 9, stiffness: 220 });
   const doorTop = projectToScreen(cam, [
     WALL_POS[0] + cx,
@@ -167,7 +176,7 @@ export const Sismos: React.FC = () => {
       <Shake
         frame={g}
         impacts={[
-          { at: 1020, amp: 18, dur: 14 },
+          { at: S.from, amp: 16, dur: 16 },
           { at: QUAKE_IN, amp: 14, dur: SETTLE - QUAKE_IN },
           { at: SETTLE, amp: 12 },
         ]}
@@ -193,21 +202,21 @@ export const Sismos: React.FC = () => {
                   <GlowLine
                     a={d0}
                     b={d1}
-                    k={seq(g, 1090, 7)}
+                    k={seq(g, DOOR_AT, 10)}
                     z={DEPTH / 2 + 0.07}
                     color="#FFE14D"
                   />
                   <GlowLine
                     a={d1}
                     b={d2}
-                    k={seq(g, 1097, 5)}
+                    k={seq(g, DOOR_AT + 10, 8)}
                     z={DEPTH / 2 + 0.07}
                     color="#FFE14D"
                   />
                   <GlowLine
                     a={d2}
                     b={d3}
-                    k={seq(g, 1102, 7)}
+                    k={seq(g, DOOR_AT + 18, 10)}
                     z={DEPTH / 2 + 0.07}
                     color="#FFE14D"
                   />
@@ -218,14 +227,14 @@ export const Sismos: React.FC = () => {
                   <GlowLine
                     a={[0, 0]}
                     b={[LEAN * H, H]}
-                    k={seq(g, 1122, 10)}
+                    k={seq(g, WALLS, 14)}
                     z={DEPTH / 2 + 0.07}
                     color="#4DFFB8"
                   />
                   <GlowLine
                     a={[W, 0]}
                     b={[W - LEAN * H, H]}
-                    k={seq(g, 1122, 10)}
+                    k={seq(g, WALLS, 14)}
                     z={DEPTH / 2 + 0.07}
                     color="#4DFFB8"
                   />
@@ -233,14 +242,14 @@ export const Sismos: React.FC = () => {
                   <GlowLine
                     a={[0, 0]}
                     b={[0, H + 0.4]}
-                    k={seq(g, 1134, 8) * 0.999}
+                    k={seq(g, PLUMB, 12) * 0.999}
                     z={DEPTH / 2 + 0.05}
                     color="#FFFFFF"
                   />
                   <GlowLine
                     a={[W, 0]}
                     b={[W, H + 0.4]}
-                    k={seq(g, 1134, 8) * 0.999}
+                    k={seq(g, PLUMB, 12) * 0.999}
                     z={DEPTH / 2 + 0.05}
                     color="#FFFFFF"
                   />
@@ -250,22 +259,18 @@ export const Sismos: React.FC = () => {
             <group position={[5.2, 0, 2.4]} rotation={[0, -0.5, 0]}>
               <Clawd
                 size={2.2}
-                pose={{
+                pose={talkPose(g, {
                   hat: 1,
-                  squash:
-                    1 -
-                    0.06 * talk -
-                    quake * 0.05 * Math.abs(Math.sin(g * 0.9)),
+                  squash: 1 - quake * 0.05 * Math.abs(Math.sin(g * 0.7)),
                   hop:
-                    talk * 0.5 +
-                    quake * Math.abs(Math.sin(g * 0.8)) * 1.6 +
-                    cheer * Math.abs(Math.sin(g * 0.5)) * 1.3,
-                  armL: 0.25 * talk + quake * 1.1 + cheer * 1.3,
-                  armR: 0.25 * talk + quake * 1.1 + cheer * 1.3,
+                    quake * Math.abs(Math.sin(g * 0.6)) * 1.5 +
+                    cheer * Math.abs(Math.sin(g * 0.35)) * 1.2,
+                  armL: quake * 1.1 + cheer * 1.2,
+                  armR: quake * 1.1 + cheer * 1.2,
                   eyeScale: 1 + quake * 0.4 + cheer * 0.15,
                   lookX: -0.7,
-                  roll: quake * Math.sin(g * 0.7) * 0.12,
-                }}
+                  roll: quake * Math.sin(g * 0.55) * 0.12,
+                })}
               />
             </group>
           </group>
@@ -283,7 +288,7 @@ export const Sismos: React.FC = () => {
               position: "absolute",
               left: doorTop.x,
               top: doorTop.y - 70,
-              transform: `translate(-50%, -50%) scale(${pop(g, 1098) * (1 - ramp(g, 1156, 1162))})`,
+              transform: `translate(-50%, -50%) scale(${pop(g, DOOR_ICON) * (1 - ramp(g, QUAKE_IN - 12, QUAKE_IN - 4))})`,
             }}
           >
             <svg width={150} height={100} viewBox="0 0 150 100">
@@ -299,7 +304,7 @@ export const Sismos: React.FC = () => {
         ) : null}
         {traceWall
           ? [lEdge, rEdge].map((p, i) => {
-              const k = pop(g, 1130 + i * 3) * (1 - ramp(g, 1158, 1164));
+              const k = pop(g, ARROWS + i * 4) * (1 - ramp(g, QUAKE_IN - 8, QUAKE_IN));
               const dir = i === 0 ? 1 : -1;
               return (
                 <svg
@@ -343,7 +348,7 @@ export const Sismos: React.FC = () => {
               position: "absolute",
               left: 1500,
               top: 170,
-              transform: `scale(${check * (1 - ramp(g, 1252, 1258))}) rotate(${(1 - check) * -40}deg)`,
+              transform: `scale(${check * (1 - ramp(g, END - 14, END - 6))}) rotate(${(1 - check) * -40}deg)`,
             }}
           >
             <circle
@@ -382,12 +387,12 @@ export const Sismos: React.FC = () => {
           color="#4DFF7C"
           size={700}
         />
-        {g < 1064 ? (
+        {g < TITLE_OUT + 14 ? (
           <TitleCanvas>
             <TitleSlam
               frame={g}
-              at={1022}
-              out={1054}
+              at={T1}
+              out={TITLE_OUT}
               exit="up"
               lines={[
                 { text: "SECRETO #2", size: 2.0, look: LOOKS.gold, y: 1.0 },
@@ -396,7 +401,7 @@ export const Sismos: React.FC = () => {
                   size: 1.2,
                   look: LOOKS.cyan,
                   y: -1.2,
-                  delay: 13,
+                  delay: T2 - T1,
                 },
               ]}
             />

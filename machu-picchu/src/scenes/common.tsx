@@ -56,7 +56,11 @@ export const Shake: React.FC<{
   impacts: { at: number; amp: number; dur?: number }[];
   children: React.ReactNode;
 }> = ({ frame, impacts, children }) => {
-  const s = shake(frame, impacts);
+  // Calmer than a typical "hype" edit: half-strength shakes.
+  const s = shake(
+    frame,
+    impacts.map((im) => ({ ...im, amp: im.amp * 0.5 })),
+  );
   return (
     <AbsoluteFill
       style={{
@@ -68,14 +72,14 @@ export const Shake: React.FC<{
   );
 };
 
-/** Zoom-blur in/out at the edges of a scene (a fast "punch" cut). */
+/** Zoom-blur in/out at the edges of a scene (a soft "punch" cut). */
 export const ZoomCut: React.FC<{
   frame: number;
   duration: number;
   inFrames?: number;
   outFrames?: number;
   children: React.ReactNode;
-}> = ({ frame, duration, inFrames = 7, outFrames = 6, children }) => {
+}> = ({ frame, duration, inFrames = 12, outFrames = 10, children }) => {
   const kin = inFrames > 0 ? 1 - ramp(frame, 0, inFrames) : 0;
   const kout =
     outFrames > 0
@@ -87,8 +91,8 @@ export const ZoomCut: React.FC<{
           Easing.in(Easing.quad),
         )
       : 0;
-  const scale = 1 + kin * 0.22 + kout * 0.25;
-  const blur = kin * 14 + kout * 16;
+  const scale = 1 + kin * 0.12 + kout * 0.14;
+  const blur = kin * 9 + kout * 10;
   return (
     <AbsoluteFill
       style={{

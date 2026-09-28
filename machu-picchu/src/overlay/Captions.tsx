@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { EASE_IN, pop, ramp } from "../anim";
-import { CAPTIONS } from "../script";
+import { CAPTIONS } from "../timeline";
 import { FONT } from "../theme";
 
 // MrBeast-style captions: bottom centre, word by word, the newest word pops in yellow.
@@ -9,7 +9,7 @@ export const Captions: React.FC = () => {
   const frame = useCurrentFrame();
   const chunk = CAPTIONS.find((c) => frame >= c.from && frame < c.to);
   if (!chunk) return null;
-  const exit = ramp(frame, chunk.to - 4, chunk.to, [0, 1], EASE_IN);
+  const exit = ramp(frame, chunk.to - 5, chunk.to, [0, 1], EASE_IN);
   const shown = chunk.words.filter((w) => frame >= w.at);
   const newest = shown[shown.length - 1];
   return (
@@ -35,13 +35,13 @@ export const Captions: React.FC = () => {
         }}
       >
         {shown.map((w, i) => {
-          const p = pop(frame, w.at, { damping: 13, stiffness: 260, mass: 0.6 });
+          const p = pop(frame, w.at, { damping: 14, stiffness: 200, mass: 0.7 });
           const isNew = w === newest;
           const since = frame - w.at;
           const color =
             w.color ?? (isNew && since < 12 ? "#FFD60A" : "#FFFFFF");
           const tilt =
-            (i % 2 === 0 ? -1 : 1) * 2.2 * (1 - Math.min(1, since / 6));
+            (i % 2 === 0 ? -1 : 1) * 1.6 * (1 - Math.min(1, since / 8));
           return (
             <span
               key={i}
@@ -56,7 +56,7 @@ export const Captions: React.FC = () => {
                 paintOrder: "stroke fill",
                 textShadow: "0 8px 0 #000, 0 14px 22px rgba(0,0,0,0.55)",
                 display: "inline-block",
-                transform: `translateY(${(1 - p) * 40}px) scale(${0.6 + 0.4 * p}) rotate(${tilt}deg)`,
+                transform: `translateY(${(1 - p) * 28}px) scale(${0.6 + 0.4 * p}) rotate(${tilt}deg)`,
                 whiteSpace: "nowrap",
               }}
             >

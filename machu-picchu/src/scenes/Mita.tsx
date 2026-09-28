@@ -1,11 +1,11 @@
 import React, { useMemo } from "react";
 import * as THREE from "three";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
-import { EASE_IN_OUT, pop, ramp, wordPulse } from "../anim";
+import { EASE_IN_OUT, pop, ramp, windowIn } from "../anim";
 import { Burst, Card } from "../overlay/Graphics";
 import { TitleCanvas, TitleSlam } from "../overlay/TitleOverlay";
-import { WORD_FRAMES } from "../script";
-import { SCENES } from "../theme";
+import { talkPose } from "../talk";
+import { SCENES, wordAt } from "../timeline";
 import { Clawd } from "../three/Clawd";
 import { Vec3, lerp3 } from "../three/CameraRig";
 import { Island } from "../three/Island";
@@ -21,7 +21,7 @@ import { LOOKS } from "../three/Text3D";
 import { Worker } from "../three/Worker";
 import { Shake, Stage } from "./common";
 
-// 52-56 s: who built it? Thousands of people taking turns: the mit'a.
+// Who built it? "Miles de personas... trabajando por turnos": the mit'a.
 
 const RAMP = { x0: -6.2, x1: 2.2, h: 2.4, z: 0.4, w: 2.4 };
 const slope = RAMP.h / (RAMP.x1 - RAMP.x0);
@@ -90,7 +90,13 @@ const Block: React.FC = () => {
 
 export const Mita: React.FC = () => {
   const frame = useCurrentFrame();
-  const g = frame + SCENES.mita.from;
+  const S = SCENES.mita;
+  const g = frame + S.from;
+  const END = S.from + S.duration;
+  // Cues from the narration.
+  const CROWD = wordAt("L20", 5);
+  const TURNOS = wordAt("L20", 9) - 4;
+  const MITA = wordAt("L21", 4) + 2;
   const top = useMemo(
     () =>
       buildWall({
@@ -119,9 +125,9 @@ export const Mita: React.FC = () => {
   );
 
   // Block on its sled creeping up the ramp; workers pull ahead of it.
-  const bx = -4.6 + ramp(g, 1560, 1680, [0, 2.7], (x) => x);
+  const bx = -4.6 + ramp(g, S.from, END, [0, 2.7], (x) => x);
   const by = rampY(bx);
-  const phase = g * 0.42;
+  const phase = g * 0.3;
   const workers = [0, 1, 2, 3, 4].map((i) => {
     const x = bx + 2.2 + i * 1.15;
     return { x, y: rampY(x), i };
@@ -140,19 +146,18 @@ export const Mita: React.FC = () => {
         const r = 5.6 + (i % 3) * 0.7;
         return {
           p: [Math.cos(a) * r * 1.05, 0, Math.sin(a) * r * 0.7 - 0.6] as Vec3,
-          at: 1596 + i * 1.2,
+          at: CROWD + i * 2.4,
           v: i + 2,
           yaw: -a + Math.PI / 2,
         };
       }).filter((c) => !(c.p[2] > 0.6 && Math.abs(c.p[0]) < 5.5)),
-    [],
+    [CROWD],
   );
 
-  const u = ramp(g, 1560, 1680, [0, 1], EASE_IN_OUT);
+  const u = ramp(g, S.from, END, [0, 1], EASE_IN_OUT);
   const position = lerp3([0.8, 4.6, 18.5], [1.6, 3.6, 15.2], u);
   const target: Vec3 = [0.6, 1.5, 0];
-  const talk = wordPulse(g, WORD_FRAMES);
-  const cheer = ramp(g, 1658, 1664);
+  const cheer = windowIn(g, MITA, END + 20, 6);
 
   return (
     <AbsoluteFill
@@ -169,8 +174,8 @@ export const Mita: React.FC = () => {
       <Shake
         frame={g}
         impacts={[
-          { at: 1560, amp: 16, dur: 14 },
-          { at: 1658, amp: 16 },
+          { at: S.from, amp: 16, dur: 14 },
+          { at: MITA, amp: 16 },
         ]}
       >
         <Stage cam={{ position, target, fov: 38 }}>
@@ -261,21 +266,20 @@ export const Mita: React.FC = () => {
           <group position={[5.2, RAMP.h, 1.0]} rotation={[0, -0.35, 0]}>
             <Clawd
               size={1.8}
-              pose={{
+              pose={talkPose(g, {
                 hat: 1,
-                squash: 1 - 0.06 * talk,
-                hop: talk * 0.5 + cheer * Math.abs(Math.sin(g * 0.5)) * 1.4,
-                armL: 0.3 * talk + cheer * 1.3,
-                armR: 0.3 * talk + cheer * 1.3,
-                lookX: -0.6,
-              }}
+                hop: cheer * Math.abs(Math.sin((g - MITA) * 0.32)) * 1.2,
+                armL: cheer * 1.2,
+                armR: cheer * 1.2,
+                lookX: -0.6 + cheer * 0.5,
+              })}
             />
           </group>
         </Stage>
         <Card
           frame={g}
-          at={1622}
-          out={1652}
+          at={TURNOS}
+          out={MITA - 10}
           x={1420}
           y={220}
           icon={<Rotate />}
@@ -284,13 +288,13 @@ export const Mita: React.FC = () => {
           rotate={-3}
           gradient="linear-gradient(135deg, #1FA35B 0%, #0E6B8C 100%)"
         />
-        <Burst frame={g} at={1658} x={960} y={360} color="#FFD60A" size={640} />
-        {g >= 1652 ? (
+        <Burst frame={g} at={MITA} x={960} y={360} color="#FFD60A" size={640} />
+        {g >= MITA - 8 ? (
           <TitleCanvas>
             <TitleSlam
               frame={g}
-              at={1658}
-              out={1674}
+              at={MITA}
+              out={END - 12}
               exit="zoom"
               lines={[{ text: "MIT'A", size: 2.6, look: LOOKS.gold, y: 1.9 }]}
             />

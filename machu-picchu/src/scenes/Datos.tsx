@@ -1,10 +1,12 @@
 import React from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame } from "remotion";
-import { EASE_IN_OUT, EASE_OUT, pop, ramp, wordPulse } from "../anim";
+import { EASE_IN_OUT, EASE_OUT, pop, ramp } from "../anim";
+import { ClawdPip } from "../overlay/ClawdPip";
 import { BigNumber, Burst, Card, fmtNumber } from "../overlay/Graphics";
 import { TitleCanvas, TitleSlam } from "../overlay/TitleOverlay";
-import { WORD_FRAMES } from "../script";
-import { FONT, SCENES } from "../theme";
+import { talkPose } from "../talk";
+import { FONT } from "../theme";
+import { SCENES, lineEnd, wordAt, wordEnd } from "../timeline";
 import { Clawd } from "../three/Clawd";
 import { Vec3, projectToScreen } from "../three/CameraRig";
 import { MapPin } from "../three/Props";
@@ -19,7 +21,8 @@ import {
   INTRO_CAM_END,
 } from "./places";
 
-// 10-15.3 s: fly up to an aerial view: pin on Cusco, altitude counter, rewind to the year 1450.
+// Fly up to an aerial view while Clawd says where Machu Picchu is: pin on Cusco, altitude
+// counter on "dos mil cuatrocientos treinta metros", then a rewind to the year 1450.
 
 const PIN_AT: Vec3 = [0.5, 0, 1];
 
@@ -33,7 +36,6 @@ const CLOUDS: CloudSpot[] = [
   [-120, 40, -50, 2.6],
   [-90, 20, 40, 1.8],
 ];
-const PIN_LAND = 326;
 
 const riseCam = pathCam([
   INTRO_CAM_END.position,
@@ -49,11 +51,13 @@ const riseTarget = pathCam([
 ]);
 
 export const datosCam = (g: number) => {
-  const u = ramp(g, 300, 348, [0, 1], SMOOTH);
+  const S = SCENES.datos;
+  const up = S.from + 48;
+  const u = ramp(g, S.from, up, [0, 1], SMOOTH);
   let position = riseCam(u);
   let target = riseTarget(u);
   // Slow orbit around the citadel once up in the air.
-  const a = interpolate(g, [348, 470], [0, -0.42], {
+  const a = interpolate(g, [up, S.from + S.duration + 20], [0, -0.55], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
@@ -107,10 +111,12 @@ const Mountain: React.FC<{ size?: number }> = ({ size = 70 }) => (
 );
 
 const AltitudeGauge: React.FC<{ g: number }> = ({ g }) => {
-  if (g < 346 || g > 398) return null;
-  const inK = pop(g, 346, { damping: 12, stiffness: 160 });
-  const outK = ramp(g, 388, 396);
-  const fill = ramp(g, 348, 376, [0, 1], EASE_IN_OUT);
+  const IN = wordAt("L03", 6) - 6;
+  const OUT = lineEnd("L03") + 14;
+  if (g < IN || g > OUT + 10) return null;
+  const inK = pop(g, IN, { damping: 13, stiffness: 140 });
+  const outK = ramp(g, OUT, OUT + 10);
+  const fill = ramp(g, wordAt("L03", 7), wordAt("L03", 11), [0, 1], EASE_IN_OUT);
   const value = 2430 * fill;
   const barH = 470;
   return (
@@ -185,26 +191,32 @@ const AltitudeGauge: React.FC<{ g: number }> = ({ g }) => {
 
 export const Datos: React.FC = () => {
   const frame = useCurrentFrame();
-  const g = frame + SCENES.datos.from;
+  const S = SCENES.datos;
+  const g = frame + S.from;
   const cam = datosCam(g);
-  // Pin drop.
-  const drop = ramp(g, PIN_LAND - 10, PIN_LAND, [1, 0], (x) => x * x);
+  // Pin drop on "Cusco".
+  const PIN_LAND = wordAt("L03", 4) + 2;
+  const drop = ramp(g, PIN_LAND - 14, PIN_LAND, [1, 0], (x) => x * x);
   const dl = g - PIN_LAND;
-  const pinSquash =
-    dl >= 0 ? 1 - 0.25 * Math.exp(-dl / 4) * Math.cos(dl * 0.8) : 1.15;
+  const pinSquash = dl >= 0 ? 1 - 0.22 * Math.exp(-dl / 5) * Math.cos(dl * 0.6) : 1.12;
   const pinY = drop * 42;
-  const pinShown = g >= PIN_LAND - 10;
+  const pinShown = g >= PIN_LAND - 14;
   const screen = projectToScreen(cam, [PIN_AT[0], PIN_AT[1] + 10, PIN_AT[2]]);
-  const talk = wordPulse(g, WORD_FRAMES);
-  // Rewind to 1450.
-  const rewind = ramp(g, 404, 412) * (1 - ramp(g, 440, 448));
+  // Rewind to 1450 while "hacia el año mil cuatrocientos cincuenta" is said.
+  const RW = wordAt("L04", 4) - 6;
+  const YEAR_TITLE = wordAt("L04", 6) - 4;
+  const ROLL0 = wordAt("L04", 7) - 4;
+  const LANDY = wordEnd("L04", 9);
+  const EXIT = S.from + S.duration - 14;
+  const rewind = ramp(g, RW, RW + 10) * (1 - ramp(g, LANDY, LANDY + 12));
   const year = Math.round(
-    interpolate(g, [412, 440], [2026, 1450], {
+    interpolate(g, [ROLL0, LANDY], [2026, 1450], {
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp",
       easing: EASE_IN_OUT,
     }),
   );
+  const turnAway = ramp(g, S.from, S.from + 24);
   return (
     <AbsoluteFill>
       <AbsoluteFill
@@ -223,20 +235,14 @@ export const Datos: React.FC = () => {
             fogFar={640}
           />
           <World frame={g} cloudSpots={CLOUDS} />
-          <group
-            position={CLAWD_SPOT}
-            rotation={[0, CLAWD_YAW + 0.35 * (1 - ramp(g, 300, 320)), 0]}
-          >
+          <group position={CLAWD_SPOT} rotation={[0, CLAWD_YAW + 0.35 * (1 - turnAway), 0]}>
             <Clawd
               size={CLAWD_SIZE}
-              pose={{
+              pose={talkPose(g, {
                 hat: 1,
-                squash: 1 - 0.06 * talk,
-                hop: 0.6 * talk,
-                armL: 0.55 * (1 - ramp(g, 300, 312)),
-                reachL: 1.4 * (1 - ramp(g, 300, 312)),
-                armR: 0.6 * talk,
-              }}
+                armL: 0.55 * (1 - turnAway),
+                reachL: 1.4 * (1 - turnAway),
+              })}
             />
           </group>
           {pinShown ? (
@@ -254,8 +260,8 @@ export const Datos: React.FC = () => {
           ) : null}
           {[0, 10, 20].map((o) => {
             const d = g - PIN_LAND - o;
-            if (d < 0 || d > 26) return null;
-            const t = d / 26;
+            if (d < 0 || d > 34) return null;
+            const t = d / 34;
             return (
               <mesh
                 key={o}
@@ -286,8 +292,8 @@ export const Datos: React.FC = () => {
       ) : null}
       <Card
         frame={g}
-        at={326}
-        out={342}
+        at={PIN_LAND + 2}
+        out={wordAt("L03", 6) - 8}
         x={screen.x + 280}
         y={screen.y - 40}
         icon={<PeruFlag />}
@@ -295,42 +301,43 @@ export const Datos: React.FC = () => {
         rotate={-3}
       />
       <AltitudeGauge g={g} />
-      <Burst frame={g} at={440} x={960} y={470} color="#FFD60A" size={640} />
-      {g >= 398 ? (
+      <Burst frame={g} at={LANDY} x={960} y={470} color="#FFD60A" size={640} />
+      {g >= YEAR_TITLE - 12 ? (
         <TitleCanvas>
           <TitleSlam
             frame={g}
-            at={404}
-            out={452}
+            at={YEAR_TITLE}
+            out={EXIT}
             exit="zoom"
             lines={[{ text: "AÑO", size: 0.9, look: LOOKS.white, y: 2.8 }]}
           />
           <TitleSlam
             frame={g}
-            at={410}
-            out={452}
+            at={YEAR_TITLE + 6}
+            out={EXIT}
             exit="zoom"
             shine={false}
             lines={[
               {
                 text: `${year}`,
                 size: 3.1,
-                look: g >= 440 ? LOOKS.gold : LOOKS.white,
+                look: g >= LANDY ? LOOKS.gold : LOOKS.white,
                 y: 0.2,
               },
             ]}
           />
         </TitleCanvas>
       ) : null}
-      {g >= 440 && g < 452 ? (
+      {g >= LANDY && g < LANDY + 14 ? (
         <AbsoluteFill
           style={{
             background: "#FFD60A",
-            opacity: 0.35 * (1 - ramp(g, 440, 448, [0, 1], EASE_OUT)),
+            opacity: 0.3 * (1 - ramp(g, LANDY, LANDY + 12, [0, 1], EASE_OUT)),
             mixBlendMode: "screen",
           }}
         />
       ) : null}
+      <ClawdPip g={g} from={S.from + 40} to={S.from + S.duration - 12} />
     </AbsoluteFill>
   );
 };

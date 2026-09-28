@@ -1,5 +1,5 @@
 import React from "react";
-import { useCurrentFrame, useVideoConfig } from "remotion";
+import { useVideoConfig } from "remotion";
 import { ThreeCanvas } from "@remotion/three";
 import { EASE_IN, EASE_OUT, ramp } from "../anim";
 import { CameraRig } from "../three/CameraRig";
@@ -15,6 +15,9 @@ export type TitleLine = {
   x?: number;
   delay?: number;
 };
+
+const IN = 10; // frames to land
+const OUT = 10; // frames to leave
 
 /** Slam-in / hold / exit animation for a group of 3D lines. `at` = impact frame. */
 export const TitleSlam: React.FC<{
@@ -38,27 +41,27 @@ export const TitleSlam: React.FC<{
   exit = "shrink",
   children,
 }) => {
-  if (frame < at - 6 || frame > out + 8) return null;
+  if (frame < at - IN || frame > out + OUT + 1) return null;
   const t = frame - at;
   return (
     <group position={position}>
       {lines.map((l, i) => {
-        const d = l.delay ?? i * 4;
+        const d = l.delay ?? i * 5;
         const lt = t - d;
-        if (lt < -6) return null;
-        // Comes from huge and close to the camera, lands with a little bounce.
+        if (lt < -IN) return null;
+        // Glides in from big and close to the camera and settles with a soft bounce.
         const inS =
           lt < 0
-            ? 1 + Math.pow(-lt / 6, 2) * 2.4
-            : 1 + Math.sin(Math.min(lt, 10) * 0.9) * 0.1 * Math.exp(-lt / 5);
-        const inOp = ramp(lt, -6, -3);
-        const k = ramp(frame, out, out + 7, [0, 1], EASE_IN);
-        const exS = exit === "zoom" ? 1 + k * 3 : 1 - k;
-        const exY = exit === "up" ? k * 9 : 0;
-        const sway = Math.sin((frame + i * 11) * 0.06) * 0.08;
-        const drift = ramp(frame, at, out + 8, [1, 1.06], (x) => x);
+            ? 1 + Math.pow(-lt / IN, 2) * 1.6
+            : 1 + Math.sin(Math.min(lt, 14) * 0.6) * 0.07 * Math.exp(-lt / 7);
+        const inOp = ramp(lt, -IN, -IN / 2);
+        const k = ramp(frame, out, out + OUT, [0, 1], EASE_IN);
+        const exS = exit === "zoom" ? 1 + k * 2 : 1 - k;
+        const exY = exit === "up" ? k * 7 : 0;
+        const sway = Math.sin((frame + i * 11) * 0.04) * 0.07;
+        const drift = ramp(frame, at, out + OUT, [1, 1.05], (x) => x);
         const sh = shine
-          ? ramp(lt, 4, 22, [0, 1], EASE_OUT) * (1 - ramp(lt, 22, 30))
+          ? ramp(lt, 6, 30, [0, 1], EASE_OUT) * (1 - ramp(lt, 30, 40))
           : 0;
         return (
           <group
@@ -105,6 +108,3 @@ export const TitleCanvas: React.FC<{ children: React.ReactNode }> = ({
     </ThreeCanvas>
   );
 };
-
-/** Convenience: a title overlay driven by the current (local) frame. */
-export const useLocalFrame = () => useCurrentFrame();

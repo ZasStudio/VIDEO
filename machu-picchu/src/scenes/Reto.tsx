@@ -1,10 +1,10 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
-import { ramp, rand, windowIn, wordPulse } from "../anim";
+import { ramp, rand, windowIn } from "../anim";
 import { Card, Flash, Lightning, Rain } from "../overlay/Graphics";
 import { TitleCanvas, TitleSlam } from "../overlay/TitleOverlay";
-import { WORD_FRAMES } from "../script";
-import { SCENES } from "../theme";
+import { talkPose } from "../talk";
+import { SCENES, lineEnd, lineStart, wordAt } from "../timeline";
 import { Clawd } from "../three/Clawd";
 import { Vec3, lerp3 } from "../three/CameraRig";
 import { Umbrella } from "../three/Props";
@@ -13,10 +13,7 @@ import { Atmosphere, World } from "../three/World";
 import { Shake, Stage } from "./common";
 import { CLAWD_SIZE, CLAWD_SPOT } from "./places";
 
-// 18-24 s: the challenge: huge rainfall and earthquakes. "¡Parecía imposible!"
-
-const BOLTS = [548, 596];
-const QUAKE = 640;
+// The challenge: huge rainfall and earthquakes. "¡Parecía imposible!"
 
 const RainCloud: React.FC = () => (
   <svg width={92} height={80} viewBox="0 0 100 86">
@@ -38,21 +35,26 @@ const RainCloud: React.FC = () => (
 
 export const Reto: React.FC = () => {
   const frame = useCurrentFrame();
-  const g = frame + SCENES.reto.from;
+  const S = SCENES.reto;
+  const g = frame + S.from;
+  const END = S.from + S.duration;
+  const BOLTS = [S.from + 10, wordAt("L06", 7)];
+  const QUAKE = wordAt("L07", 3);
+  const QUAKE_END = lineStart("L08") - 6;
+  const TITLE = wordAt("L08", 0) + 3;
   const flash = BOLTS.reduce((m, b) => {
     const d = g - b;
     if (d < 0 || d > 6) return m;
     return Math.max(m, d < 2 ? 1 : d < 4 ? 0.35 : 0.8 * (1 - (d - 4) / 2));
   }, 0);
-  const quake = windowIn(g, QUAKE, QUAKE + 26, 3);
+  const quake = windowIn(g, QUAKE, QUAKE_END, 5);
   const qx = quake * (Math.sin(g * 2.7) * 0.28 + (rand(g) - 0.5) * 0.2);
   const qy = quake * Math.cos(g * 3.3) * 0.16;
-  const u = ramp(g, 540, 720, [0, 1], (x) => x);
+  const u = ramp(g, S.from, END, [0, 1], (x) => x);
   const base = lerp3([9.8, 1.5, 31.5], [8.6, 1.35, 28.8], u);
   const position: Vec3 = [base[0] + qx, base[1] + qy, base[2]];
   const target: Vec3 = [4.6 + qx * 0.5, 3.2 + qy, 15.2];
-  const talk = wordPulse(g, WORD_FRAMES);
-  const scared = ramp(g, QUAKE - 2, QUAKE + 2) * (1 - ramp(g, 672, 684));
+  const scared = ramp(g, QUAKE - 4, QUAKE + 2) * (1 - ramp(g, TITLE + 4, TITLE + 18));
   const shiver = (rand(g * 1.7) - 0.5) * 0.05 * (1 - quake);
   const bounce = quake * Math.abs(Math.sin(g * 0.9)) * 0.45;
   const umbrellaTilt =
@@ -62,10 +64,10 @@ export const Reto: React.FC = () => {
       <Shake
         frame={g}
         impacts={[
-          { at: QUAKE, amp: 16, dur: 26 },
-          { at: 548, amp: 6 },
-          { at: 596, amp: 6 },
-          { at: 680, amp: 14 },
+          { at: QUAKE, amp: 16, dur: QUAKE_END - QUAKE },
+          { at: BOLTS[0], amp: 6 },
+          { at: BOLTS[1], amp: 6 },
+          { at: TITLE, amp: 14 },
         ]}
       >
         <Stage cam={{ position, target, fov: 40 }}>
@@ -88,15 +90,16 @@ export const Reto: React.FC = () => {
             <Clawd
               size={CLAWD_SIZE}
               pose={{
-                hat: 1,
-                squash: 1 - 0.06 * talk - bounce * 0.1,
-                hop: talk * 0.5,
+                ...talkPose(g, {
+                  hat: 1,
+                  squash: 1 - bounce * 0.1,
+                  armL: scared * 0.9,
+                  eyeScale: 0.72 + scared * 0.62,
+                  lookY: 0.5 - scared * 0.2,
+                  lookX: -0.2,
+                }),
+                // The right nub holds the umbrella still.
                 armR: 1.0,
-                armL: 0.25 * talk + scared * 0.9,
-                eyeScale: 0.72 + scared * 0.62,
-                lookY: 0.5 - scared * 0.2,
-                lookX: -0.2,
-                blink: [566, 618].some((b) => g >= b && g < b + 3) ? 1 : 0,
               }}
             >
               <group
@@ -121,8 +124,8 @@ export const Reto: React.FC = () => {
         ))}
         <Card
           frame={g}
-          at={588}
-          out={628}
+          at={wordAt("L06", 9) - 2}
+          out={lineEnd("L06") + 8}
           x={1400}
           y={250}
           icon={<RainCloud />}
@@ -131,12 +134,12 @@ export const Reto: React.FC = () => {
           rotate={-3}
           gradient="linear-gradient(135deg, #1E6BFF 0%, #27C4F5 100%)"
         />
-        {g >= 668 ? (
+        {g >= TITLE - 12 ? (
           <TitleCanvas>
             <TitleSlam
               frame={g}
-              at={670}
-              out={708}
+              at={TITLE}
+              out={END - 14}
               exit="zoom"
               lines={[
                 { text: "¡PARECÍA", size: 1.45, look: LOOKS.red, y: 1.7 },
@@ -145,15 +148,15 @@ export const Reto: React.FC = () => {
                   size: 2.1,
                   look: LOOKS.red,
                   y: -0.3,
-                  delay: 10,
+                  delay: Math.max(6, wordAt("L08", 1) - wordAt("L08", 0)),
                 },
               ]}
             />
           </TitleCanvas>
         ) : null}
       </Shake>
-      <Flash frame={g} at={548} dur={6} color="#DDE6FF" peak={0.55} />
-      <Flash frame={g} at={596} dur={6} color="#DDE6FF" peak={0.55} />
+      <Flash frame={g} at={BOLTS[0]} dur={6} color="#DDE6FF" peak={0.55} />
+      <Flash frame={g} at={BOLTS[1]} dur={6} color="#DDE6FF" peak={0.55} />
     </AbsoluteFill>
   );
 };

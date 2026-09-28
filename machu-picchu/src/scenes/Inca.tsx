@@ -1,17 +1,17 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
-import { EASE_OUT, pop, ramp, wordPulse } from "../anim";
+import { EASE_OUT, pop, ramp } from "../anim";
 import { Burst, Card } from "../overlay/Graphics";
 import { TitleSlam } from "../overlay/TitleOverlay";
-import { WORD_FRAMES } from "../script";
-import { SCENES } from "../theme";
+import { talkPose } from "../talk";
+import { SCENES, wordAt } from "../timeline";
 import { Clawd } from "../three/Clawd";
 import { Twinkles } from "../three/Effects3D";
 import { IntiSun } from "../three/Props";
 import { LOOKS } from "../three/Text3D";
 import { Stage } from "./common";
 
-// 15.3-18 s: built by order of the Inca emperor Pachacútec.
+// "...por orden de Pachacútec, el gran emperador inca."
 
 const Crown: React.FC = () => (
   <svg width={80} height={70} viewBox="0 0 100 86">
@@ -38,13 +38,15 @@ const Crown: React.FC = () => (
 
 export const Inca: React.FC = () => {
   const frame = useCurrentFrame();
-  const g = frame + SCENES.inca.from;
-  const sunIn = pop(g, 462, { damping: 12, stiffness: 120 });
-  const clawdIn = pop(g, 470, { damping: 11, stiffness: 150 });
-  const talk = wordPulse(g, WORD_FRAMES);
-  const point = ramp(g, 484, 492, [0, 1], EASE_OUT);
-  const rays = g * 0.35;
-  const camZ = 20 - ramp(g, 460, 540, [0, 1.6], (x) => x);
+  const S = SCENES.inca;
+  const g = frame + S.from;
+  const END = S.from + S.duration;
+  const NAME = wordAt("L05", 3) + 3;
+  const sunIn = pop(g, S.from + 4, { damping: 14, stiffness: 100 });
+  const clawdIn = pop(g, S.from + 12, { damping: 13, stiffness: 120 });
+  const point = ramp(g, wordAt("L05", 2) - 6, wordAt("L05", 2) + 6, [0, 1], EASE_OUT);
+  const rays = g * 0.25;
+  const camZ = 20 - ramp(g, S.from, END, [0, 1.6], (x) => x);
   return (
     <AbsoluteFill
       style={{
@@ -78,14 +80,14 @@ export const Inca: React.FC = () => {
         </group>
         <Twinkles
           frame={g}
-          at={470}
+          at={S.from + 12}
           position={[-3.3, 1.0, 1]}
           radius={4}
           count={14}
         />
         <Twinkles
           frame={g}
-          at={506}
+          at={NAME}
           position={[-3.3, 1.0, 1]}
           radius={4.5}
           count={16}
@@ -97,39 +99,36 @@ export const Inca: React.FC = () => {
           <Clawd
             size={3.0}
             shadow={false}
-            pose={{
+            pose={talkPose(g, {
               hat: 1,
-              squash: 1 - 0.06 * talk,
-              hop: talk * 0.6,
               armL: point * 0.9,
               reachL: point * 1.6,
-              armR: 0.2 * talk,
               lookX: -0.8,
               lookY: 0.3,
-            }}
+            })}
           />
         </group>
         <TitleSlam
           frame={g}
-          at={506}
-          out={534}
+          at={NAME}
+          out={END - 14}
           exit="zoom"
           lines={[
             {
               text: "PACHACÚTEC",
-              size: 1.55,
+              size: 1.45,
               look: LOOKS.gold,
-              y: -3.55,
+              y: -2.3,
               x: -0.6,
             },
           ]}
         />
       </Stage>
-      <Burst frame={g} at={506} x={900} y={900} color="#FFD60A" size={620} />
+      <Burst frame={g} at={NAME} x={900} y={790} color="#FFD60A" size={620} />
       <Card
         frame={g}
-        at={486}
-        out={534}
+        at={wordAt("L05", 4) - 2}
+        out={END - 14}
         x={1300}
         y={210}
         icon={<Crown />}
