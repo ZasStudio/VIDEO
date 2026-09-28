@@ -395,7 +395,7 @@ export const Piedras: React.FC = () => {
           at={1002}
           out={1014}
           x={chiselScreen.x - 260}
-          y={chiselScreen.y + 20}
+          y={chiselScreen.y - 170}
           title="BRONCE"
           rotate={4}
           gradient="linear-gradient(135deg, #F2B04A 0%, #B8641E 100%)"

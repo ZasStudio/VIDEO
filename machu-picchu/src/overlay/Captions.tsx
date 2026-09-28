@@ -26,7 +26,7 @@ export const Captions: React.FC = () => {
           flexWrap: "wrap",
           justifyContent: "center",
           alignItems: "baseline",
-          columnGap: 26,
+          columnGap: 30,
           rowGap: 0,
           maxWidth: 1560,
           marginBottom: 92,
@@ -35,7 +35,7 @@ export const Captions: React.FC = () => {
         }}
       >
         {shown.map((w, i) => {
-          const p = pop(frame, w.at, { damping: 9, stiffness: 260, mass: 0.6 });
+          const p = pop(frame, w.at, { damping: 13, stiffness: 260, mass: 0.6 });
           const isNew = w === newest;
           const since = frame - w.at;
           const color =
@@ -56,7 +56,7 @@ export const Captions: React.FC = () => {
                 paintOrder: "stroke fill",
                 textShadow: "0 8px 0 #000, 0 14px 22px rgba(0,0,0,0.55)",
                 display: "inline-block",
-                transform: `translateY(${(1 - p) * 40}px) scale(${0.4 + 0.6 * p + (isNew ? 0.06 : 0)}) rotate(${tilt}deg)`,
+                transform: `translateY(${(1 - p) * 40}px) scale(${0.6 + 0.4 * p}) rotate(${tilt}deg)`,
                 whiteSpace: "nowrap",
               }}
             >

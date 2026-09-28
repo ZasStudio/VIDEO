@@ -229,7 +229,7 @@ export const Subsuelo: React.FC = () => {
               pop(g, NAMED[L.key], { damping: 11, stiffness: 220 }) *
               (1 - labelsOut);
             if (k < 0.01) return null;
-            const size = 0.42;
+            const size = 0.56;
             const w = measureText3D(L.label, size).width;
             return (
               <group
