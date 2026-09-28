@@ -1,13 +1,13 @@
 {
   "voiceMix": true,
   "sections": [
-    { "role": "intro", "bars": 4 },
-    { "role": "grooveA", "bars": 14, "start": "drop" },
-    { "role": "break", "bars": 6 },
-    { "role": "grooveB", "bars": 12, "start": "drop" },
-    { "role": "grooveB", "bars": 10, "start": "fill" },
-    { "role": "grooveB", "bars": 11, "start": "fill" },
-    { "role": "build", "bars": 5 },
-    { "role": "final", "bars": 6, "hitBar": 2 }
+    { "role": "intro", "bars": 5 },
+    { "role": "grooveA", "bars": 13, "start": "drop" },
+    { "role": "break", "bars": 8 },
+    { "role": "grooveB", "bars": 13, "start": "drop" },
+    { "role": "grooveB", "bars": 9, "start": "fill" },
+    { "role": "grooveB", "bars": 13, "start": "fill" },
+    { "role": "build", "bars": 7 },
+    { "role": "final", "bars": 7, "hitBar": 3 }
   ]
 }

@@ -97,6 +97,23 @@ const ACTIVE = new Float32Array(DURATION + 1);
 }
 export const talking = (g: number) => (g >= 0 && g <= DURATION ? ACTIVE[Math.floor(g)] : 0);
 
+/** Ducking envelope for the music (0..1): starts a few frames before the voice and holds
+ *  through short pauses, so the music does not pump between words. */
+const DUCK = new Float32Array(DURATION + 1);
+{
+  const AHEAD = 4;
+  const HOLD = 18;
+  let last = -1e9;
+  let v = 0;
+  for (let f = 0; f <= DURATION; f++) {
+    if (LEVEL[Math.min(DURATION, f + AHEAD)] > 0.08) last = f;
+    const target = f - last <= HOLD ? 1 : 0;
+    v += (target - v) * (target > v ? 0.35 : 0.06);
+    DUCK[f] = v;
+  }
+}
+export const ducking = (g: number) => (g >= 0 && g <= DURATION ? DUCK[Math.floor(g)] : 0);
+
 /** Decaying pulse after each syllable accent (0..1). */
 export const voiceAccent = (g: number, decay = 4) => {
   let lo = 0;

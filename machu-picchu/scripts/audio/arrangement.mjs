@@ -33,14 +33,14 @@ export const STARTS = ['drop', 'fill', 'none'];
 export const DEFAULT_SONG = {
   voiceMix: true,
   sections: [
-    { role: 'intro', bars: 4 },
-    { role: 'grooveA', bars: 14, start: 'drop' },
-    { role: 'break', bars: 6 },
-    { role: 'grooveB', bars: 12, start: 'drop' },
-    { role: 'grooveB', bars: 10, start: 'fill' },
-    { role: 'grooveB', bars: 11, start: 'fill' },
-    { role: 'build', bars: 5 },
-    { role: 'final', bars: 6, hitBar: 2 },
+    { role: 'intro', bars: 5 },
+    { role: 'grooveA', bars: 13, start: 'drop' },
+    { role: 'break', bars: 8 },
+    { role: 'grooveB', bars: 13, start: 'drop' },
+    { role: 'grooveB', bars: 9, start: 'fill' },
+    { role: 'grooveB', bars: 13, start: 'fill' },
+    { role: 'build', bars: 7 },
+    { role: 'final', bars: 7, hitBar: 3 },
   ],
 };
 
@@ -246,6 +246,8 @@ function exitOf(s) {
 function entryOf(s) {
   if (s.start === 'drop') return s.prev && s.prev.role === 'intro' ? 'drop1' : 'drop2';
   if (s.role === 'break') return 'break'; // low boom + dark crash (also after a fill)
+  // a final with groove bars before its tag (hitBar > 2): the build lands on Am like a drop
+  if (s.role === 'final' && s.hitBar > 2) return s.prev && s.prev.role === 'build' ? 'drop2' : 'crash';
   if (s.start === 'fill') return 'crash';
   return null; // the final tag bar plays its own crash
 }
@@ -364,7 +366,12 @@ function arrangeFinal(plan, s, counters) {
   const nPre = h - nTag; // groove bars before the tag (only when hitBar > 2)
   const m = n - h - 1; // outro bars after the hit
   if (nPre > 0) {
-    grooveBars(plan, s, 0, nPre, true, counters, 'grooveB');
+    // arrival bars: the loop from Am with the main hook, then a fill into the tag
+    for (let k = 0; k < nPre; k++) {
+      const q = k % 4;
+      setBar(plan, s, k, { kind: 'groove', B: true, ch: [LOOP[q]], q, phrase: 'A' });
+      grooveMelody(plan, s.b0 + k, 'A', q, true);
+    }
     plan.bars[s.b0 + nPre - 1].fillAfter = true;
   }
   for (let j = 0; j < nTag; j++) {

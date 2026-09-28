@@ -57,7 +57,7 @@ const intro = (): Cue[] => {
   const F = SCENES.intro.from;
   const HAT = F + 28;
   return [
-    [F, "impact", 0.45], // the music drops here too
+    [F, "impact", 0.35], // the music drops here too
     [F + 4, "whoosh-short", 0.35],
     [F + 14, "stone-thud", 0.5],
     [HAT, "whoosh-short", 0.22],
@@ -85,8 +85,8 @@ const datos = (): Cue[] => {
     [RW, "whoosh", 0.45],
     [wordAt("L04", 6) - 4, "whoosh-short", 0.3],
     ...ticks(ROLL0, LANDY, 3, 0.18),
-    [LANDY, "ding", 0.55],
-    [LANDY, "impact", 0.35],
+    [LANDY, "ding", 0.45],
+    [LANDY, "impact", 0.28],
     [end("datos") - 14, "whoosh-short", 0.4],
   ];
 };
@@ -98,8 +98,8 @@ const inca = (): Cue[] => {
     [S.from, "whoosh", 0.45],
     [S.from + 4, "sparkle", 0.4],
     [S.from + 12, "pop", 0.4],
-    [NAME, "impact", 0.55],
-    [NAME + 1, "sparkle", 0.4],
+    [NAME, "impact", 0.38],
+    [NAME + 1, "sparkle", 0.32],
     [wordAt("L05", 4) - 2, "pop", 0.4],
     [end("inca") - 14, "whoosh-short", 0.4],
   ];
@@ -109,11 +109,11 @@ const reto = (): Cue[] => {
   const S = SCENES.reto;
   const TITLE = wordAt("L08", 0) + 3;
   return [
-    [S.from + 10, "thunder", 0.6],
-    [wordAt("L06", 7), "thunder", 0.5],
+    [S.from + 10, "thunder", 0.45],
+    [wordAt("L06", 7), "thunder", 0.36],
     [wordAt("L06", 9) - 2, "pop", 0.4],
-    [TITLE - 6, "whoosh-short", 0.35],
-    [TITLE, "impact", 0.75],
+    [TITLE - 6, "whoosh-short", 0.3],
+    [TITLE, "impact", 0.5],
     [end("reto") - 14, "whoosh-short", 0.4],
   ];
 };
@@ -125,24 +125,24 @@ const piedras = (): Cue[] => {
   const HIT2 = HIT1 + 16;
   const BRONZE = wordAt("L12", 13);
   return [
-    [S.from, "impact", 0.5], // music drop
-    [wordAt("L09", 0) + 3, "pop", 0.4],
+    [S.from, "impact", 0.3], // music drop, under "Secreto número uno"
+    [wordAt("L09", 0) + 3, "pop", 0.32],
     [T2, "whoosh-short", 0.35],
     [wordAt("L10", 2), "whoosh-short", 0.3],
-    ...landingFrames(16).map((f, i): Cue => [f, "stone-clack", i % 2 ? 0.26 : 0.34]),
+    ...landingFrames(16).map((f, i): Cue => [f, "stone-clack", i % 2 ? 0.2 : 0.26]),
     [wordAt("L10", 6) - 2, "pop", 0.38],
-    [wordAt("L10", 15), "pop", 0.45],
+    [wordAt("L10", 15), "pop", 0.34],
     [wordAt("L11", 0), "whoosh-short", 0.3],
     [wordAt("L11", 0) + 6, "pop", 0.35],
     [wordAt("L11", 5), "paper", 0.45],
     [wordAt("L11", 10), "paper", 0.5],
     [wordAt("L11", 11), "pop", 0.45],
     [HIT1 - 9, "whoosh-short", 0.25],
-    [HIT1, "stone-thud", 0.65],
-    [HIT1, "stone-clack", 0.45],
+    [HIT1, "stone-thud", 0.45],
+    [HIT1, "stone-clack", 0.3],
     [HIT2 - 9, "whoosh-short", 0.25],
-    [HIT2, "stone-thud", 0.65],
-    [HIT2, "stone-clack", 0.45],
+    [HIT2, "stone-thud", 0.45],
+    [HIT2, "stone-clack", 0.3],
     [wordAt("L12", 6), "pop", 0.38],
     [BRONZE, "pop", 0.4],
     [wordAt("L12", 15), "sparkle", 0.45],
@@ -157,8 +157,8 @@ const sismos = (): Cue[] => {
   const SETTLE = wordAt("L15", 7);
   const ARROWS = wordAt("L14", 15);
   return [
-    [S.from, "impact", 0.45], // music fill
-    [wordAt("L13", 0) + 3, "pop", 0.4],
+    [S.from, "impact", 0.28], // music fill, under "Secreto número dos"
+    [wordAt("L13", 0) + 3, "pop", 0.32],
     [wordAt("L13", 4) + 2, "whoosh-short", 0.35],
     [wordAt("L14", 5), "sparkle", 0.28],
     [wordAt("L14", 7), "pop", 0.38],
@@ -167,10 +167,10 @@ const sismos = (): Cue[] => {
     [ARROWS, "pop", 0.32],
     [ARROWS + 4, "pop", 0.28],
     ...ticks(QUAKE_IN + 4, SETTLE - 4, 9, 0).map(
-      ([f], i): Cue => [f, "stone-clack", i % 2 ? 0.2 : 0.26],
+      ([f], i): Cue => [f, "stone-clack", i % 2 ? 0.13 : 0.17],
     ),
-    [SETTLE, "stone-thud", 0.75],
-    [SETTLE, "stone-clack", 0.55],
+    [SETTLE, "stone-thud", 0.55],
+    [SETTLE, "stone-clack", 0.4],
     [SETTLE + 4, "ding", 0.55],
     [SETTLE + 5, "sparkle", 0.4],
     [end("sismos") - 14, "whoosh-short", 0.4],
@@ -181,16 +181,16 @@ const subsuelo = (): Cue[] => {
   const S = SCENES.subsuelo;
   const CAPAS = wordAt("L17", 4);
   const drops: [number, number][] = [
-    [wordAt("L17", 6) + 6, 0.6],
-    [wordAt("L17", 8) + 6, 0.5],
-    [wordAt("L17", 9) + 6, 0.45],
-    [wordAt("L17", 11) + 6, 0.45],
+    [wordAt("L17", 6) + 6, 0.42],
+    [wordAt("L17", 8) + 6, 0.36],
+    [wordAt("L17", 9) + 6, 0.32],
+    [wordAt("L17", 11) + 6, 0.32],
   ];
   const P60 = wordAt("L19", 4);
   const C129 = wordAt("L19", 14);
   return [
-    [S.from, "impact", 0.45], // music fill
-    [wordAt("L16", 0) + 3, "pop", 0.4],
+    [S.from, "impact", 0.28], // music fill, under "Secreto número tres"
+    [wordAt("L16", 0) + 3, "pop", 0.32],
     [wordAt("L16", 3) + 2, "whoosh-short", 0.35],
     [lineStart("L17") - 6, "whoosh-short", 0.22],
     ...[0, 1, 2].map((i): Cue => [CAPAS + i * 6, "tick", 0.3]),
@@ -203,12 +203,12 @@ const subsuelo = (): Cue[] => {
     [wordAt("L18", 5), "whoosh-short", 0.25],
     [wordAt("L18", 5) + 2, "pop", 0.4],
     [wordAt("L18", 11), "pop", 0.4],
-    [P60, "impact", 0.45],
+    [P60, "impact", 0.32],
     ...ticks(P60, wordAt("L19", 6) + 4, 3, 0.16),
     [wordAt("L19", 6) + 4, "ding", 0.42],
     [wordAt("L19", 11), "whoosh-short", 0.28],
     [wordAt("L19", 12), "whoosh", 0.35],
-    [C129, "impact", 0.45],
+    [C129, "impact", 0.32],
     ...ticks(C129, wordAt("L19", 15) + 6, 3, 0.16),
     [wordAt("L19", 15) + 6, "ding", 0.42],
     [wordAt("L19", 16), "sparkle", 0.42],
@@ -221,16 +221,16 @@ const mita = (): Cue[] => {
   const CROWD = wordAt("L20", 5);
   const MITA = wordAt("L21", 4) + 2;
   const ropes: Cue[] = [];
-  for (let f = S.from + 8, i = 0; f < end("mita") - 20; f += 30, i++)
-    ropes.push([f, "rope", i % 2 ? 0.3 : 0.36]);
+  for (let f = S.from + 8, i = 0; f < MITA - 24; f += 30, i++)
+    ropes.push([f, "rope", i % 2 ? 0.22 : 0.27]);
   return [
-    [S.from, "impact", 0.45],
+    [S.from, "impact", 0.3],
     ...ropes,
     ...[0, 3, 6, 9, 12].map((i): Cue => [Math.round(CROWD + i * 2.4), "pop", 0.22]),
     [wordAt("L20", 9) - 4, "pop", 0.42],
     [MITA - RISER_LEN, "riser", 0.3],
-    [MITA, "impact", 0.6],
-    [MITA + 1, "sparkle", 0.4],
+    [MITA, "impact", 0.4],
+    [MITA + 1, "sparkle", 0.3],
     [end("mita") - 12, "whoosh", 0.5],
   ];
 };
@@ -267,8 +267,8 @@ export const CUES: Cue[] = [
 
 export const BEDS: Bed[] = [
   [SCENES.reto.from, end("reto"), "rain", 0.36],
-  [wordAt("L07", 3), lineStart("L08") - 6, "rumble", 0.8],
-  [wordAt("L15", 2), wordAt("L15", 7) + 4, "rumble", 0.85],
+  [wordAt("L07", 3), lineStart("L08") - 6, "rumble", 0.6],
+  [wordAt("L15", 2), wordAt("L15", 7) + 4, "rumble", 0.62],
   [wordAt("L18", 2) - 4, end("subsuelo"), "rain", 0.26],
 ];
 

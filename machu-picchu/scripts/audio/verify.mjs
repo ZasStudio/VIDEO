@@ -152,31 +152,88 @@ function fftMag(frame) {
   return mag;
 }
 
-// Click analysis around one position (both channels, +-win samples):
+// Click score: a short-block linear-prediction residual (AR(12) fitted per
+// 25 ms block, Levinson-Durbin), each sample compared with the mean residual
+// level around it (+-64 samples, leaving out +-2). A discontinuity (hard cut,
+// missing fade, dropout) is a lone outlier and scores far above everything
+// else; drums, noise and plucks spread their residual over many samples. The
+// Karplus-Strong charango attack itself (the noise burst handing over to the
+// string loop) scores up to ~35, so the limit sits above that. Clicks that
+// coincide with a downbeat hit are masked by it, in this score and to the ear.
+export const CLICK_LIMIT = 50;
+const AR_P = 12;
+const AR_BLOCK = 1200;
+const AR_HALF = 64;
+const AR_SKIP = 2; // the +-2 samples next to the tested one are left out of its reference level
+const AR_FLOOR = 1e-4; // residual floor (-80 dBFS): a click in silence still scores high
+function levinson(r, p) {
+  const a = new Float64Array(p + 1);
+  a[0] = 1;
+  let err = r[0];
+  if (!(err > 0)) return null;
+  for (let i = 1; i <= p; i++) {
+    let acc = r[i];
+    for (let j = 1; j < i; j++) acc += a[j] * r[i - j];
+    const k = -acc / err;
+    const prev = a.slice();
+    for (let j = 1; j < i; j++) a[j] = prev[j] + k * prev[i - j];
+    a[i] = k;
+    err *= 1 - k * k;
+    if (!(err > 0)) break;
+  }
+  return a;
+}
+export function clickScores(x) {
+  const n = x.length;
+  const e = new Float64Array(n);
+  const r = new Float64Array(AR_P + 1);
+  for (let b0 = 0; b0 < n; b0 += AR_BLOCK) {
+    const b1 = Math.min(n, b0 + AR_BLOCK);
+    const s0 = Math.max(0, b0 - 2 * AR_HALF);
+    const len = b1 - s0;
+    const tw = (k) => 0.5 - 0.5 * Math.cos((2 * Math.PI * (k + 0.5)) / len); // taper for the autocorrelation
+    for (let lag = 0; lag <= AR_P; lag++) {
+      let acc = 0;
+      for (let i = s0 + lag; i < b1; i++) acc += x[i] * tw(i - s0) * x[i - lag] * tw(i - lag - s0);
+      r[lag] = acc;
+    }
+    r[0] = r[0] * (1 + 1e-9) + 1e-12;
+    const a = levinson(r, AR_P);
+    for (let i = b0; i < b1; i++) {
+      let v = x[i];
+      if (a) for (let k = 1; k <= AR_P && i - k >= 0; k++) v += a[k] * x[i - k];
+      e[i] = Math.abs(v);
+    }
+  }
+  const pre = new Float64Array(n + 1);
+  for (let i = 0; i < n; i++) pre[i + 1] = pre[i] + e[i];
+  const score = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const a0 = Math.max(0, i - AR_HALF);
+    const a1 = Math.min(n, i + AR_HALF + 1);
+    const c0 = Math.max(0, i - AR_SKIP);
+    const c1 = Math.min(n, i + AR_SKIP + 1);
+    const m = (pre[a1] - pre[a0] - (pre[c1] - pre[c0])) / Math.max(1, a1 - a0 - (c1 - c0));
+    score[i] = e[i] / Math.max(m, AR_FLOOR);
+  }
+  return score;
+}
+
+// Around one position (+-win samples, both channels):
 //   jump  = largest sample-to-sample step,
-//   crest = peak / RMS of the 2nd difference (an isolated discontinuity is a
-//           lone spike -> very high crest; drums and noise stay low),
+//   click = largest click score (see above),
 //   flux  = largest spectral flux (1024-pt Hann frames, hop 256, mid channel)
 //           of the frames centred within the window.
 const FFT_N = 1024;
 const HANN = Float64Array.from({ length: FFT_N }, (_, i) => 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / FFT_N));
-function clickMetrics(L, R, i0, win) {
+function boundaryMetrics(L, R, score, i0, win) {
   const n = L.length;
   let jump = 0;
-  let d2max = 0;
-  let d2sq = 0;
-  let cnt = 0;
-  for (let i = Math.max(2, i0 - win); i < Math.min(n, i0 + win); i++) {
-    for (const x of [L, R]) {
-      const d = Math.abs(x[i] - x[i - 1]);
-      if (d > jump) jump = d;
-      const d2 = x[i] - 2 * x[i - 1] + x[i - 2];
-      d2sq += d2 * d2;
-      cnt++;
-      if (Math.abs(d2) > d2max) d2max = Math.abs(d2);
-    }
+  let click = 0;
+  for (let i = Math.max(1, i0 - win); i < Math.min(n, i0 + win); i++) {
+    jump = Math.max(jump, Math.abs(L[i] - L[i - 1]), Math.abs(R[i] - R[i - 1]));
+    if (score[i] > click) click = score[i];
   }
-  const crest = d2max / Math.sqrt(d2sq / Math.max(1, cnt) + 1e-30);
   let flux = 0;
   let prev = null;
   for (let c = i0 - win - 256; c <= i0 + win; c += 256) {
@@ -188,13 +245,13 @@ function clickMetrics(L, R, i0, win) {
     }
     const mag = fftMag(frame);
     if (prev && c >= i0 - win) {
-      let s = 0;
-      for (let k = 0; k < mag.length; k++) s += Math.max(0, mag[k] - prev[k]);
-      flux = Math.max(flux, s);
+      let acc = 0;
+      for (let k = 0; k < mag.length; k++) acc += Math.max(0, mag[k] - prev[k]);
+      flux = Math.max(flux, acc);
     }
     prev = mag;
   }
-  return { jump, crest, flux };
+  return { jump, click, flux };
 }
 
 // Synthesized hits ramp up from zero (kick 0.2 ms, crash 1.5 ms), so the first
@@ -289,7 +346,7 @@ export function verifyMusic(path, plan) {
     const t = plan.hit.t;
     const hi = Math.round(t * SR);
     const gate = plan.gates.find((g) => g.b === t);
-    const first = firstNonZero(Math.round((gate ? gate.a : t - 0.018) * SR));
+    const first = firstNonZero(Math.max(0, Math.round((gate ? gate.a : t - 0.018) * SR)));
     const rms10 = gainToDb(win(t, t + 0.01));
     const onset = gainToDb(win(t, t + 0.05) / Math.max(1e-9, win(t - 0.15, t)));
     const hitOk = first >= hi && first < hi + ONSET_TOL && rms10 > -30;
@@ -316,44 +373,52 @@ export function verifyMusic(path, plan) {
   if (tailNZ) problems.push('music.wav: last 0.1 s not silent');
 
   // ------------------------------------------------------------ clicks at bar lines
-  // Every bar line (+-25 ms). Section starts carry planned accents (drops,
-  // crashes, the hit), so their jump / flux ratios are expected to be higher;
-  // a click would show as a crest far above the rest, or as a spike at a plain
-  // bar line with nothing planned on it.
+  // Every bar line (+-25 ms): jump / flux relative to the median of all bar
+  // lines (section starts with planned accents - drops, crashes, the hit - are
+  // expected to be higher), plus the click score, also scanned over the whole file.
   const W = Math.round(0.025 * SR);
+  const sL = clickScores(L);
+  const sR = clickScores(R);
+  const score = Float32Array.from(sL, (v, i) => Math.max(v, sR[i]));
+  const accentAt = new Map();
+  for (const s of plan.sections.slice(1)) accentAt.set(s.b0, `${s.role} ${s.entry ?? 'start'}`);
+  for (const a of plan.accents) if (!accentAt.has(a.t / BAR)) accentAt.set(a.t / BAR, a.type);
+  if (plan.hit) accentAt.set(plan.hit.b, 'final hit');
   const rows = [];
-  const planned = new Map();
-  for (const s of plan.sections.slice(1)) planned.set(s.b0, `${s.role} ${s.entry ?? 'start'}`);
-  for (const a of plan.accents) if (!planned.has(a.t / BAR)) planned.set(a.t / BAR, a.type);
-  if (plan.hit) planned.set(plan.hit.b, 'final hit');
-  for (let b = 1; b < plan.nBars; b++) rows.push({ b, ...clickMetrics(L, R, b * BAR * SR, W), label: planned.get(b) ?? '' });
-  // reference: the same metrics half-way through each bar (beat 3, also a kick/clap position)
-  const mid = [];
-  for (let b = 0; b < plan.nBars; b++) mid.push(clickMetrics(L, R, (b + 0.5) * BAR * SR, W));
-  const med = { jump: median(rows.map((r) => r.jump)), crest: median(rows.map((r) => r.crest)), flux: median(rows.map((r) => r.flux)) };
-  const ref = { crest: Math.max(...mid.map((r) => r.crest)), jump: Math.max(...mid.map((r) => r.jump)) };
-  console.log(
-    `\n  Bar lines (${rows.length}, +-25 ms): median max-jump ${med.jump.toFixed(4)}, median HF crest ${med.crest.toFixed(1)}, median flux ${med.flux.toFixed(1)}` +
-      `  | mid-bar reference: max crest ${ref.crest.toFixed(1)}, max jump ${ref.jump.toFixed(4)}`
-  );
-  console.log('    bar  time (s)   jump  x med   crest   flux  x med  planned');
+  for (let b = 1; b < plan.nBars; b++) rows.push({ b, ...boundaryMetrics(L, R, score, Math.round(b * BAR * SR), W), label: accentAt.get(b) ?? '' });
+  const med = { jump: median(rows.map((r) => r.jump)), flux: median(rows.map((r) => r.flux)), click: median(rows.map((r) => r.click)) };
+  console.log(`\n  Bar lines (${rows.length}, +-25 ms): median max-jump ${med.jump.toFixed(4)}, median flux ${med.flux.toFixed(1)}, median click score ${med.click.toFixed(1)} (limit ${CLICK_LIMIT})`);
+  console.log('    bar  time (s)   jump  x med    flux  x med  click  planned');
   const showRow = (r) =>
     console.log(
-      `    ${padL(r.b + 1, 3)} ${padL((r.b * BAR).toFixed(3), 9)} ${padL(r.jump.toFixed(4), 7)} ${padL((r.jump / med.jump).toFixed(2), 6)} ${padL(r.crest.toFixed(1), 7)}` +
-        ` ${padL(r.flux.toFixed(1), 6)} ${padL((r.flux / med.flux).toFixed(2), 6)}  ${r.label}`
+      `    ${padL(r.b + 1, 3)} ${padL((r.b * BAR).toFixed(3), 9)} ${padL(r.jump.toFixed(4), 7)} ${padL((r.jump / med.jump).toFixed(2), 6)}` +
+        ` ${padL(r.flux.toFixed(1), 7)} ${padL((r.flux / med.flux).toFixed(2), 6)} ${padL(r.click.toFixed(1), 6)}  ${r.label}`
     );
-  const shown = new Set();
-  for (const r of rows) if (r.label) (showRow(r), shown.add(r.b));
-  const top = [...rows].filter((r) => !shown.has(r.b)).sort((x, y) => y.jump / med.jump + y.flux / med.flux - (x.jump / med.jump + x.flux / med.flux));
-  console.log('    ... the 5 most eventful plain bar lines:');
-  top.slice(0, 5).forEach(showRow);
-  const crestLimit = Math.max(3 * med.crest, 1.5 * ref.crest);
-  for (const r of rows) {
-    if (r.crest > crestLimit) problems.push(`music.wav: possible click near ${(r.b * BAR).toFixed(3)} s (HF crest ${r.crest.toFixed(1)} > ${crestLimit.toFixed(1)})`);
-    if (!r.label && (r.jump > 3 * med.jump || r.flux > 4 * med.flux)) problems.push(`music.wav: unexpected spike at the plain bar line ${(r.b * BAR).toFixed(3)} s (jump x${(r.jump / med.jump).toFixed(1)}, flux x${(r.flux / med.flux).toFixed(1)})`);
+  rows.filter((r) => r.label).forEach(showRow);
+  const plain = rows.filter((r) => !r.label);
+  console.log('    ... the 5 most eventful plain bar lines (nothing planned on them):');
+  [...plain].sort((x, y) => y.jump / med.jump + y.flux / med.flux - (x.jump / med.jump + x.flux / med.flux)).slice(0, 5).forEach(showRow);
+  const maxJ = Math.max(0, ...plain.map((r) => r.jump / med.jump));
+  const maxF = Math.max(0, ...plain.map((r) => r.flux / med.flux));
+  console.log(`    plain bar lines: max jump x${maxJ.toFixed(2)}, max flux x${maxF.toFixed(2)} of the median (limits x3, x4) -> ${ok(maxJ <= 3 && maxF <= 4)}`);
+  for (const r of plain) {
+    if (r.jump > 3 * med.jump || r.flux > 4 * med.flux) problems.push(`music.wav: unexpected spike at the plain bar line ${(r.b * BAR).toFixed(3)} s (jump x${(r.jump / med.jump).toFixed(1)}, flux x${(r.flux / med.flux).toFixed(1)})`);
   }
-  const worst = rows.reduce((m, r) => (r.crest > m.crest ? r : m), rows[0]);
-  console.log(`    highest HF crest: ${worst.crest.toFixed(1)} at ${(worst.b * BAR).toFixed(3)} s (click limit ${crestLimit.toFixed(1)}) -> ${ok(worst.crest <= crestLimit)}`);
+  const top = [];
+  for (let i0 = 0; i0 < n; i0 += AR_BLOCK) {
+    let m = 0;
+    let at = i0;
+    for (let i = i0; i < Math.min(n, i0 + AR_BLOCK); i++) if (score[i] > m) (m = score[i]), (at = i);
+    top.push([m, at]);
+  }
+  top.sort((x, y) => y[0] - x[0]);
+  console.log(
+    `    click score, whole file: max ${top[0][0].toFixed(1)} at ${(top[0][1] / SR).toFixed(4)} s; next ${top
+      .slice(1, 4)
+      .map(([m, at]) => `${m.toFixed(1)} @ ${(at / SR).toFixed(3)} s`)
+      .join(', ')} -> ${ok(top[0][0] <= CLICK_LIMIT)}`
+  );
+  for (const [m, at] of top) if (m > CLICK_LIMIT) problems.push(`music.wav: possible click at ${(at / SR).toFixed(4)} s (click score ${m.toFixed(1)} > ${CLICK_LIMIT})`);
 
   // ------------------------------------------------------------ per bar
   const bars = [];
@@ -383,11 +448,11 @@ export function verifyMusic(path, plan) {
       [20, 60, 'sub'],
       [60, 150, 'bass'],
       [150, 500, 'low-mid'],
-      [500, 1000, '0.5-1k'],
-      [1000, 2000, '1-2k'],
+      [500, 2000, 'mid'],
       [2000, 4000, '2-4k'],
       [4000, 8000, '4-8k'],
       [8000, 20000, 'air'],
+      [1000, 4000, '| speech band 1-4k'],
     ];
     const parts = bands.map(([lo, hi, label]) => {
       const b = filt(filt(filt(filt(mid, 'hp', lo), 'hp', lo), 'lp', hi), 'lp', hi);
