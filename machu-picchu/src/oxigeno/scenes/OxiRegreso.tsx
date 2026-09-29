@@ -1,15 +1,14 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
-import { EASE_IN_OUT, ramp, windowIn } from "../../anim";
+import { ramp, windowIn } from "../../anim";
 import { Burst, Confetti, Flash } from "../../overlay/Graphics";
 import { O2Gauge } from "../../overlay/oxigeno/OxiUI";
 import { Shake, Stage } from "../../scenes/common";
 import { Vec3, lerp3 } from "../../three/CameraRig";
 import { Twinkles } from "../../three/Effects3D";
-import { Candle, Match } from "../../three/oxigeno/Props";
+import { Candle, MATCH_HOLD_R, Match } from "../../three/oxigeno/Props";
 import { Lab } from "../../three/oxigeno/Sets";
 import { Nubi } from "../../three/Nubi";
-import { Upright } from "../../inca/outfit";
 import { REGRESO } from "../beats";
 import { Outfit } from "../outfit";
 import { oxiTalk } from "../talk";
@@ -19,10 +18,10 @@ import { OXI } from "../timeline";
 // se encendería solo." Nubi stares at a candle: nothing. "¡Habría que prender todo otra vez!"
 // A first match fails, the second one lights, and the candle is lit again.
 
-const NUBI_AT: Vec3 = [-0.6, 0, 1.0];
-const CANDLE_AT: Vec3 = [0.75, 0, 1.4];
-const CAM_A = { position: [0.4, 2.2, 8.4] as Vec3, target: [0.1, 1.2, 0] as Vec3 };
-const CAM_B = { position: [0.3, 2.0, 7.4] as Vec3, target: [0.1, 1.15, 0] as Vec3 };
+const NUBI_AT: Vec3 = [-1.3, 0, 0.9];
+const CANDLE_AT: Vec3 = [0.1, 0, 1.4];
+const CAM_A = { position: [0.1, 2.5, 10.4] as Vec3, target: [-0.83, 1.12, 0] as Vec3 };
+const CAM_B = { position: [0.0, 2.3, 9.4] as Vec3, target: [-0.89, 0.98, 0] as Vec3 };
 
 export const OxiRegreso: React.FC = () => {
   const frame = useCurrentFrame();
@@ -57,9 +56,9 @@ export const OxiRegreso: React.FC = () => {
           <hemisphereLight args={["#F4F8FF", "#3A3A5A", 1.35]} />
           <directionalLight position={[-5, 9, 8]} intensity={2.4} color="#FFF6E8" />
           <pointLight position={[CANDLE_AT[0], 1.4, CANDLE_AT[2] + 0.5]} intensity={5 * candle} color="#FFA640" distance={6} />
-          <Lab t={g} alarm={0} />
+          <Lab t={g / 30} alarm={0} />
           <group position={CANDLE_AT} scale={1.1}>
-            <Candle flame={candle} t={g} smoke={ramp(g, STRIKE1, STRIKE1 + 4) * (1 - ramp(g, STRIKE1 + 14, STRIKE1 + 30))} />
+            <Candle flame={candle} t={g / 30} smoke={ramp(g, STRIKE1, STRIKE1 + 4) * (1 - ramp(g, STRIKE1 + 14, STRIKE1 + 30))} />
           </group>
           <group position={NUBI_AT} rotation={[0, 0.25, 0]}>
             <Nubi
@@ -68,11 +67,11 @@ export const OxiRegreso: React.FC = () => {
               shadowOpacity={0.4}
               holdR={
                 g >= STRIKE1 - 8 && g < LIT + 30 ? (
-                  <Upright raise={pose.finR ?? 0}>
-                    <group position={[0.3, 0.8, 0.8]} rotation={[0, 0, -0.5]}>
-                      <Match flame={matchFlame} t={g} smoke={g >= STRIKE1 && g < STRIKE2 - 6 ? 1 : 0} />
+                  <group {...MATCH_HOLD_R}>
+                    <group>
+                      <Match flame={matchFlame} t={g / 30} smoke={g >= STRIKE1 && g < STRIKE2 - 6 ? 1 : 0} />
                     </group>
-                  </Upright>
+                  </group>
                 ) : null
               }
             >
@@ -81,7 +80,7 @@ export const OxiRegreso: React.FC = () => {
           </group>
           <Twinkles frame={g} at={LIT} position={[CANDLE_AT[0], 1.3, CANDLE_AT[2]]} radius={0.8} count={10} />
         </Stage>
-        <O2Gauge frame={g} at={S.from} out={NADA - 6} x={540} y={600} scale={0.9} from={0} to={21} dropAt={-100} dropDur={1} riseAt={BACK} riseDur={20} />
+        <O2Gauge frame={g} at={S.from} out={NADA - 6} x={560} y={560} scale={0.8} from={21} to={0} dropAt={-100} dropDur={1} riseAt={BACK} riseDur={20} />
         <Burst frame={g} at={BACK} x={540} y={900} color="#7CF03C" size={760} />
         <Confetti frame={g} at={BACK} count={80} />
       </Shake>

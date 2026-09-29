@@ -29,8 +29,8 @@ export const OxiBoton: React.FC = () => {
   const suck = windowIn(g, PRESS, PRESS + 22, 3);
   const push = ramp(g, MIRA - 4, END, [0, 1], EASE_OUT);
   const cam = {
-    position: lerp3(LAB_CAM_B.position, [0.3, 2.0, 7.2], push),
-    target: lerp3(LAB_CAM_B.target, [0.0, 1.35, 0], push),
+    position: lerp3(LAB_CAM_B.position, [-0.3, 2.3, 9.2], push),
+    target: lerp3(LAB_CAM_B.target, [-1.14, 0.99, 0], push),
     fov: 42,
   };
   const alarm = SPEAKER.sistema.voiceLevel(g);
@@ -55,7 +55,7 @@ export const OxiBoton: React.FC = () => {
           <hemisphereLight args={["#F4F8FF", "#3A3A5A", 1.3 - 0.35 * Math.min(1, alarm + (g > PRESS ? 0.3 : 0))]} />
           <directionalLight position={[-5, 9, 8]} intensity={2.4} color="#FFF6E8" />
           <pointLight position={[0, 4, 3]} intensity={g > PRESS ? 6 + 6 * Math.sin(g * 0.5) : 0} color="#FF2D2D" distance={14} />
-          <Lab t={g} alarm={g > PRESS ? 1 : 0} />
+          <Lab t={g / 30} alarm={g > PRESS ? 1 : 0} />
           <group position={LAB_BUTTON} rotation={[0, -0.35, 0]}>
             <BigRedButton press={press} glow={g < PRESS ? 0.8 : 0.3} />
           </group>
@@ -65,7 +65,7 @@ export const OxiBoton: React.FC = () => {
             </Nubi>
           </group>
         </Stage>
-        <O2Gauge frame={g} at={PRESS + 3} out={END + 10} x={540} y={680} scale={0.85} dropAt={PRESS + 6} dropDur={CERO - PRESS - 6} />
+        <O2Gauge frame={g} at={PRESS + 3} out={END + 10} x={560} y={600} scale={0.72} dropAt={PRESS + 6} dropDur={CERO - PRESS - 6} />
         <Card frame={g} at={POLVO} out={MIRA - 2} x={540} y={930} title="¡MITO!" sub="NO TE HACES POLVO" rotate={-4} gradient="linear-gradient(135deg, #FF6A3D 0%, #E0322B 60%, #A3161B 100%)" />
       </Shake>
       <AlarmOverlay frame={g} from={PRESS + 4} to={END + 30} />

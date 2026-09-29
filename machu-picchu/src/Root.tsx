@@ -3,6 +3,8 @@ import { Composition, Folder } from "remotion";
 import "./fonts";
 import { MachuPicchuVideo } from "./MachuPicchuVideo";
 import { IncaPhoneShort, IncaSoundtrack } from "./inca/IncaPhoneShort";
+import { OxigenoShort, OxigenoSoundtrack } from "./oxigeno/OxigenoShort";
+import { OXI, OXI_HEIGHT, OXI_WIDTH } from "./oxigeno/timeline";
 import { INCA, INCA_HEIGHT, INCA_WIDTH } from "./inca/timeline";
 import { NubiShort, NubiSoundtrack } from "./nubi/NubiShort";
 import { NUBI, NUBI_HEIGHT, NUBI_WIDTH } from "./nubi/timeline";
@@ -16,6 +18,7 @@ import { INCA_UI_SHEET_DURATION, IncaUISheet } from "./dev/IncaUISheet";
 import { INCA_PROPS_SHEET_FRAMES, IncaPropsSheet } from "./dev/IncaPropsSheet";
 import { TitleTest } from "./dev/TitleTest";
 import { OXI_UI_SHEET_DURATION, OxiUISheet } from "./dev/OxiUISheet";
+import { OXI_PROPS_SHEET_FRAMES, OxiPropsSheet } from "./dev/OxiPropsSheet";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -74,6 +77,24 @@ export const RemotionRoot: React.FC = () => {
         width={INCA_WIDTH}
         height={INCA_HEIGHT}
       />
+      {/* Nubi's vertical short: what if the oxygen disappeared for 5 seconds? (60 s). */}
+      <Composition
+        id="OxigenoShort"
+        component={OxigenoShort}
+        durationInFrames={OXI.DURATION}
+        fps={FPS}
+        width={OXI_WIDTH}
+        height={OXI_HEIGHT}
+        defaultProps={{ withAudio: true }}
+      />
+      <Composition
+        id="OxigenoShortAudio"
+        component={OxigenoSoundtrack}
+        durationInFrames={OXI.DURATION}
+        fps={FPS}
+        width={OXI_WIDTH}
+        height={OXI_HEIGHT}
+      />
       <Folder name="Dev">
         <Composition
           id="WorldTest"
@@ -130,6 +151,14 @@ export const RemotionRoot: React.FC = () => {
           fps={30}
           width={1080}
           height={1920}
+        />
+        <Composition
+          id="OxiPropsSheet"
+          component={OxiPropsSheet}
+          durationInFrames={OXI_PROPS_SHEET_FRAMES}
+          fps={30}
+          width={1920}
+          height={1080}
         />
       </Folder>
     </>

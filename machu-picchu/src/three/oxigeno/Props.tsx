@@ -472,7 +472,7 @@ export const Campfire: React.FC<{ flame?: number; t?: number; smoke?: number }> 
 
 /**
  * Camping stove: a red gas base with a knob, three chrome pot supports and a ring of 12 blue gas
- * flames with orange tips under a teal enamel pot with a lid. 0.8 wide, ≈ 0.95 tall.
+ * flames with orange tips under a teal enamel pot with a lid. 0.8 wide, ≈ 1.05 tall.
  * `flame` 0..1 (0 = off), `t` seconds.
  */
 export const Stove: React.FC<{ flame?: number; t?: number }> = ({ flame = 1, t = 0 }) => {
@@ -484,7 +484,7 @@ export const Stove: React.FC<{ flame?: number; t?: number }> = ({ flame = 1, t =
       burner: new THREE.CylinderGeometry(0.13, 0.15, 0.07, 24),
       knob: new THREE.CylinderGeometry(0.07, 0.07, 0.07, 18),
       knobBar: new THREE.BoxGeometry(0.03, 0.1, 0.03),
-      support: new THREE.BoxGeometry(0.04, 0.2, 0.18),
+      support: new THREE.BoxGeometry(0.04, 0.3, 0.18),
       pot: new THREE.CylinderGeometry(0.33, 0.3, 0.3, 36),
       potRim: new THREE.TorusGeometry(0.33, 0.025, 8, 40),
       lid: new THREE.SphereGeometry(0.34, 36, 12, 0, Math.PI * 2, 0, Math.PI / 2),
@@ -509,18 +509,18 @@ export const Stove: React.FC<{ flame?: number; t?: number }> = ({ flame = 1, t =
       </group>
       {[0, 1, 2].map((i) => {
         const a = (i / 3) * Math.PI * 2 + Math.PI / 6;
-        return <mesh key={i} geometry={geos.support} material={chrome} position={[Math.sin(a) * 0.24, 0.37, Math.cos(a) * 0.24]} rotation={[0, a, 0]} />;
+        return <mesh key={i} geometry={geos.support} material={chrome} position={[Math.sin(a) * 0.25, 0.42, Math.cos(a) * 0.25]} rotation={[0, a, 0]} />;
       })}
       {Array.from({ length: N }).map((_, i) => {
         const a = (i / N) * Math.PI * 2;
         return (
-          <group key={i} position={[Math.sin(a) * 0.12, 0.35, Math.cos(a) * 0.12]} rotation={[Math.cos(a) * 0.35, 0, -Math.sin(a) * 0.35]}>
-            <Flame height={0.13} width={0.065} amount={k} t={t} seed={i * 2.3} palette={GAS} halo={0} />
+          <group key={i} position={[Math.sin(a) * 0.12, 0.35, Math.cos(a) * 0.12]} rotation={[Math.cos(a) * 0.45, 0, -Math.sin(a) * 0.45]}>
+            <Flame height={0.2} width={0.085} amount={k} t={t} seed={i * 2.3} palette={GAS} halo={0} />
           </group>
         );
       })}
-      <Halo color="#5AA8FF" size={0.7} opacity={0.4 * k} position={[0, 0.38, 0.1]} />
-      <group position={[0, 0.47, 0]}>
+      <Halo color="#5AA8FF" size={0.9} opacity={0.5 * k} position={[0, 0.42, 0.15]} />
+      <group position={[0, 0.57, 0]}>
         <mesh geometry={geos.pot} material={enamel} position={[0, 0.15, 0]} castShadow />
         <mesh geometry={geos.potRim} material={enamel} position={[0, 0.3, 0]} rotation={[Math.PI / 2, 0, 0]} />
         <mesh geometry={geos.lid} material={toy("#1FC9BA", { rough: 0.3, glow: 0.18 })} position={[0, 0.3, 0]} scale={[1, 0.3, 1]} />
@@ -596,12 +596,13 @@ export const Match: React.FC<{ flame?: number; t?: number; smoke?: number }> = (
 };
 
 /**
- * Match in <Nubi holdR> (fin-tip space, model units): scaled ×5 (world units at size 2 → model
- * units), standing up in front of the fin tip, head tilted a little outwards. Mirror position x
+ * Match in <Nubi holdR> (fin-tip space, model units): scaled ×7 (world units at size 2 → model
+ * units are ×5), standing up in front of the fin tip, head tilted a little outwards. Scale 7 (a bit
+ * oversized, cartoon-style: ≈ 0.64 world tall at Nubi size 2) so it reads on a phone. Mirror position x
  * and rotation z for MATCH_HOLD_L.
  */
-export const MATCH_HOLD_R = { position: [0.25, 0.1, 0.85] as V3, rotation: [0.1, 0, -0.35] as V3, scale: 5 };
-export const MATCH_HOLD_L = { position: [-0.25, 0.1, 0.85] as V3, rotation: [0.1, 0, 0.35] as V3, scale: 5 };
+export const MATCH_HOLD_R = { position: [0.25, 0.1, 0.85] as V3, rotation: [0.1, 0, -0.35] as V3, scale: 7 };
+export const MATCH_HOLD_L = { position: [-0.25, 0.1, 0.85] as V3, rotation: [0.1, 0, 0.35] as V3, scale: 7 };
 
 // =======================================================================================
 // Vehicles
@@ -666,7 +667,8 @@ export const ToyPlane: React.FC<{ prop?: number; exhaust?: number; t?: number }>
       cowl: new THREE.CylinderGeometry(0.5, 0.52, 0.2, 40),
       spinner: new THREE.ConeGeometry(0.2, 0.34, 24),
       blade: new THREE.CapsuleGeometry(0.07, 0.62, 4, 10),
-      rim: new THREE.TorusGeometry(0.42, 0.075, 12, 40),
+      rim: new THREE.TorusGeometry(0.52, 0.07, 12, 40),
+      tub: new THREE.CylinderGeometry(0.53, 0.53, 0.36, 40, 1, true),
       pipe: new THREE.CylinderGeometry(0.05, 0.06, 0.28, 12),
       strut: new THREE.CylinderGeometry(0.035, 0.035, 0.42, 8),
       wheel: new THREE.CylinderGeometry(0.15, 0.15, 0.1, 24),
@@ -701,8 +703,9 @@ export const ToyPlane: React.FC<{ prop?: number; exhaust?: number; t?: number }>
       <mesh geometry={stab} material={red} position={[-1.2, 0.06, 0]} />
       <mesh geometry={geos.fin} material={red} position={[-1.12, 0.1, 0]} />
       {/* Cockpit rim and windscreen. */}
-      <mesh geometry={geos.rim} material={red} position={[0.05, 0.48, 0]} rotation={[Math.PI / 2, 0, 0]} scale={[1.05, 1, 1]} />
-      <mesh geometry={geos.screen} material={glass} position={[0.55, 0.47, 0]} rotation={[0, 0, 0]} scale={[0.8, 0.9, 1.05]} />
+      <mesh geometry={geos.tub} material={toy("#FFD23F", { rough: 0.35, glow: 0.16, side: THREE.DoubleSide })} position={[0.02, 0.28, 0]} />
+      <mesh geometry={geos.rim} material={red} position={[0.02, 0.45, 0]} rotation={[Math.PI / 2, 0, 0]} />
+      <mesh geometry={geos.screen} material={glass} position={[0.6, 0.44, 0]} scale={[0.7, 0.8, 1.0]} />
       {/* Side windows. */}
       {[-1, 1].flatMap((s) =>
         [-0.55, -0.95].map((x, i) => (
@@ -723,7 +726,7 @@ export const ToyPlane: React.FC<{ prop?: number; exhaust?: number; t?: number }>
           <mesh geometry={geos.pipe} material={toy("#C9D1DA", { metal: 0.6, rough: 0.3 })} rotation={[0, 0, Math.PI / 2 + 0.25]} />
           <group position={[-0.14, -0.03, 0]} rotation={[0, 0, Math.PI / 2 + 0.2]}>
             <Flame height={0.22} width={0.12} amount={k} t={t} seed={s * 3} halo={0.6} />
-            <Smoke t={t + (s > 0 ? 0.37 : 0)} amount={k} height={1.8} r0={0.07} r1={0.26} count={9} speed={2.2} wobble={0.05} drift={0} color="#C9C5C1" opacity={0.85} seed={s} />
+            <Smoke t={t + (s > 0 ? 0.37 : 0)} amount={k} height={2.2} r0={0.1} r1={0.34} count={9} speed={2.2} wobble={0.06} drift={0} color="#F2F0EE" opacity={1} seed={s} />
           </group>
         </group>
       ))}
@@ -737,7 +740,7 @@ export const ToyPlane: React.FC<{ prop?: number; exhaust?: number; t?: number }>
  * lower body sinks into the fuselage; eyes and fins stay above the cockpit rim. For a plane
  * drawn at scale S, multiply both by S (or nest Nubi inside the scaled group).
  */
-export const PLANE_SEAT = { position: [0.02, 0.1, 0] as V3, size: 0.86 };
+export const PLANE_SEAT = { position: [0.02, 0.17, 0] as V3, size: 0.84 };
 
 /**
  * Cartoon car driving towards +x: rounded coral body (2.1 long, 1.2 wide), cream cabin with blue
@@ -746,9 +749,9 @@ export const PLANE_SEAT = { position: [0.02, 0.1, 0] as V3, size: 0.86 };
  */
 export const ToyCar: React.FC<{ exhaust?: number; t?: number; roll?: number }> = ({ exhaust = 0, t = 0, roll = 0 }) => {
   const body = useRounded(2.1, 0.62, 1.2, 0.26, 4);
-  const cabin = useRounded(1.15, 0.56, 1.04, 0.24, 4);
-  const winSide = useRounded(0.42, 0.34, 0.04, 0.08, 2);
-  const winFront = useRounded(0.04, 0.34, 0.8, 0.08, 2);
+  const cabin = useRounded(1.15, 0.56, 1.04, 0.16, 4);
+  const winSide = useRounded(0.36, 0.3, 0.04, 0.08, 2);
+  const winFront = useRounded(0.04, 0.3, 0.72, 0.08, 2);
   const bumper = useRounded(0.14, 0.18, 1.1, 0.07, 2);
   const geos = useMemo(
     () => ({
@@ -786,10 +789,10 @@ export const ToyCar: React.FC<{ exhaust?: number; t?: number; roll?: number }> =
         <mesh geometry={body} material={coral} position={[0, 0.62, 0]} castShadow />
         <mesh geometry={cabin} material={cream} position={[-0.12, 1.12, 0]} castShadow />
         {[-1, 1].flatMap((s) =>
-          [-0.38, 0.14].map((x) => <mesh key={`${s}${x}`} geometry={winSide} material={glass} position={[x, 1.14, s * 0.52]} />),
+          [-0.36, 0.1].map((x) => <mesh key={`${s}${x}`} geometry={winSide} material={glass} position={[x, 1.15, s * 0.515]} />),
         )}
-        <mesh geometry={winFront} material={glass} position={[0.455, 1.14, 0]} />
-        <mesh geometry={winFront} material={glass} position={[-0.695, 1.14, 0]} />
+        <mesh geometry={winFront} material={glass} position={[0.45, 1.15, 0]} />
+        <mesh geometry={winFront} material={glass} position={[-0.69, 1.15, 0]} />
         {[-1, 1].map((s) => (
           <group key={s}>
             <mesh geometry={geos.light} material={toy("#FFF3A0", { rough: 0.2, glow: 0.6 })} position={[1.02, 0.7, s * 0.36]} scale={[0.6, 1, 1]} />
@@ -801,7 +804,7 @@ export const ToyCar: React.FC<{ exhaust?: number; t?: number; roll?: number }> =
         <group position={[-1.12, 0.36, -0.32]}>
           <mesh geometry={geos.pipe} material={chrome} rotation={[0, 0, Math.PI / 2]} />
           <group position={[-0.12, 0, 0]} rotation={[0, 0, Math.PI / 2 - 0.15]}>
-            <Smoke t={t} amount={k} height={1.4} r0={0.08} r1={0.28} count={8} speed={1.2} wobble={0.06} drift={0.05} color="#C9C5C1" opacity={0.85} seed={4} />
+            <Smoke t={t} amount={k} height={1.6} r0={0.1} r1={0.34} count={8} speed={1.2} wobble={0.06} drift={0.05} color="#D9D6D3" opacity={1} seed={4} />
           </group>
         </group>
       </group>
@@ -830,7 +833,7 @@ const ROCKET_NOSE: [number, number][] = [
  * Classic cartoon rocket standing on its nozzle (bottom of the nozzle at y = -0.12, nose tip at
  * y = 2.56; 0.96 wide, 1.9 across the fins): white body with a red nose, red band and three red
  * fins, two round windows facing +z. `flame` 0..1 lights the engine (big flame down to
- * y ≈ -1.6) and leaves a smoke trail below it; `t` seconds. Stand it on a pad at y = 0.12 or
+ * y ≈ -1.9) and leaves a smoke trail below it; `t` seconds. Stand it on a pad at y = 0.12 or
  * move it up to lift off.
  */
 export const Rocket: React.FC<{ flame?: number; t?: number }> = ({ flame = 0, t = 0 }) => {
@@ -880,9 +883,9 @@ export const Rocket: React.FC<{ flame?: number; t?: number }> = ({ flame = 0, t 
         <Porthole r={0.12} position={[0, 0.78, 0.48]} rotation={[0.02, 0, 0]} />
       </group>
       <group position={[0, -0.1, 0]} rotation={[0, 0, Math.PI]}>
-        <Flame height={1.5} width={0.5} amount={k} t={t} seed={4} palette={JET} halo={1.2} />
-        <group position={[0, 0.25, 0]}>
-          <Smoke t={t} amount={k} height={3.2} r0={0.18} r1={0.7} count={14} speed={3} wobble={0.2} drift={0} color="#EDEAE6" opacity={0.9} seed={2} />
+        <Flame height={1.8} width={0.75} amount={k} t={t} seed={4} palette={JET} halo={1.2} />
+        <group position={[0, 1.2, -0.3]}>
+          <Smoke t={t} amount={k} height={3.2} r0={0.3} r1={0.8} count={12} speed={3} wobble={0.25} drift={0} color="#EDEAE6" opacity={0.9} seed={2} />
         </group>
       </group>
     </group>
@@ -907,7 +910,7 @@ const tankLabel = () =>
  * Oxygen cylinder ("bombona"): chunky teal cylinder 0.66 across with a rounded shoulder, a dark
  * foot ring, a chrome valve with a red handwheel and a pressure gauge on top (1.8 tall ≈ 0.9 of
  * Nubi's height at size 2) and a white "O₂" label facing +z (`label`, default true).
- * Placement: see TANK_BESIDE and TANK_HUG.
+ * Placement: see TANK_BESIDE, TANK_HUG (side hug) and TANK_FRONT.
  */
 export const OxygenTank: React.FC<{ label?: boolean }> = ({ label = true }) => {
   const ready = useFontsReady();
@@ -972,13 +975,32 @@ export const OxygenTank: React.FC<{ label?: boolean }> = ({ label = true }) => {
 export const TANK_BESIDE = { position: [1.45, 0, 0.2] as V3 };
 
 /**
- * Nubi hugging the tank (Nubi-local, Nubi at size 2; for size s scale by s / 2): the tank stands
- * right against the front face, centred between the eyes (its 0.66 width fits the 0.7 gap
- * between the eye bars, so both eyes stay visible beside it), and Nubi's fins wrap forward
- * around it. Use with <Nubi pose={TANK_HUG.pose}>. The pose's small yaw and fins-down read as a
- * squeeze; a slight roll/squash makes it cuter.
+ * Tank held in front of Nubi (Nubi-local, Nubi at size 2; for size s scale by s / 2): standing
+ * against the front face, centred between the eyes; its 0.66 width fits the gap between the eye
+ * bars, so both eyes stay visible beside it with a frontal camera (keep the camera within ~15°
+ * of Nubi's front, or the tank drifts over an eye). Fins stay at the sides, drooping a little.
  */
-export const TANK_HUG = {
+export const TANK_FRONT = {
   position: [0, 0, 1.05] as V3,
   pose: { finL: -0.25, finR: -0.25, squash: 0.96 },
+};
+
+/**
+ * Nubi hugging the tank (Nubi at size 2; for size s scale positions by s / 2). Nubi's fins only
+ * swing up and down in the body's side plane (they cannot fold forward), so the hug that reads
+ * is a side hug: the tank stands snug against Nubi's right side just behind the right fin, and
+ * the pair is turned by `yaw` so that side faces the camera: the fin then lies across the
+ * tank's front like an arm, Nubi leans onto it (roll) and both eyes stay fully visible.
+ *   <group rotation={[0, TANK_HUG.yaw, 0]}>
+ *     <Nubi size={2} pose={TANK_HUG.pose} />
+ *     <group position={TANK_HUG.position} rotation={TANK_HUG.rotation}><OxygenTank /></group>
+ *   </group>
+ * `rotation` turns the "O₂" label back towards the camera. For the left side mirror x, yaw,
+ * the tank's rotation and roll, and swap finR/finL.
+ */
+export const TANK_HUG = {
+  yaw: -0.5,
+  position: [1.44, 0, -0.56] as V3,
+  rotation: [0, 0.55, 0] as V3,
+  pose: { roll: -0.06, finR: 0.05, finL: 0.4, squash: 0.97 },
 };

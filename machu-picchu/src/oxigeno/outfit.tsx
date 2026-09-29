@@ -17,7 +17,7 @@ export const Outfit: React.FC<{ kind: OxiOutfit; flutter?: number }> = ({ kind, 
     case "firefighter":
       return <FireHelmet />;
     case "pilot":
-      return <PilotCap flutter={flutter} />;
+      return <PilotCap flutter={flutter} wind={1} />;
     default:
       return null;
   }

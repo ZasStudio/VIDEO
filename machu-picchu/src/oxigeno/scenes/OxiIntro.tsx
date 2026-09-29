@@ -18,11 +18,11 @@ import { OXI } from "../timeline";
 // "¿Qué pasaría si todo el oxígeno de la Tierra desapareciera… por solo cinco segundos?"
 // Nubi the scientist in the lab, one fin hovering mischievously over the big red button.
 
-export const LAB_NUBI: Vec3 = [-0.75, 0, 0.9];
-export const LAB_BUTTON: Vec3 = [0.95, 0, 1.1];
+export const LAB_NUBI: Vec3 = [-1.3, 0, 0.9];
+export const LAB_BUTTON: Vec3 = [0.45, 0, 1.0];
 export const LAB_NUBI_SIZE = 2.0;
-export const LAB_CAM_A = { position: [0.5, 2.4, 9.6] as Vec3, target: [0.15, 1.35, 0] as Vec3 };
-export const LAB_CAM_B = { position: [0.4, 2.2, 8.6] as Vec3, target: [0.12, 1.3, 0] as Vec3 };
+export const LAB_CAM_A = { position: [0.1, 2.7, 12.2] as Vec3, target: [-0.86, 1.35, 0] as Vec3 };
+export const LAB_CAM_B = { position: [0.0, 2.5, 11.0] as Vec3, target: [-0.92, 1.2, 0] as Vec3 };
 
 export const OxiIntro: React.FC = () => {
   const frame = useCurrentFrame();
@@ -51,7 +51,7 @@ export const OxiIntro: React.FC = () => {
         <hemisphereLight args={["#F4F8FF", "#3A3A5A", 1.3]} />
         <directionalLight position={[-5, 9, 8]} intensity={2.4} color="#FFF6E8" />
         <directionalLight position={[6, 4, -4]} intensity={0.9} color="#9FD8FF" />
-        <Lab t={g} alarm={0} />
+        <Lab t={g / 30} alarm={0} />
         <group position={LAB_BUTTON} rotation={[0, -0.35, 0]}>
           <BigRedButton press={0} glow={0.4 + 0.3 * Math.sin(g * 0.2)} />
         </group>
@@ -68,9 +68,9 @@ export const OxiIntro: React.FC = () => {
           out={CINCO - 16}
           exit="up"
           lines={[
-            { text: "¿Y SI DESAPARECE", size: 0.62, look: LOOKS.white, y: 4.3, delay: 0 },
-            { text: "EL OXÍGENO", size: 0.86, look: LOOKS.cyan, y: 3.35, delay: 4 },
-            { text: "POR 5 SEGUNDOS?", size: 0.64, look: LOOKS.red, y: 2.45, delay: 8 },
+            { text: "¿Y SI DESAPARECE", size: 0.46, look: LOOKS.white, y: 4.3, delay: 0 },
+            { text: "EL OXÍGENO", size: 0.68, look: LOOKS.cyan, y: 3.35, delay: 4 },
+            { text: "POR 5 SEGUNDOS?", size: 0.5, look: LOOKS.red, y: 2.45, delay: 8 },
           ]}
         />
       </TitleCanvas>

@@ -1,10 +1,10 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
-import { EASE_IN, EASE_IN_OUT, ramp, windowIn } from "../../anim";
+import { EASE_IN_OUT, ramp, windowIn } from "../../anim";
 import { NoO2Badge, StatusCard } from "../../overlay/oxigeno/OxiUI";
 import { Shake, Stage } from "../../scenes/common";
 import { Vec3 } from "../../three/CameraRig";
-import { Rocket, ToyPlane } from "../../three/oxigeno/Props";
+import { PLANE_SEAT, Rocket, ToyPlane } from "../../three/oxigeno/Props";
 import { Clouds } from "../../three/oxigeno/Sets";
 import { Nubi } from "../../three/Nubi";
 import { SweatDrops } from "../../inca/effects";
@@ -17,7 +17,7 @@ import { OXI } from "../timeline";
 // aviones, apagados en pleno viaje." The engine coughs and dies and the plane glides.
 // "¿Los cohetes? Ellos no: ¡llevan su propio oxígeno!" — a rocket roars past.
 
-const CAM = { position: [0, 0.6, 12.5] as Vec3, target: [0, 0.4, 0] as Vec3, fov: 40 };
+const CAM = { position: [0, 0.9, 9.4] as Vec3, target: [0, 0.3, 0] as Vec3, fov: 40 };
 
 export const OxiMotores: React.FC = () => {
   const frame = useCurrentFrame();
@@ -38,8 +38,8 @@ export const OxiMotores: React.FC = () => {
   const roll = Math.sin(g * 0.07) * 0.06;
 
   // The rocket shoots up on the right from "cohetes".
-  const rk = ramp(g, COHETES - 6, LLEVAN + 30, [0, 1], EASE_IN);
-  const rocketPos: Vec3 = [2.6 - rk * 0.6, -7 + rk * 17, -1.5];
+  const rk = ramp(g, COHETES - 4, LLEVAN + 24, [0, 1], (x) => x);
+  const rocketPos: Vec3 = [1.9 - rk * 0.4, -6 + rk * 14, -1.5];
 
   const worry = windowIn(g, AVIONES, COHETES - 4, 6);
   const envy = windowIn(g, COHETES, END + 20, 6);
@@ -58,13 +58,13 @@ export const OxiMotores: React.FC = () => {
         <Stage cam={CAM}>
           <hemisphereLight args={["#FFFFFF", "#7FB8E8", 1.4]} />
           <directionalLight position={[-6, 10, 8]} intensity={2.3} color="#FFF6E8" />
-          <Clouds t={g * (1 - glide * 0.6)} />
+          <Clouds t={g / 30 * (1 - glide * 0.6)} />
           <group position={[0, planeY, 0]} rotation={[0, -0.55, 0]}>
             <group rotation={[pitch, 0, roll]}>
-              <ToyPlane prop={prop} exhaust={engine * (0.6 + 0.4 * cough)} t={g} />
-              <group position={[0, 0.72, 0.05]} rotation={[0, 0.55, 0]}>
-                <Nubi size={1.25} pose={pose} shadow={false}>
-                  <Outfit kind="pilot" flutter={g * 0.4} />
+              <ToyPlane prop={prop} exhaust={engine * (0.6 + 0.4 * cough)} t={g / 30} />
+              <group rotation={[0, 0.55, 0]}>
+                <Nubi position={PLANE_SEAT.position} size={PLANE_SEAT.size} pose={pose} shadow={false}>
+                  <Outfit kind="pilot" flutter={g * 0.45} />
                 </Nubi>
               </group>
             </group>
@@ -72,7 +72,7 @@ export const OxiMotores: React.FC = () => {
           <SweatDrops frame={g} from={AVIONES + 6} to={COHETES} position={[0, planeY + 1.8, 0.4]} spread={0.5} />
           {rk > 0 && rk < 1 ? (
             <group position={rocketPos} rotation={[0, 0, 0.06]} scale={1.1}>
-              <Rocket flame={1} t={g} />
+              <Rocket flame={1} t={g / 30} />
             </group>
           ) : null}
         </Stage>

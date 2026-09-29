@@ -76,14 +76,14 @@ export const OxiFuego: React.FC = () => {
           </group>
           {CANDLES.map((p, i) => (
             <group key={i} position={p} scale={0.9 - i * 0.1}>
-              <Candle flame={flame} t={g + i * 7} smoke={smoke} />
+              <Candle flame={flame} t={g / 30 + i * 7} smoke={smoke} />
             </group>
           ))}
           <group position={STOVE_AT} rotation={[0, -0.5, 0]}>
-            <Stove flame={flame} t={g} />
+            <Stove flame={flame} t={g / 30} />
           </group>
           <group position={FIRE_AT}>
-            <Campfire flame={flame} t={g} smoke={smoke} />
+            <Campfire flame={flame} t={g / 30} smoke={smoke} />
           </group>
           <group position={NUBI_AT} rotation={[0, 0, 0]}>
             <Nubi
@@ -93,7 +93,7 @@ export const OxiFuego: React.FC = () => {
               holdL={
                 <Upright raise={pose.finL ?? 0} side="L">
                   <group position={[-0.2, 0.9, 0.9]} scale={1.2}>
-                    <CoffeeMug steam={steam} t={g} />
+                    <CoffeeMug steam={steam} t={g / 30} />
                   </group>
                 </Upright>
               }
