@@ -19,6 +19,8 @@ import { INCA_PROPS_SHEET_FRAMES, IncaPropsSheet } from "./dev/IncaPropsSheet";
 import { TitleTest } from "./dev/TitleTest";
 import { OXI_UI_SHEET_DURATION, OxiUISheet } from "./dev/OxiUISheet";
 import { OXI_PROPS_SHEET_FRAMES, OxiPropsSheet } from "./dev/OxiPropsSheet";
+import { DINO_UI_SHEET_DURATION, DinoUISheet } from "./dev/DinoUISheet";
+import { DINO_SHEET_FRAMES, DinoSheet } from "./dev/DinoSheet";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -156,6 +158,22 @@ export const RemotionRoot: React.FC = () => {
           id="OxiPropsSheet"
           component={OxiPropsSheet}
           durationInFrames={OXI_PROPS_SHEET_FRAMES}
+          fps={30}
+          width={1920}
+          height={1080}
+        />
+        <Composition
+          id="DinoUISheet"
+          component={DinoUISheet}
+          durationInFrames={DINO_UI_SHEET_DURATION}
+          fps={30}
+          width={1080}
+          height={1920}
+        />
+        <Composition
+          id="DinoSheet"
+          component={DinoSheet}
+          durationInFrames={DINO_SHEET_FRAMES}
           fps={30}
           width={1920}
           height={1080}
