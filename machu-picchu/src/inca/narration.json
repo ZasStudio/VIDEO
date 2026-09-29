@@ -1,0 +1,23 @@
+{
+  "_title": "¿Así sería vivir en el Imperio Inca con celular?",
+  "_voices": "Magnific TTS, ElevenLabs v3. nubi = 'Nerea Escudero' (tender; stability 0.45, speed 0.95); celular = 'Álvaro Valverde' (urgent messenger); papa = 'Norah Salgado' (virtual assistant). One clip per line (L01.mp3 ...).",
+  "_captions": "Same syntax as src/narration.json. Lines without captions are shown elsewhere (chat bubble, speech bubble).",
+  "_pov": "'Pí-o-ví' makes the voice say POV the way it is said on social media; the captions show POV.",
+  "lines": [
+    {"id": "L01", "voice": "nubi", "scene": "intro", "tts": "[curious] Espera… ¿y si el Imperio Inca hubiera tenido celulares? [excited] ¡Cambiaría absolutamente todo!", "captions": "ESPERA… / ¿Y SI EL IMPERIO^y INCA^y / HUBIERA TENIDO CELULARES?^c / ¡CAMBIARÍA / ABSOLUTAMENTE TODO!^y"},
+    {"id": "L02", "voice": "nubi", "scene": "chasqui", "tts": "[out of breath] Antes, los chasquis corríamos por relevos… ¡días enteros para llevar un solo mensaje!", "captions": "ANTES, LOS CHASQUIS^y / CORRÍAMOS POR RELEVOS… / ¡DÍAS ENTEROS^r / PARA LLEVAR / UN SOLO MENSAJE!"},
+    {"id": "L03", "voice": "nubi", "scene": "chasqui", "tts": "Ahora solo escribiría: «Mi Inca, noticias urgentes»…", "captions": "AHORA SOLO ESCRIBIRÍA: / «MI INCA, / NOTICIAS URGENTES»…^y"},
+    {"id": "L04", "voice": "nubi", "scene": "chasqui", "tts": "[sleepy] …y me iría a dormir.", "captions": "…Y ME IRÍA A DORMIR.^c"},
+    {"id": "L05", "voice": "nubi", "scene": "inca", "tts": "[shocked] ¿¡Noventa y nueve mensajes!?", "captions": "¿¡99{3}^r MENSAJES!?"},
+    {"id": "L06", "voice": "celular", "scene": "inca", "tts": "[urgent] ¡Mi Inca, hay un problema en el norte!", "captions": null},
+    {"id": "L07", "voice": "nubi", "scene": "inca", "tts": "[annoyed] ¡Entonces manda tu ubicación, pues!", "captions": "¡ENTONCES MANDA / TU UBICACIÓN,^y PUES!"},
+    {"id": "L08", "voice": "nubi", "scene": "papa", "tts": "Los agricultores tendrían una app para saber cuándo sembrar.", "captions": "LOS AGRICULTORES^y TENDRÍAN / UNA APP^c / PARA SABER CUÁNDO SEMBRAR."},
+    {"id": "L09", "voice": "papa", "scene": "papa", "tts": "[cheerful] Mañana habrá lluvia.", "captions": null},
+    {"id": "L10", "voice": "nubi", "scene": "papa", "tts": "[excited] ¡Perfecto! Hoy toca sembrar… ¡papa con tecnología!", "captions": "¡PERFECTO! / HOY TOCA SEMBRAR… / ¡PAPA^y CON TECNOLOGÍA!^c"},
+    {"id": "L11", "voice": "nubi", "scene": "selfie", "tts": "Y Machu Picchu sería el lugar más viral del imperio.", "captions": "Y MACHU^y PICCHU^y / SERÍA EL LUGAR / MÁS VIRAL^r DEL IMPERIO."},
+    {"id": "L12", "voice": "nubi", "scene": "selfie", "tts": "[out of breath] Pí-o-ví: subiste hasta aquí, te falta el aire… [laughs] pero igual grabas tu TikTok.", "captions": "POV:^y / SUBISTE HASTA AQUÍ, / TE FALTA EL AIRE…^r / PERO IGUAL / GRABAS TU TIKTOK.^c"},
+    {"id": "L13", "voice": "nubi", "scene": "selfie", "tts": "[surprised] ¡Oye!", "captions": "¡OYE!^r"},
+    {"id": "L14", "voice": "nubi", "scene": "caminos", "tts": "Aunque sin celulares… los incas ya tenían más de treinta mil kilómetros de caminos, chasquis y quipus para comunicarse.", "captions": "AUNQUE SIN CELULARES… / LOS INCAS YA TENÍAN / MÁS DE 30.000{2}^y KM^y / DE CAMINOS,^y / CHASQUIS^y Y QUIPUS^y / PARA COMUNICARSE."},
+    {"id": "L15", "voice": "nubi", "scene": "cta", "tts": "[curious] ¿A qué otra época debería viajar Nubi? ¡Te leo en los comentarios!", "captions": "¿A QUÉ OTRA ÉPOCA / DEBERÍA VIAJAR NUBI?^y / ¡TE LEO EN / LOS COMENTARIOS!^c"}
+  ]
+}

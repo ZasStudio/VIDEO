@@ -2,7 +2,7 @@ import React from "react";
 import { Audio } from "@remotion/media";
 import { Sequence, interpolate, staticFile } from "remotion";
 import { BEDS, CUES } from "./cues";
-import { BED_FRAMES, Bed as BedCue, Cue } from "./sfx";
+import { BED_FRAMES, Bed as BedCue, Cue, sfxFile } from "./sfx";
 import { DURATION, LINES, ducking } from "./timeline";
 
 const CLAMP = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
@@ -37,7 +37,7 @@ const Bed: React.FC<{
       {pieces.map((p) => (
         <Sequence key={p.at} name={sfx} from={p.at} durationInFrames={p.dur} layout="none">
           <Audio
-            src={staticFile(`audio/${sfx}.wav`)}
+            src={staticFile(sfxFile(sfx))}
             volume={(f) => {
               const fin = p.first ? interpolate(f, [0, 12], [0, 1], CLAMP) : Math.sin((Math.PI / 2) * Math.min(1, f / xf));
               const fout = p.last
@@ -86,7 +86,7 @@ export const Mix: React.FC<{
       {cues.map(([from, sfx, volume, len], i) => (
         <Sequence key={i} name={sfx} from={from} durationInFrames={len} layout="none">
           <Audio
-            src={staticFile(`audio/${sfx}.wav`)}
+            src={staticFile(sfxFile(sfx))}
             volume={(f) =>
               SFX_GAIN *
               volume *

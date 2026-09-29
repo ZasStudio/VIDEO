@@ -71,13 +71,18 @@ const useFinGeometry = () =>
     return g;
   }, []);
 
-const Fin: React.FC<{ raise: number; geo: THREE.BufferGeometry; mat: THREE.Material }> = ({
-  raise,
-  geo,
-  mat,
-}) => (
+/** Where a held object sits on a fin (fin space, model units): just inside the tip. */
+export const NUBI_FIN_TIP: [number, number, number] = [2.2, -0.35, 0.55];
+
+const Fin: React.FC<{
+  raise: number;
+  geo: THREE.BufferGeometry;
+  mat: THREE.Material;
+  children?: React.ReactNode;
+}> = ({ raise, geo, mat, children }) => (
   <group position={[BODY.w / 2 - 0.2, 5.0, 0.3]} rotation={[0, -0.12, raise * 0.55]}>
     <mesh geometry={geo} material={mat} castShadow />
+    {children ? <group position={NUBI_FIN_TIP}>{children}</group> : null}
   </group>
 );
 
@@ -88,6 +93,10 @@ export const Nubi: React.FC<{
   rotationY?: number;
   shadow?: boolean;
   shadowOpacity?: number;
+  /** Objects held at the tip of the screen-right / screen-left fin (they follow its raise). */
+  holdR?: React.ReactNode;
+  holdL?: React.ReactNode;
+  /** Extra objects in model units attached to the body (costumes, hats...). */
   children?: React.ReactNode;
 }> = ({
   pose = {},
@@ -96,6 +105,8 @@ export const Nubi: React.FC<{
   rotationY = 0,
   shadow = true,
   shadowOpacity = 0.35,
+  holdR,
+  holdL,
   children,
 }) => {
   const {
@@ -177,9 +188,14 @@ export const Nubi: React.FC<{
             />
           ))}
           {/* Fins pivot where they meet the body; the left one is a mirror of the right. */}
-          <Fin raise={finR} geo={finGeo} mat={bodyMat} />
+          <Fin raise={finR} geo={finGeo} mat={bodyMat}>
+            {holdR}
+          </Fin>
           <group scale={[-1, 1, 1]}>
-            <Fin raise={finL} geo={finGeo} mat={bodyMat} />
+            <Fin raise={finL} geo={finGeo} mat={bodyMat}>
+              {/* Undo the mirror so held objects (a phone screen, text) read the right way. */}
+              {holdL ? <group scale={[-1, 1, 1]}>{holdL}</group> : null}
+            </Fin>
           </group>
           {children}
         </group>

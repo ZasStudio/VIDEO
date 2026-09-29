@@ -18,6 +18,8 @@ export type TimelineOptions<K extends string> = {
   hit?: {scene: K; line: string; word: number; grid: number};
   /** Stretch the last scene so the video lasts exactly this many frames (it must not be shorter already). */
   total?: number;
+  /** With `total`: if the narration plus its pauses runs long, shorten every pause in proportion to fit. */
+  squeeze?: boolean;
 };
 
 export type Word = {text: string; at: number; color?: string};
@@ -39,15 +41,29 @@ export const createTimeline = <K extends string>(
 ) => {
   const {fps, grid} = opts;
   const T = timing.lines;
+  // Pauses are scaled by `k` when the video must fit a fixed length (see opts.squeeze).
+  let k = 1;
+  if (opts.total !== undefined && opts.squeeze) {
+    let speech = 0;
+    let silence = 0;
+    for (const s of plan) {
+      silence += (s.pre + s.post) * fps;
+      s.lines.forEach(([id, gap], i) => {
+        speech += Math.ceil(T[id].duration * fps);
+        if (i > 0) silence += gap * fps;
+      });
+    }
+    if (speech + silence > opts.total) k = Math.max(0, (opts.total - speech - plan.length) / silence);
+  }
   const lineStartMap: Record<string, number> = {};
   const SCENES = {} as Record<K, {from: number; duration: number}>;
   let hitFrame = -1;
 
   let cursor = 0;
   plan.forEach((s, si) => {
-    let t = Math.round(s.pre * fps);
-    s.lines.forEach(([id, gap], k) => {
-      if (k > 0) t += Math.round(gap * fps);
+    let t = Math.round(s.pre * k * fps);
+    s.lines.forEach(([id, gap], li) => {
+      if (li > 0) t += Math.round(gap * k * fps);
       if (opts.hit && opts.hit.line === id) {
         // Push the line so the hit word falls exactly on the grid.
         const word = Math.round(T[id].words[opts.hit.word][0] * fps);
@@ -58,7 +74,7 @@ export const createTimeline = <K extends string>(
       lineStartMap[id] = cursor + t;
       t += Math.ceil(T[id].duration * fps);
     });
-    t += Math.round(s.post * fps);
+    t += Math.round(s.post * k * fps);
     let duration = Math.ceil(t / grid) * grid;
     if (opts.total !== undefined && si === plan.length - 1) {
       if (cursor + t > opts.total) throw new Error(`narration needs ${cursor + t} frames, more than ${opts.total}`);
@@ -152,6 +168,44 @@ export const createTimeline = <K extends string>(
     return n;
   };
 
+  /** The same voice drivers, but only for some lines (e.g. one speaker of several). */
+  const speakerTrack = (ids: string[]) => {
+    const lv = new Float32Array(DURATION + 1);
+    const acc: number[] = [];
+    for (const id of ids) {
+      const start = lineStartMap[id];
+      if (start === undefined) continue;
+      T[id].env.forEach((v, i) => {
+        if (start + i <= DURATION) lv[start + i] = Math.max(lv[start + i], v);
+      });
+      for (const a of T[id].accents) acc.push(start + a);
+    }
+    acc.sort((a, b) => a - b);
+    const act = new Float32Array(DURATION + 1);
+    let v = 0;
+    for (let f = 0; f <= DURATION; f++) {
+      const target = lv[f] > 0.08 ? 1 : 0;
+      v += (target - v) * (target > v ? 0.5 : 0.08);
+      act[f] = v;
+    }
+    const inRange = (g: number) => g >= 0 && g <= DURATION;
+    return {
+      voiceLevel: (g: number) => (inRange(g) ? lv[Math.floor(g)] : 0),
+      talking: (g: number) => (inRange(g) ? act[Math.floor(g)] : 0),
+      voiceAccent: (g: number, decay = 4) => {
+        let last = -1;
+        for (const a of acc) {
+          if (a <= g) last = a;
+          else break;
+        }
+        if (last < 0) return 0;
+        const d = g - last;
+        return d > decay * 4 ? 0 : Math.exp(-d / decay);
+      },
+      accentIndex: (g: number) => acc.filter((a) => a <= g).length,
+    };
+  };
+
   // -------------------------------------------------------------------------- captions
   // Syntax: chunks separated by " / "; TOKEN{n} covers n spoken words; ^y|o|g|r|c colours it;
   // ~TOKEN is spoken but not shown (a 3D title shows it); "_" is a non-breaking space.
@@ -208,6 +262,7 @@ export const createTimeline = <K extends string>(
     accentIndex,
     CAPTIONS,
     LINES,
+    speakerTrack,
   };
 };
 
