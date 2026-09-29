@@ -226,10 +226,12 @@ const zigzagLine = (ctx: Ctx, W: number, y: number, amp: number, count: number, 
 
 export type UnkuVariant = "noble" | "chasqui" | "inca" | "farmer";
 
-// The unku band is 1.85 tall; the belt covers its top 0.46.
-const UNKU = { y0: 2.35, y1: 4.2 };
+// The unku band is 2.3 tall (y 2.0 → 4.3); its top 0.4 sits under the belt (y 3.9 → 4.38).
+// The belt's front (z = 4.64) stays behind the eye bars (z = 4.7), so even wide-open eyes that
+// reach down to it are drawn over it. Painters work in band units, y = 0 at the top edge.
+const UNKU = { y0: 2.0, y1: 4.3 };
 const UNKU_H = UNKU.y1 - UNKU.y0;
-const BELT = { y0: 3.78, y1: 4.26 };
+const BELT = { y0: 3.9, y1: 4.38 };
 const BELT_H = BELT.y1 - BELT.y0;
 
 const INCA_PALS = [
@@ -241,78 +243,88 @@ const INCA_PALS = [
   [CREAM, INK, RED],
 ];
 
+/** One row of tocapu squares of size s at y, n per tile, square 0 centred on the tile edge. */
+const tocapuRow = (ctx: Ctx, W: number, y: number, s: number, n: number, pals: string[][], frame: string, offset = 0) => {
+  const sp = W / n;
+  for (let i = 0; i < n; i++) {
+    const x = i * sp - s / 2;
+    wrapped(W, x - 0.05, s + 0.1, (dx) => {
+      rect(ctx, x + dx - 0.04, y - 0.04, s + 0.08, s + 0.08, frame);
+      drawMotif(ctx, x + dx, y, s, MOTIFS[(i + offset) % MOTIFS.length], pals[((i + offset) * 5) % pals.length]);
+    });
+  }
+};
+
 const paintUnku: Record<UnkuVariant, (ctx: Ctx, W: number, H: number) => void> = {
-  // Sapa Inca: a full row of tocapus in gold, red and black on crimson, gold hem.
+  // Sapa Inca: a row of big tocapus in gold, red and black on crimson, a checker band and a
+  // black hem with gold steps.
   inca: (ctx, W, H) => {
     rect(ctx, 0, 0, W, H, "#9E1027");
-    rect(ctx, 0, 0.5, W, 0.05, TGOLD);
-    const n = 10;
-    const sp = W / n;
-    const s = 0.8;
-    const y = 0.6;
-    for (let i = 0; i < n; i++) {
-      const x = i * sp - s / 2;
-      wrapped(W, x - 0.05, s + 0.1, (dx) => {
-        rect(ctx, x + dx - 0.04, y - 0.04, s + 0.08, s + 0.08, INK);
-        drawMotif(ctx, x + dx, y, s, MOTIFS[i % MOTIFS.length], INCA_PALS[(i * 5) % INCA_PALS.length]);
-      });
+    rect(ctx, 0, 0.46, W, 0.05, TGOLD);
+    tocapuRow(ctx, W, 0.6, 0.86, 10, INCA_PALS, INK);
+    rect(ctx, 0, 1.53, W, 0.05, TGOLD);
+    const c = W / 40;
+    for (let row = 0; row < 2; row++) {
+      for (let i = 0; i < 40; i++) rect(ctx, i * c, 1.64 + row * c, c + 0.004, c + 0.004, (row + i) % 2 ? TGOLD : INK);
     }
-    rect(ctx, 0, 1.47, W, 0.05, TGOLD);
-    rect(ctx, 0, 1.55, W, H - 1.55, INK);
-    stepRow(ctx, W, 1.58, 0.24, 20, TGOLD);
+    rect(ctx, 0, 2.14, W, H - 2.14, INK);
+    stepRow(ctx, W, 2.13, 0.16, 20, TGOLD, true);
   },
   // Chasqui: black-and-white checkerboard with a red stepped yoke, red hem with white steps.
   chasqui: (ctx, W, H) => {
     rect(ctx, 0, 0, W, H, CREAM);
     const c = W / 30;
     const top = 0.1;
-    for (let row = 0; row < 4; row++) {
+    const rows = 5;
+    for (let row = 0; row < rows; row++) {
       for (let i = 0; i < 30; i++) {
         if ((row + i) % 2 === 0) rect(ctx, i * c - 0.003, top + row * c - 0.003, c + 0.006, c + 0.006, INK);
       }
     }
     const steps: [number, number, number][] = [
-      [1.25, 0.1, 0.55],
-      [0.9, 0.65, 0.2],
-      [0.55, 0.85, 0.2],
-      [0.2, 1.05, 0.2],
+      [1.3, 0.1, 0.62],
+      [0.95, 0.72, 0.24],
+      [0.6, 0.96, 0.24],
+      [0.25, 1.2, 0.24],
     ];
     for (const [hw, y, h] of steps) wrapped(W, -hw, hw * 2, (dx) => rect(ctx, dx - hw, y, hw * 2, h, "#D7263D"));
-    const redTop = top + 4 * c;
+    const redTop = top + rows * c;
     rect(ctx, 0, redTop, W, H - redTop, "#D7263D");
-    rect(ctx, 0, redTop, W, 0.045, INK);
-    stepRow(ctx, W, redTop + 0.12, 0.22, 24, CREAM);
-    rect(ctx, 0, H - 0.07, W, 0.07, INK);
+    rect(ctx, 0, redTop, W, 0.05, INK);
+    stepRow(ctx, W, redTop + 0.13, 0.26, 24, CREAM);
+    rect(ctx, 0, H - 0.08, W, 0.08, INK);
   },
   // Farmer: plain earthy brown weave with a single ochre stripe.
   farmer: (ctx, W, H) => {
     rect(ctx, 0, 0, W, H, "#8B5A2E");
     for (let y = 0; y < H; y += 0.075) rect(ctx, 0, y, W, 0.026, "rgba(55,28,10,0.16)");
     const rnd = mulberry(33);
-    for (let i = 0; i < 700; i++) {
+    for (let i = 0; i < 800; i++) {
       ctx.fillStyle = rnd() < 0.5 ? "rgba(40,20,8,0.18)" : "rgba(210,160,100,0.16)";
       ctx.fillRect(rnd() * W, rnd() * H, 0.05 + rnd() * 0.08, 0.02);
     }
-    rect(ctx, 0, 0.92, W, 0.04, "#F0DDB0");
-    rect(ctx, 0, 0.96, W, 0.3, "#DFA53E");
-    rect(ctx, 0, 1.26, W, 0.04, "#F0DDB0");
-    rect(ctx, 0, H - 0.12, W, 0.12, "#5E3A1C");
+    rect(ctx, 0, 1.16, W, 0.045, "#F0DDB0");
+    rect(ctx, 0, 1.205, W, 0.34, "#DFA53E");
+    rect(ctx, 0, 1.545, W, 0.045, "#F0DDB0");
+    rect(ctx, 0, H - 0.13, W, 0.13, "#5E3A1C");
   },
   // Noble: red with a yellow band of turquoise stepped diamonds and a turquoise hem.
   noble: (ctx, W, H) => {
     rect(ctx, 0, 0, W, H, "#D42A3C");
-    rect(ctx, 0, 0.5, W, 0.05, CREAM);
-    rect(ctx, 0, 0.6, W, 0.8, "#FFC21A");
+    rect(ctx, 0, 0.47, W, 0.05, CREAM);
+    rect(ctx, 0, 0.58, W, 0.86, "#FFC21A");
     const n = 10;
     const sp = W / n;
-    const s = 0.7;
+    const s = 0.74;
     for (let i = 0; i < n; i++) {
       const x = i * sp - s / 2;
-      wrapped(W, x, s, (dx) => drawMotif(ctx, x + dx, 0.65, s, MOTIFS[0], ["#FFC21A", TURQ, "#D42A3C"]));
+      wrapped(W, x, s, (dx) => drawMotif(ctx, x + dx, 0.64, s, MOTIFS[0], ["#FFC21A", TURQ, "#D42A3C"]));
     }
-    rect(ctx, 0, 1.44, W, 0.05, CREAM);
-    rect(ctx, 0, 1.53, W, H - 1.53, TURQ);
-    stepRow(ctx, W, 1.57, 0.24, 20, "#FFC21A");
+    rect(ctx, 0, 1.5, W, 0.05, CREAM);
+    stepRow(ctx, W, 1.6, 0.2, 20, "#FFC21A");
+    rect(ctx, 0, 1.84, W, H - 1.84, TURQ);
+    stepRow(ctx, W, 1.9, 0.3, 20, "#FFC21A");
+    rect(ctx, 0, H - 0.07, W, 0.07, "#D42A3C");
   },
 };
 
@@ -375,16 +387,17 @@ export const textileMat = (tex: THREE.Texture, rough = 0.85) => {
 };
 
 /**
- * Inca tunic as a woven band round the lower body (y 2.35 → 4.26, flaring a little at the hem)
- * with a chumpi belt on top. Child of <Nubi>; no transform needed. The eyes stay free.
+ * Inca tunic as a woven band round the lower body (y 2.0 → 4.38, flaring like a little skirt
+ * over the tops of the legs) with a chumpi belt on top. Child of <Nubi>; no transform needed.
+ * The eyes stay free (the belt ends 0.25 below them and sits behind the eye bars).
  */
 export const Unku: React.FC<{ variant: UnkuVariant }> = ({ variant }) => {
   const geo = useMemo(
-    () => bandGeometry({ y0: UNKU.y0, y1: UNKU.y1, t0: 0.46, t1: 0.2, bulge: 0.08, rows: 8, capBottom: 0.55 }),
+    () => bandGeometry({ y0: UNKU.y0, y1: UNKU.y1, t0: 0.5, t1: 0.1, bulge: 0.07, rows: 8, capBottom: 0.55 }),
     [],
   );
   const beltGeo = useMemo(
-    () => bandGeometry({ y0: BELT.y0, y1: BELT.y1, t0: 0.36, t1: 0.36, bulge: 0.05, rows: 4 }),
+    () => bandGeometry({ y0: BELT.y0, y1: BELT.y1, t0: 0.2, t1: 0.2, bulge: 0.04, rows: 4 }),
     [],
   );
   return (
@@ -769,7 +782,7 @@ export const QUIPU_HOLD_L = { position: [-1.2, 0.1, 0.3] as V3, rotation: [0, 0.
 export const Mascaypacha: React.FC<{ sway?: number }> = ({ sway = 0 }) => {
   const band = useMemo(() => bandGeometry({ y0: 8.65, y1: 9.65, t0: 0.26, t1: 0.26, bulge: 0.08, rows: 5 }), []);
   const bar = useRounded(6.1, 0.3, 0.36, 0.12);
-  const tassel = useRounded(0.38, 1.02, 0.32, 0.15);
+  const tassel = useMemo(() => new THREE.CapsuleGeometry(0.17, 0.78, 4, 12), []);
   const cap = useMemo(() => new THREE.CylinderGeometry(0.15, 0.15, 0.26, 12), []);
   const plate = useRounded(1.8, 1.3, 0.22, 0.1);
   const disc = useMemo(() => new THREE.CylinderGeometry(0.42, 0.42, 0.1, 28), []);
@@ -786,7 +799,7 @@ export const Mascaypacha: React.FC<{ sway?: number }> = ({ sway = 0 }) => {
         return (
           <group key={i} position={[x, 8.43, 4.6]} rotation={[sway * 0.12, 0, sway * 0.06]}>
             <mesh geometry={cap} material={gold()} position={[0, -0.13, 0]} />
-            <mesh geometry={tassel} material={wool} position={[0, -0.77, -0.03]} />
+            <mesh geometry={tassel} material={wool} position={[0, -0.82, -0.03]} scale={[1, 1, 0.85]} />
           </group>
         );
       })}

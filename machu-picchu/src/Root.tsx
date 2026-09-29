@@ -10,6 +10,8 @@ import { DURATION } from "./timeline";
 import { WorldTest } from "./dev/WorldTest";
 import { ClawdSheet } from "./dev/ClawdSheet";
 import { NubiSheet } from "./dev/NubiSheet";
+import { INCA_UI_SHEET_DURATION, IncaUISheet } from "./dev/IncaUISheet";
+import { IncaPropsSheet } from "./dev/IncaPropsSheet";
 import { TitleTest } from "./dev/TitleTest";
 
 export const RemotionRoot: React.FC = () => {
@@ -79,6 +81,22 @@ export const RemotionRoot: React.FC = () => {
         <Composition
           id="ClawdSheet"
           component={ClawdSheet}
+          durationInFrames={1}
+          fps={30}
+          width={1920}
+          height={1080}
+        />
+        <Composition
+          id="IncaUISheet"
+          component={IncaUISheet}
+          durationInFrames={INCA_UI_SHEET_DURATION}
+          fps={30}
+          width={1080}
+          height={1920}
+        />
+        <Composition
+          id="IncaPropsSheet"
+          component={IncaPropsSheet}
           durationInFrames={1}
           fps={30}
           width={1920}

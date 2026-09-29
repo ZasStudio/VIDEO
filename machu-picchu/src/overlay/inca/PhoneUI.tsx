@@ -2,7 +2,8 @@ import React from "react";
 import { AbsoluteFill } from "remotion";
 import { EASE_IN, EASE_IN_OUT, EASE_OUT, clamp01, pop, ramp, rand } from "../../anim";
 import { FONT } from "../../theme";
-import { BigNumber, fmtNumber } from "../Graphics";
+import { fmtNumber } from "../Graphics";
+import { HeavyText } from "./HeavyText";
 import {
   AppPapaIcon,
   BackChevron,
@@ -132,7 +133,7 @@ export const PhoneFrame: React.FC<{
   const k = ramp(frame, out, out + 15, [0, 1], EASE_IN);
   const t = frame - at;
   const bob = float ? Math.sin(t * 0.07) * 7 : 0;
-  const ty = (1 - p) * 1450 + k * 1700 + bob;
+  const ty = (1 - p) * 1450 + k * 2100 + bob;
   const rot = tilt + (1 - p) * 16 - k * 12 + (float ? Math.sin(t * 0.05 + 1) * 0.7 : 0);
   const sweep = ramp(frame, at + 8, at + 30, [0, 1], EASE_IN_OUT);
   const W = PHONE_W;
@@ -343,7 +344,7 @@ const keyOf = (c: string) => {
   return /^[A-Z]$/.test(base) ? base : "sym";
 };
 
-const KB_H = 360;
+const KB_H = 334;
 
 const Key: React.FC<{ label?: React.ReactNode; flex?: number; pressed?: string | null; special?: boolean; popup?: string }> = ({
   label,
@@ -358,7 +359,7 @@ const Key: React.FC<{ label?: React.ReactNode; flex?: number; pressed?: string |
       style={{
         position: "relative",
         flex,
-        height: 62,
+        height: 58,
         borderRadius: 10,
         background: on ? "#FF7A3D" : special ? "#E8D6BF" : "#FFFDF8",
         boxShadow: on ? "0 2px 0 #C4521F" : "0 3px 0 #CDB597",
@@ -430,7 +431,7 @@ const Keyboard: React.FC<{ pressedChar: string | null; words: string[] }> = ({ p
     >
       <div
         style={{
-          height: 46,
+          height: 42,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-around",
@@ -515,19 +516,19 @@ const QuipuTicks: React.FC<{ frame: number; at: number; readAt: number }> = ({ f
   );
 };
 
-const BUBBLE_FONT = 36;
+const BUBBLE_FONT = 44;
 
 const MetaRow: React.FC<{ time: string; children?: React.ReactNode; light?: boolean }> = ({ time, children }) => (
   <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginTop: 4 }}>
-    <span style={{ fontFamily: FONT.heavy, fontWeight: 700, fontSize: 21, color: "rgba(58,26,6,0.55)" }}>{time}</span>
+    <span style={{ fontFamily: FONT.heavy, fontWeight: 700, fontSize: 23, color: "rgba(58,26,6,0.55)" }}>{time}</span>
     {children}
   </div>
 );
 
 const bubbleStyle = (side: "me" | "them"): React.CSSProperties => ({
   position: "relative",
-  maxWidth: 440,
-  padding: "16px 22px 10px 24px",
+  maxWidth: 484,
+  padding: "16px 24px 10px 26px",
   borderRadius: side === "me" ? "34px 34px 10px 34px" : "34px 34px 34px 10px",
   background: side === "me" ? "linear-gradient(165deg, #FFE9A8 0%, #FFC857 100%)" : "#FFFFFF",
   boxShadow: "0 5px 0 rgba(120,70,20,0.16)",
@@ -535,28 +536,27 @@ const bubbleStyle = (side: "me" | "them"): React.CSSProperties => ({
   boxSizing: "border-box",
 });
 
-const BubbleTail: React.FC<{ side: "me" | "them" }> = ({ side }) => (
-  <svg
-    width={26}
-    height={22}
-    viewBox="0 0 26 22"
-    style={{
-      position: "absolute",
-      bottom: -3,
-      [side === "me" ? "right" : "left"]: -16,
-      transform: side === "me" ? undefined : "scaleX(-1)",
-    }}
-  >
-    <path
-      d="M0 0 C2 12 8 18 24 20 C14 21 6 21 0 19 Z"
-      fill={side === "me" ? "#FFC857" : "#FFFFFF"}
-      stroke={side === "me" ? "#F2B23C" : "#F1DDC4"}
-      strokeWidth={3}
-      strokeLinejoin="round"
-    />
-    <rect x={-3} y={0} width={4} height={18} fill={side === "me" ? "#FFC857" : "#FFFFFF"} />
-  </svg>
-);
+const BubbleTail: React.FC<{ side: "me" | "them" }> = ({ side }) => {
+  const fill = side === "me" ? "#FFC857" : "#FFFFFF";
+  const edge = side === "me" ? "#F2B23C" : "#F1DDC4";
+  return (
+    <svg
+      width={34}
+      height={30}
+      viewBox="0 0 34 30"
+      style={{
+        position: "absolute",
+        bottom: -3,
+        [side === "me" ? "right" : "left"]: -24,
+        transform: side === "me" ? undefined : "scaleX(-1)",
+        overflow: "visible",
+      }}
+    >
+      <path d="M11.5 4 C14 17 21 25 34 28.5 L0 28.5 L0 4 Z" fill={fill} />
+      <path d="M11.5 4 C14 17 21 25 34 28.5 L0 28.5" fill="none" stroke={edge} strokeWidth={3} strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  );
+};
 
 /** Mini map for the live-location card. */
 const MiniMap: React.FC<{ frame: number; at: number; w: number; h: number }> = ({ frame, at, w, h }) => {
@@ -639,16 +639,16 @@ const LiveDot: React.FC<{ frame: number; size?: number }> = ({ frame, size = 16 
 };
 
 const LocationCard: React.FC<{ frame: number; at: number; place: string; time: string }> = ({ frame, at, place, time }) => (
-  <div style={{ ...bubbleStyle("them"), width: 440, maxWidth: 440, padding: 8 }}>
-    <MiniMap frame={frame} at={at} w={418} h={214} />
+  <div style={{ ...bubbleStyle("them"), width: 470, maxWidth: 470, padding: 8 }}>
+    <MiniMap frame={frame} at={at} w={448} h={224} />
     <div style={{ padding: "10px 12px 4px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <PinIcon size={30} />
-        <span style={{ fontFamily: FONT.heavy, fontWeight: 800, fontSize: 24, color: "#2B1A10", whiteSpace: "nowrap" }}>
+        <PinIcon size={34} style={{ flexShrink: 0 }} />
+        <span style={{ fontFamily: FONT.heavy, fontWeight: 800, fontSize: 27, lineHeight: 1.15, color: "#2B1A10" }}>
           Ubicación en tiempo real
         </span>
       </div>
-      <div style={{ fontFamily: FONT.fun, fontSize: 44, color: "#E0262B", lineHeight: 1.1, marginTop: 4 }}>{place}</div>
+      <div style={{ fontFamily: FONT.fun, fontSize: 48, color: "#E0262B", lineHeight: 1.08, marginTop: 6 }}>{place}</div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
         <div
           style={{
@@ -660,7 +660,7 @@ const LocationCard: React.FC<{ frame: number; at: number; place: string; time: s
             background: "#FFE3E6",
             fontFamily: FONT.heavy,
             fontWeight: 900,
-            fontSize: 20,
+            fontSize: 23,
             letterSpacing: 1.5,
             color: "#E0233F",
           }}
@@ -739,8 +739,11 @@ export const ChatScreen: React.FC<{
   messages: ChatMessage[];
   time?: string;
   placeholder?: string;
-}> = ({ frame, contact, messages, time = "10:32", placeholder = "Escribe tu quipu…" }) => {
+  /** Bubble text size in screen pixels (default 44). Raise it when the phone is shown small. */
+  fontSize?: number;
+}> = ({ frame, contact, messages, time = "10:32", placeholder = "Escribe tu quipu…", fontSize = BUBBLE_FONT }) => {
   const uid = useUid();
+  const bubbleFont = fontSize;
   const msgs = messages.slice().sort((a, b) => a.at - b.at);
 
   // "me" typing in the input bar.
@@ -800,7 +803,7 @@ export const ChatScreen: React.FC<{
             style={{
               fontFamily: FONT.heavy,
               fontWeight: 800,
-              fontSize: BUBBLE_FONT,
+              fontSize: bubbleFont,
               lineHeight: 1.18,
               color: "#2B1A10",
               letterSpacing: -0.3,
@@ -828,7 +831,7 @@ export const ChatScreen: React.FC<{
       <div
         style={{
           position: "relative",
-          height: STATUS_H + 124,
+          height: STATUS_H + 134,
           flexShrink: 0,
           paddingTop: STATUS_H,
           boxSizing: "border-box",
@@ -842,24 +845,23 @@ export const ChatScreen: React.FC<{
         }}
       >
         <BackChevron size={36} />
-        <Avatar kind={contact.avatar ?? "llama"} size={88} />
+        <Avatar kind={contact.avatar ?? "llama"} size={96} />
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
           <div
             style={{
               fontFamily: FONT.heavy,
               fontWeight: 900,
-              fontSize: contact.name.length > 13 ? 31 : 36,
-              lineHeight: 1.1,
+              fontSize: contact.name.length > 13 ? 36 : 42,
+              lineHeight: 1.02,
               color: "#fff",
               textShadow: "0 3px 0 rgba(120,20,0,0.3)",
-              whiteSpace: "nowrap",
             }}
           >
             {contact.name}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
             {themTyping ? null : <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#7CFFB2", border: "2px solid #fff" }} />}
-            <span style={{ fontFamily: FONT.heavy, fontWeight: 700, fontSize: 22, color: "rgba(255,255,255,0.95)" }}>{status}</span>
+            <span style={{ fontFamily: FONT.heavy, fontWeight: 800, fontSize: 25, color: "rgba(255,255,255,0.95)" }}>{status}</span>
           </div>
         </div>
         <div
@@ -911,6 +913,16 @@ export const ChatScreen: React.FC<{
           </div>
           {items}
         </div>
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            top: 0,
+            height: 44,
+            background: "linear-gradient(180deg, #FFF3E2 0%, rgba(255,243,226,0.85) 40%, rgba(255,243,226,0) 100%)",
+          }}
+        />
       </div>
       {/* Input bar */}
       <div
@@ -929,8 +941,8 @@ export const ChatScreen: React.FC<{
         <div
           style={{
             flex: 1,
-            minHeight: 78,
-            borderRadius: 39,
+            minHeight: 84,
+            borderRadius: 42,
             background: "#FFFFFF",
             border: typing ? "3px solid #FF9A4D" : "3px solid #EFCFAA",
             display: "flex",
@@ -940,14 +952,14 @@ export const ChatScreen: React.FC<{
             boxSizing: "border-box",
           }}
         >
-          <QuipuIcon size={40} />
+          <QuipuIcon size={42} style={{ flexShrink: 0 }} />
           <div
             style={{
               flex: 1,
               fontFamily: FONT.heavy,
               fontWeight: 800,
-              fontSize: 32,
-              lineHeight: 1.2,
+              fontSize: 35,
+              lineHeight: 1.18,
               color: typed ? "#2B1A10" : "#BD9F82",
             }}
           >
@@ -967,7 +979,7 @@ export const ChatScreen: React.FC<{
             ) : null}
           </div>
         </div>
-        <div style={{ position: "relative", width: 80, height: 80, flexShrink: 0 }}>
+        <div style={{ position: "relative", width: 84, height: 84, flexShrink: 0 }}>
           {ripple >= 0 ? (
             <div
               style={{
@@ -994,7 +1006,7 @@ export const ChatScreen: React.FC<{
               opacity: typed || sendPulse > 0 ? 1 : 0.8,
             }}
           >
-            <SendIcon size={46} style={{ marginLeft: -4, marginTop: 4 }} />
+            <SendIcon size={48} style={{ marginLeft: -4, marginTop: 4 }} />
           </div>
         </div>
       </div>
@@ -1124,8 +1136,8 @@ export const NotificationStorm: React.FC<{
           position: "absolute",
           left: 30,
           top: 290 + slot * PITCH,
-          opacity: Math.min(1, e * 1.6) * fade,
-          transform: `translateY(${-(1 - Math.min(1, e)) * 90}px) scale(${(0.86 + 0.14 * e) * (1 - slot * 0.015)}) rotate(${wob * (1 - Math.min(1, e)) + wob * 0.25}deg)`,
+          opacity: fade,
+          transform: `translateY(${-(1 - Math.min(1, e)) * 150}px) scale(${(0.62 + 0.38 * e) * (1 - slot * 0.015)}) rotate(${wob * (1 - Math.min(1, e)) * 2 + wob * 0.25}deg)`,
           zIndex: 100 - Math.round(slot * 10),
         }}
       >
@@ -1239,7 +1251,7 @@ export const WeatherCard: React.FC<{
       style={{
         position: "absolute",
         left: x - 420,
-        top: y - 330,
+        top: y - 318,
         width: 840,
         transform: `scale(${s}) rotate(${rot}deg)`,
         opacity: Math.min(1, p * 2),
@@ -1303,13 +1315,7 @@ export const WeatherCard: React.FC<{
             >
               Mañana:
             </div>
-            <BigNumber
-              text="lluvia"
-              size={132}
-              gradient="linear-gradient(180deg, #D6F0FF 0%, #5CB8FF 45%, #1F6FE5 100%)"
-              stroke="#0E2547"
-              style={{ marginTop: 8, marginLeft: -4 }}
-            />
+            <HeavyText text="lluvia" size={132} colors={["#E4F5FF", "#5CB8FF", "#1F6FE5"]} stroke="#0E2547" style={{ marginTop: 8, marginLeft: -4 }} />
           </div>
         </div>
         <div style={{ display: "flex", justifyContent: "center", marginTop: 18 }}>
@@ -1370,10 +1376,13 @@ export const CaptionSticker: React.FC<{
     <div
       style={{
         position: "absolute",
-        left: x,
+        left: x - 480,
         top: y,
-        transform: `translate(-50%, -50%) scale(${p * (1 - k)}) rotate(${rotate + wob + (1 - p) * 12}deg)`,
-        maxWidth: 900,
+        width: 960,
+        height: 0,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
       }}
     >
       <div
@@ -1383,6 +1392,9 @@ export const CaptionSticker: React.FC<{
           flexWrap: "wrap",
           justifyContent: "center",
           gap: 16,
+          maxWidth: 940,
+          flexShrink: 0,
+          transform: `scale(${p * (1 - k)}) rotate(${rotate + wob + (1 - p) * 12}deg)`,
           padding: "18px 30px 18px 20px",
           borderRadius: 26,
           background: "#FFFFFF",
@@ -1438,13 +1450,23 @@ export const SelfieUI: React.FC<{
   recStart: number;
   flashAt?: number;
   sticker?: { text: string; at: number; out: number; y?: number };
-  /** Y of the capture button centre (camera controls sit around it). */
+  /** Y of the capture button centre (camera controls sit around it). Default: bottom - 280. */
   controlsY?: number;
   /** Y of the REC row. */
   topY?: number;
   grid?: boolean;
-}> = ({ frame, at, out, recStart, flashAt, sticker, controlsY = 1640, topY = 200, grid = true }) => {
+  /**
+   * Size of the area to cover (default the full 1080 x 1920 frame). Pass SCREEN_W x SCREEN_H to
+   * put the viewfinder inside a transparent PhoneFrame. The layout uses a 1080-wide canvas scaled
+   * to `width`, so controlsY / topY / sticker.y are in that canvas' pixels.
+   */
+  width?: number;
+  height?: number;
+}> = ({ frame, at, out, recStart, flashAt, sticker, controlsY, topY = 200, grid = true, width = 1080, height = 1920 }) => {
   if (frame < at || frame > out + 12) return null;
+  const k = width / 1080;
+  const Hv = height / k;
+  const cy = controlsY ?? Hv - 280;
   const inK = ramp(frame, at, at + 12, [0, 1], EASE_OUT);
   const outK = ramp(frame, out, out + 10, [0, 1], EASE_IN);
   const vis = inK * (1 - outK);
@@ -1456,15 +1478,26 @@ export const SelfieUI: React.FC<{
   const spread = (1 - inK) * 70 + outK * 70;
   const L = 60 - spread;
   const R = 1020 + spread;
-  const T = 150 - spread;
-  const B = 1520 + spread;
+  const T = topY - 50 - spread;
+  const B = cy - 120 + spread;
   const arm = 120;
   const bracket = (x0: number, y0: number, dx: number, dy: number) => `M${x0} ${y0 + dy * arm} L${x0} ${y0} L${x0 + dx * arm} ${y0}`;
   const shadow = "drop-shadow(0 3px 4px rgba(0,0,0,0.55))";
   return (
-    <AbsoluteFill style={{ pointerEvents: "none" }}>
+    <div
+      style={{
+        position: "absolute",
+        left: 0,
+        top: 0,
+        width: 1080,
+        height: Hv,
+        transform: k !== 1 ? `scale(${k})` : undefined,
+        transformOrigin: "0 0",
+        pointerEvents: "none",
+      }}
+    >
       <div style={{ position: "absolute", inset: 0, opacity: vis }}>
-        <svg width={1080} height={1920} style={{ position: "absolute", inset: 0, filter: shadow }}>
+        <svg width={1080} height={Hv} style={{ position: "absolute", inset: 0, filter: shadow }}>
           {grid
             ? [360, 720].map((gx) => <path key={gx} d={`M${gx} ${T + 40} L${gx} ${B - 40}`} stroke="rgba(255,255,255,0.28)" strokeWidth={2.5} />)
             : null}
@@ -1536,7 +1569,7 @@ export const SelfieUI: React.FC<{
           style={{
             position: "absolute",
             left: 540 - 150,
-            top: controlsY - 190 + (1 - inK) * 80,
+            top: cy - 190 + (1 - inK) * 80,
             width: 300,
             height: 78,
             borderRadius: 39,
@@ -1574,7 +1607,7 @@ export const SelfieUI: React.FC<{
             position: "absolute",
             left: 0,
             right: 0,
-            top: controlsY - 80 + (1 - inK) * 120,
+            top: cy - 80 + (1 - inK) * 120,
             height: 160,
           }}
         >
@@ -1641,7 +1674,7 @@ export const SelfieUI: React.FC<{
       </div>
       {sticker ? <CaptionSticker frame={frame} at={sticker.at} out={sticker.out} text={sticker.text} y={sticker.y ?? topY + 190} /> : null}
       {flash > 0 ? <AbsoluteFill style={{ background: "#FFFFFF", opacity: flash }} /> : null}
-    </AbsoluteFill>
+    </div>
   );
 };
 
@@ -1657,10 +1690,10 @@ const ERAS: { label: string; bg: string; icon: (frame: number) => React.ReactNod
 
 /** Positions of the four era bubbles around the button (relative to its centre). */
 const ERA_POS = [
-  { x: -300, y: -300 },
-  { x: 300, y: -270 },
-  { x: -305, y: 190 },
-  { x: 305, y: 220 },
+  { x: -330, y: -215 },
+  { x: 330, y: -190 },
+  { x: -340, y: 225 },
+  { x: 345, y: 262 },
 ];
 
 const autoLines = (title: string) => {
@@ -1678,7 +1711,7 @@ const autoLines = (title: string) => {
  * Call to action: big comment button (dots hop, a hand taps it with a ripple), a counter that
  * ticks up, four "era" bubbles (pyramid, dinosaur, rocket, castle) popping in one by one and the
  * title "¿A QUÉ ÉPOCA VIAJO?". `x`, `y` = centre of the comment button; the block spans about
- * x ± 420 and y - 660 … y + 380.
+ * x ± 450 and y - 470 … y + 425 (so y = 640 keeps it inside the safe area).
  */
 export const CommentsCTA: React.FC<{
   frame: number;
@@ -1686,12 +1719,12 @@ export const CommentsCTA: React.FC<{
   x: number;
   y: number;
   title?: string;
-  /** Title centre, relative to the button (default 0, -540). */
+  /** Title centre, relative to the button (default 0, -350). */
   titleOffset?: { x: number; y: number };
   countTo?: number;
   scale?: number;
   out?: number;
-}> = ({ frame, at, x, y, title = "¿A QUÉ ÉPOCA VIAJO?", titleOffset = { x: 0, y: -540 }, countTo = 2847, scale = 1, out }) => {
+}> = ({ frame, at, x, y, title = "¿A QUÉ ÉPOCA VIAJO?", titleOffset = { x: 0, y: -350 }, countTo = 2847, scale = 1, out }) => {
   if (frame < at) return null;
   if (out !== undefined && frame > out + 12) return null;
   const t = frame - at;
@@ -1734,11 +1767,11 @@ export const CommentsCTA: React.FC<{
             style={{
               position: "absolute",
               left: titleOffset.x,
-              top: titleOffset.y + (i - (n - 1) / 2) * 128,
+              top: titleOffset.y + (i - (n - 1) / 2) * 116,
               transform: `translate(-50%, -50%) scale(${p}) rotate(${(i % 2 ? 2.5 : -2.5) * (0.6 + 0.4 * (1 - p)) + Math.sin(t * 0.08 + i) * 0.8}deg)`,
             }}
           >
-            <BigNumber text={line} size={124} gradient="linear-gradient(180deg, #FFFFFF 0%, #FFF3B0 45%, #FFC21F 100%)" />
+            <HeavyText text={line} size={112} colors={["#FFFFFF", "#FFF3B0", "#FFC21F"]} />
           </div>
         );
       })}
@@ -1858,14 +1891,14 @@ export const CommentsCTA: React.FC<{
         style={{
           position: "absolute",
           left: 0,
-          top: 215,
+          top: 236,
           transform: `translate(-50%, -50%) scale(${btnIn * (1 + 0.18 * countBump)})`,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
         }}
       >
-        <BigNumber text={fmtNumber(count)} size={88} gradient="linear-gradient(180deg, #FFFFFF 0%, #FFE9F1 60%, #FFB3CF 100%)" />
+        <HeavyText text={fmtNumber(count)} size={88} colors={["#FFFFFF", "#FFE9F1", "#FFB3CF"]} />
         <div
           style={{
             marginTop: 18,
@@ -1885,10 +1918,10 @@ export const CommentsCTA: React.FC<{
       <div
         style={{
           position: "absolute",
-          left: 60,
-          top: 30,
+          left: 100,
+          top: 32,
           transformOrigin: "0 0",
-          transform: `translate(${(1 - handIn) * 320 - handPush * 22}px, ${(1 - handIn) * 360 - handPush * 26}px) rotate(-38deg) scale(${1 - 0.06 * handPush})`,
+          transform: `translate(${(1 - handIn) * 420 - handPush * 26}px, ${(1 - handIn) * 190 - handPush * 12}px) rotate(-66deg) scale(${1 - 0.06 * handPush})`,
           opacity: Math.min(1, handIn * 2),
         }}
       >
