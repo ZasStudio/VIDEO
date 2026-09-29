@@ -1,8 +1,11 @@
 // Sound effects: synthesized by scripts/generate-audio.mjs (public/audio/<name>.wav), plus the
-// Magnific ones of the Inca-phone short ("inca/<name>" -> public/inca/sfx/<name>.wav).
+// Magnific ones of each short ("<short>/<name>" -> public/<short>/sfx/<name>.wav).
 
 /** File (in public/) of a sound effect. */
-export const sfxFile = (sfx: string) => (sfx.startsWith("inca/") ? `inca/sfx/${sfx.slice(5)}.wav` : `audio/${sfx}.wav`);
+export const sfxFile = (sfx: string) => {
+  const slash = sfx.indexOf("/");
+  return slash > 0 ? `${sfx.slice(0, slash)}/sfx/${sfx.slice(slash + 1)}.wav` : `audio/${sfx}.wav`;
+};
 
 export type Sfx =
   | "impact"
@@ -20,8 +23,9 @@ export type Sfx =
   | "paper"
   | "rope"
   | "sparkle"
-  // Effects generated with Magnific for the Inca-phone short: public/inca/sfx/<name>.wav
-  | `inca/${string}`;
+  // Effects generated with Magnific for the shorts: public/<short>/sfx/<name>.wav
+  | `inca/${string}`
+  | `oxigeno/${string}`;
 
 /** [global frame, sound, volume, optional max length in frames, optional frames skipped at its start] */
 export type Cue = [number, Sfx, number, number?, number?];

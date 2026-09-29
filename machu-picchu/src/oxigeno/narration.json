@@ -1,0 +1,18 @@
+{
+  "_title": "¿Y si desaparece el oxígeno por 5 segundos?",
+  "_voices": "Magnific TTS, ElevenLabs v3. nubi = 'Nerea Escudero' (stability 0.45, speed 0.95); sistema = 'Álvaro Valverde' (the lab's alarm computer).",
+  "_captions": "Same syntax as src/narration.json.",
+  "lines": [
+    {"id": "L01", "voice": "nubi", "scene": "intro", "tts": "[curious] ¿Qué pasaría si todo el oxígeno de la Tierra desapareciera… [mischievous] por solo cinco segundos?", "captions": "¿QUÉ PASARÍA SI / TODO EL OXÍGENO^c / DE LA TIERRA / DESAPARECIERA… / POR SOLO 5^r SEGUNDOS?^r"},
+    {"id": "L02", "voice": "sistema", "scene": "boton", "tts": "[robotic] Oxígeno: cero por ciento.", "captions": null},
+    {"id": "L03", "voice": "nubi", "scene": "boton", "tts": "No, no te convertirías en polvo. [whispers] Pero mira esto.", "captions": "NO, NO TE CONVERTIRÍAS / EN POLVO.^y / PERO MIRA ESTO.^c"},
+    {"id": "L04", "voice": "nubi", "scene": "fuego", "tts": "[excited] Primero: todo fuego se apagaría. Velas, cocinas, fogatas… [sad] ¡hasta mi cafecito!", "captions": "PRIMERO: TODO FUEGO^r / SE APAGARÍA.^r / VELAS, COCINAS, / FOGATAS… / ¡HASTA MI CAFECITO!^y"},
+    {"id": "L05", "voice": "nubi", "scene": "motores", "tts": "Los motores de combustión se ahogarían: autos y aviones, apagados en pleno viaje.", "captions": "LOS MOTORES^y / DE COMBUSTIÓN / SE AHOGARÍAN: / AUTOS Y AVIONES, / APAGADOS^r EN PLENO VIAJE."},
+    {"id": "L06", "voice": "nubi", "scene": "motores", "tts": "[mischievous] ¿Los cohetes? Ellos no: ¡llevan su propio oxígeno!", "captions": "¿LOS COHETES?^c / ELLOS NO: / ¡LLEVAN SU PROPIO / OXÍGENO!^c"},
+    {"id": "L07", "voice": "nubi", "scene": "humanos", "tts": "[dramatic] ¿Y nosotros? [calm] Tranquilo: tu sangre guarda oxígeno para varios minutos.", "captions": "¿Y NOSOTROS? / TRANQUILO: / TU SANGRE^r GUARDA OXÍGENO / PARA VARIOS MINUTOS.^y"},
+    {"id": "L08", "voice": "nubi", "scene": "humanos", "tts": "Eso sí, tus oídos harían ¡pop!, porque el aire perdería de golpe parte de su presión.", "captions": "ESO SÍ, / TUS OÍDOS HARÍAN / ¡POP!,^y PORQUE EL AIRE / PERDERÍA DE GOLPE / PARTE DE SU PRESIÓN.^c"},
+    {"id": "L09", "voice": "nubi", "scene": "regreso", "tts": "Y cuando el oxígeno volviera… nada se encendería solo. [laughs] ¡Habría que prender todo otra vez!", "captions": "Y CUANDO EL OXÍGENO / VOLVIERA…^c / NADA SE ENCENDERÍA^r / SOLO. / ¡HABRÍA QUE PRENDER / TODO OTRA VEZ!^y"},
+    {"id": "L10", "voice": "nubi", "scene": "final", "tts": "Cinco segundos sin oxígeno no destruyen el mundo… [whispers] pero sí lo dejan en silencio.", "captions": "5^y SEGUNDOS^y SIN OXÍGENO / NO DESTRUYEN / EL MUNDO… / PERO SÍ LO DEJAN / EN SILENCIO.^c"},
+    {"id": "L11", "voice": "nubi", "scene": "final", "tts": "[excited] ¿Qué otro experimento imposible hago? ¡Te leo en los comentarios!", "captions": "¿QUÉ OTRO EXPERIMENTO / IMPOSIBLE^y HAGO? / ¡TE LEO EN / LOS COMENTARIOS!^c"}
+  ]
+}
