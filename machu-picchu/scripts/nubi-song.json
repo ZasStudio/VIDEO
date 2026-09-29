@@ -1,0 +1,7 @@
+{
+  "voiceMix": true,
+  "sections": [
+    { "role": "grooveB", "bars": 5, "start": "drop" },
+    { "role": "final", "bars": 4, "hitBar": 2 }
+  ]
+}

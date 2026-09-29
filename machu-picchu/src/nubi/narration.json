@@ -1,0 +1,10 @@
+{
+  "_voice": "Magnific TTS, ElevenLabs v3, voice 'Nerea Escudero' (tender), stability 0.45, speed 0.95. One clip per line (L01.mp3 ...). Nubi has no mouth: it talks with its body.",
+  "_captions": "Same syntax as src/narration.json: chunks separated by ' / ', TOKEN{n} = n spoken words, ^y|o|g|r|c colour, ~TOKEN spoken but shown as a 3D title instead, _ non-breaking space.",
+  "lines": [
+    {"id": "L01", "scene": "hook", "tts": "[curious] ¿Por qué Machu Picchu no se cayó con tantos terremotos?", "captions": "¿POR QUÉ MACHU^y PICCHU^y / NO SE CAYÓ / CON TANTOS TERREMOTOS?^r"},
+    {"id": "L02", "scene": "piedras", "tts": "Sus piedras encajan como un rompecabezas... ¡sin cemento!", "captions": "SUS PIEDRAS ENCAJAN / COMO UN ROMPECABEZAS...^y / ¡SIN CEMENTO!^r"},
+    {"id": "L03", "scene": "sismo", "tts": "Así, cuando tiembla, ¡bailan... y vuelven a su lugar!", "captions": "ASÍ, CUANDO TIEMBLA,^r / ¡BAILAN...^y / Y VUELVEN A SU LUGAR!^g"},
+    {"id": "L04", "scene": "final", "tts": "[excited] ¡Por eso sigue en pie!", "captions": null}
+  ]
+}

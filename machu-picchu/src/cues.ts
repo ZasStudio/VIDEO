@@ -4,27 +4,9 @@
 import { landingFrames } from "./scenes/Piedras";
 import { SCENES, lineStart, wordAt, wordEnd } from "./timeline";
 
-export type Sfx =
-  | "impact"
-  | "whoosh"
-  | "whoosh-short"
-  | "pop"
-  | "ding"
-  | "tick"
-  | "riser"
-  | "rumble"
-  | "rain"
-  | "thunder"
-  | "stone-thud"
-  | "stone-clack"
-  | "paper"
-  | "rope"
-  | "sparkle";
-
-/** [global frame, sound, volume, optional max length in frames] */
-export type Cue = [number, Sfx, number, number?];
-/** Looping ambience: [from, to, sound, volume]. */
-export type Bed = [number, number, Sfx, number];
+export type { Bed, Cue, Sfx } from "./sfx";
+export { BED_FRAMES } from "./sfx";
+import type { Bed, Cue } from "./sfx";
 
 const RISER_LEN = 60;
 
@@ -271,6 +253,3 @@ export const BEDS: Bed[] = [
   [wordAt("L15", 2), wordAt("L15", 7) + 4, "rumble", 0.62],
   [wordAt("L18", 2) - 4, end("subsuelo"), "rain", 0.26],
 ];
-
-/** Length in frames of the looping beds (their files). */
-export const BED_FRAMES: Partial<Record<Sfx, number>> = { rain: 180, rumble: 90 };

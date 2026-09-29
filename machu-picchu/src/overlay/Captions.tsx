@@ -1,13 +1,20 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { EASE_IN, pop, ramp } from "../anim";
+import type { Chunk } from "../narrated";
 import { CAPTIONS } from "../timeline";
 import { FONT } from "../theme";
 
-// MrBeast-style captions: bottom centre, word by word, the newest word pops in yellow.
-export const Captions: React.FC = () => {
+// MrBeast-style captions: word by word, the newest word pops in yellow. Bottom centre by
+// default; the vertical short places them higher (`bottom`) and bigger.
+export const Captions: React.FC<{
+  chunks?: Chunk[];
+  bottom?: number;
+  fontSize?: number;
+  maxWidth?: number;
+}> = ({ chunks = CAPTIONS, bottom = 92, fontSize = 86, maxWidth = 1560 }) => {
   const frame = useCurrentFrame();
-  const chunk = CAPTIONS.find((c) => frame >= c.from && frame < c.to);
+  const chunk = chunks.find((c) => frame >= c.from && frame < c.to);
   if (!chunk) return null;
   const exit = ramp(frame, chunk.to - 5, chunk.to, [0, 1], EASE_IN);
   const shown = chunk.words.filter((w) => frame >= w.at);
@@ -26,10 +33,10 @@ export const Captions: React.FC = () => {
           flexWrap: "wrap",
           justifyContent: "center",
           alignItems: "baseline",
-          columnGap: 30,
+          columnGap: fontSize * 0.35,
           rowGap: 0,
-          maxWidth: 1560,
-          marginBottom: 92,
+          maxWidth,
+          marginBottom: bottom,
           transform: `scale(${1 - exit * 0.25})`,
           opacity: 1 - exit,
         }}
@@ -48,11 +55,11 @@ export const Captions: React.FC = () => {
               style={{
                 fontFamily: FONT.heavy,
                 fontWeight: 900,
-                fontSize: 86,
+                fontSize,
                 lineHeight: 1.12,
                 letterSpacing: -1,
                 color,
-                WebkitTextStroke: "15px #000",
+                WebkitTextStroke: `${Math.round(fontSize * 0.175)}px #000`,
                 paintOrder: "stroke fill",
                 textShadow: "0 8px 0 #000, 0 14px 22px rgba(0,0,0,0.55)",
                 display: "inline-block",

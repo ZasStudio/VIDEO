@@ -1,17 +1,21 @@
-"""Prepares Clawd's narration for the video.
+"""Prepares a character's narration for a video (Clawd's Machu Picchu video by default).
 
-For every line of src/narration.json it takes the raw voice clip, trims the silence,
-writes public/voice/<id>.wav and measures:
+For every line of the narration JSON it takes the raw voice clip, trims the silence,
+writes <voice-dir>/<id>.wav and measures:
   - duration,
   - the start/end of every spoken word, found by aligning the clip against an eSpeak NG
     synthesis of the same text (MFCC features + dynamic time warping, the same idea as
     the aeneas forced aligner), so captions and 3D titles land on the words,
   - the voice energy per video frame (30 fps) and its syllable accents, which drive
-    Clawd's "talking" body movement (Clawd has no mouth).
-Everything goes to src/voice-timing.json.
+    the character's "talking" body movement (the characters have no mouth).
+Everything goes to the timing JSON.
 
     python3 scripts/voice_timing.py <raw_dir>            # raw_dir holds L01.mp3|wav ...
     python3 scripts/voice_timing.py <raw_dir> --standin  # first synthesise stand-ins with eSpeak
+
+Options (paths relative to the project): --narration src/narration.json,
+--out src/voice-timing.json, --voice-dir public/voice. Nubi's short uses
+--narration src/nubi/narration.json --out src/nubi/voice-timing.json --voice-dir public/nubi/voice
 """
 
 import json
@@ -419,26 +423,32 @@ def level(x, sr):
 
 
 # ----------------------------------------------------------------------------- main
-def standins(narration, raw_dir):
+def standins(narration, raw_dir, rate=128):
     """eSpeak stand-in clips (a different voice/rate than the aligner uses) for development."""
     from espeak_tts import synthesize, write_wav as ewrite
 
     os.makedirs(raw_dir, exist_ok=True)
     for line in narration["lines"]:
         text = tts_to_spoken(line["tts"])
-        s, r, _ = synthesize(text, voice="es-419+f3", rate=128, pitch=70, pitch_range=90)
+        s, r, _ = synthesize(text, voice="es-419+f3", rate=rate, pitch=70, pitch_range=90)
         pad = [0] * int(r * 0.3)
         ewrite(os.path.join(raw_dir, f"{line['id']}.wav"), pad + s + pad, r)
 
 
+def option(name, default):
+    return sys.argv[sys.argv.index(name) + 1] if name in sys.argv else default
+
+
 def main():
     raw_dir = sys.argv[1]
-    narration = json.load(open(os.path.join(ROOT, "src", "narration.json")))
+    narration_path = os.path.join(ROOT, option("--narration", "src/narration.json"))
+    timing_path = os.path.join(ROOT, option("--out", "src/voice-timing.json"))
+    narration = json.load(open(narration_path))
     if "--standin" in sys.argv:
-        standins(narration, raw_dir)
+        standins(narration, raw_dir, int(option("--rate", "128")))
     tmp_dir = os.path.join(raw_dir, "_tmp")
     os.makedirs(tmp_dir, exist_ok=True)
-    out_dir = os.path.join(ROOT, "public", "voice")
+    out_dir = os.path.join(ROOT, option("--voice-dir", "public/voice"))
     os.makedirs(out_dir, exist_ok=True)
     result = {"fps": FPS, "lines": {}}
     for line in narration["lines"]:
@@ -460,10 +470,10 @@ def main():
         result["lines"][lid] = {"duration": round(len(x) / sr, 3), "words": spans, "env": env, "accents": acc}
         peak = 20 * np.log10(np.abs(x).max())
         print(f"{lid}: {len(x) / sr:5.2f} s, {len(words)} words, first {spans[0][0]:.2f} s, last {spans[-1][0]:.2f} s, peak {peak:.1f} dB")
-    with open(os.path.join(ROOT, "src", "voice-timing.json"), "w") as f:
+    with open(timing_path, "w") as f:
         json.dump(result, f, separators=(",", ":"))
     total = sum(v["duration"] for v in result["lines"].values())
-    print(f"total speech {total:.1f} s -> src/voice-timing.json")
+    print(f"total speech {total:.1f} s -> {os.path.relpath(timing_path, ROOT)}")
 
 
 if __name__ == "__main__":

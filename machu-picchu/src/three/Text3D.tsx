@@ -215,6 +215,13 @@ export const Text3D: React.FC<{
     [look],
   );
   outlineMat.opacity = opacity;
+  // While a title fades it must not write depth, or an invisible line (e.g. one still
+  // flying in, huge and transparent) hides the lines behind it.
+  const solid = opacity >= 0.99;
+  faceMat.depthWrite = solid;
+  sideMat.depthWrite = solid;
+  outlineMat.depthWrite = solid;
+  if (opacity <= 0.01) return null;
   return (
     <group position={position} rotation={rotation} scale={scale}>
       <mesh geometry={b.outline} material={outlineMat} />

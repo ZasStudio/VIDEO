@@ -1,22 +1,21 @@
-// Timeline driven by Clawd's narration: every scene is as long as its lines need, plus
-// breathing room, rounded up to whole music bars (2 s) so cuts land on the beat.
-// src/voice-timing.json is produced by scripts/voice_timing.py from the voice clips.
+// Timeline of the Machu Picchu video, driven by Clawd's narration: every scene is as long
+// as its lines need, plus breathing room, rounded up to whole music bars (2 s) so cuts land
+// on the beat. src/voice-timing.json is produced by scripts/voice_timing.py from the clips.
 import narration from './narration.json';
 import timing from './voice-timing.json';
+import {Narration, PlanScene, VoiceTiming, createTimeline} from './narrated';
 import {FPS} from './theme';
+
+export type {Chunk, Word} from './narrated';
+export {HIGHLIGHT} from './narrated';
 
 export type SceneKey = 'hook' | 'intro' | 'datos' | 'inca' | 'reto' | 'piedras' | 'sismos' | 'subsuelo' | 'mita' | 'final';
 export type LineId = string;
 
-type LineTiming = {duration: number; words: [number, number][]; env: number[]; accents: number[]};
-const T = (timing as unknown as {lines: Record<string, LineTiming>}).lines;
-
 export const BAR = 2 * FPS; // 60 frames
 
-type PlanScene = {scene: SceneKey; pre: number; lines: [LineId, number][]; post: number};
-
 // Seconds of silence before the first line, before each following line, and after the last one.
-const PLAN: PlanScene[] = [
+const PLAN: PlanScene<SceneKey>[] = [
   {scene: 'hook', pre: 1.4, lines: [['L01', 0]], post: 0.6},
   {scene: 'intro', pre: 1.5, lines: [['L02', 0]], post: 0.5},
   {scene: 'datos', pre: 1.1, lines: [['L03', 0], ['L04', 0.9]], post: 0.6},
@@ -29,167 +28,31 @@ const PLAN: PlanScene[] = [
   {scene: 'final', pre: 0.8, lines: [['L22', 0], ['L23', 0.9]], post: 1.6},
 ];
 
-const lineStartMap: Record<LineId, number> = {};
-export const SCENES = {} as Record<SceneKey, {from: number; duration: number}>;
+// "¡Machu Picchu sigue en pie!": the word "sigue" falls on a bar line, where the music hits.
+const TL = createTimeline(narration as Narration, timing as unknown as VoiceTiming, PLAN, {
+  fps: FPS,
+  grid: BAR,
+  hit: {scene: 'final', line: 'L22', word: 7, grid: BAR},
+});
+
+export const {
+  SCENES,
+  DURATION,
+  lineStart,
+  lineEnd,
+  wordAt,
+  wordEnd,
+  voiceLevel,
+  talking,
+  ducking,
+  voiceAccent,
+  accentIndex,
+  CAPTIONS,
+  LINES,
+} = TL;
+export const MAIN_TIMELINE = TL;
 /** Bar (0-based, within the final scene) where "¡sigue en pie!" and the music's final hit land. */
-export let FINAL_HIT_BAR = 0;
-
-let cursor = 0;
-for (const s of PLAN) {
-  let pre = s.pre;
-  if (s.scene === 'final') {
-    // Push the first line so the word "sigue" falls exactly on a bar line.
-    const sigue = T.L22.words[7][0];
-    const bars = Math.ceil(((pre + sigue) * FPS) / BAR);
-    FINAL_HIT_BAR = bars;
-    pre = (bars * BAR) / FPS - sigue;
-  }
-  let t = Math.round(pre * FPS);
-  s.lines.forEach(([id, gap], k) => {
-    if (k > 0) t += Math.round(gap * FPS);
-    lineStartMap[id] = cursor + t;
-    t += Math.ceil(T[id].duration * FPS);
-  });
-  t += Math.round(s.post * FPS);
-  const duration = Math.ceil(t / BAR) * BAR;
-  SCENES[s.scene] = {from: cursor, duration};
-  cursor += duration;
-}
-
-export const DURATION = cursor;
-
-export const lineStart = (id: LineId) => lineStartMap[id];
-export const lineEnd = (id: LineId) => lineStartMap[id] + Math.ceil(T[id].duration * FPS);
-/** Global frame where word `i` of line `id` starts (negative i counts from the end). */
-export const wordAt = (id: LineId, i: number) => {
-  const w = T[id].words;
-  return lineStartMap[id] + Math.round(w[i < 0 ? w.length + i : i][0] * FPS);
-};
-export const wordEnd = (id: LineId, i: number) => {
-  const w = T[id].words;
-  return lineStartMap[id] + Math.round(w[i < 0 ? w.length + i : i][1] * FPS);
-};
-
-// ---------------------------------------------------------------------------- voice level
-const LEVEL = new Float32Array(DURATION + 1);
-const ACCENTS: number[] = [];
-for (const id of Object.keys(lineStartMap)) {
-  const start = lineStartMap[id];
-  T[id].env.forEach((v, k) => {
-    if (start + k <= DURATION) LEVEL[start + k] = Math.max(LEVEL[start + k], v);
-  });
-  for (const a of T[id].accents) ACCENTS.push(start + a);
-}
-ACCENTS.sort((a, b) => a - b);
-
-/** Loudness of Clawd's voice at frame g (0..1). */
-export const voiceLevel = (g: number) => (g >= 0 && g <= DURATION ? LEVEL[Math.floor(g)] : 0);
-
-/** Smoothed "is talking" amount (fast attack, slow release) for ducking and idle blending. */
-const ACTIVE = new Float32Array(DURATION + 1);
-{
-  let v = 0;
-  for (let f = 0; f <= DURATION; f++) {
-    const target = LEVEL[f] > 0.08 ? 1 : 0;
-    v += (target - v) * (target > v ? 0.5 : 0.08);
-    ACTIVE[f] = v;
-  }
-}
-export const talking = (g: number) => (g >= 0 && g <= DURATION ? ACTIVE[Math.floor(g)] : 0);
-
-/** Ducking envelope for the music (0..1): starts a few frames before the voice and holds
- *  through short pauses, so the music does not pump between words. */
-const DUCK = new Float32Array(DURATION + 1);
-{
-  const AHEAD = 4;
-  const HOLD = 18;
-  let last = -1e9;
-  let v = 0;
-  for (let f = 0; f <= DURATION; f++) {
-    if (LEVEL[Math.min(DURATION, f + AHEAD)] > 0.08) last = f;
-    const target = f - last <= HOLD ? 1 : 0;
-    v += (target - v) * (target > v ? 0.35 : 0.06);
-    DUCK[f] = v;
-  }
-}
-export const ducking = (g: number) => (g >= 0 && g <= DURATION ? DUCK[Math.floor(g)] : 0);
-
-/** Decaying pulse after each syllable accent (0..1). */
-export const voiceAccent = (g: number, decay = 4) => {
-  let lo = 0;
-  let hi = ACCENTS.length - 1;
-  let last = -1;
-  while (lo <= hi) {
-    const mid = (lo + hi) >> 1;
-    if (ACCENTS[mid] <= g) {
-      last = ACCENTS[mid];
-      lo = mid + 1;
-    } else hi = mid - 1;
-  }
-  if (last < 0) return 0;
-  const d = g - last;
-  return d > decay * 4 ? 0 : Math.exp(-d / decay);
-};
-
-/** Index of the accent at or before g (to alternate gestures between arms). */
-export const accentIndex = (g: number) => {
-  let n = 0;
-  for (const a of ACCENTS) {
-    if (a <= g) n++;
-    else break;
-  }
-  return n;
-};
-
-// ---------------------------------------------------------------------------- captions
-export type Word = {text: string; at: number; color?: string};
-export type Chunk = {from: number; to: number; words: Word[]};
-
-export const HIGHLIGHT: Record<string, string> = {
-  y: '#FFD60A',
-  o: '#FF8A3D',
-  g: '#4DFF7C',
-  r: '#FF4B3E',
-  c: '#4FE3FF',
-};
-
-const buildCaptions = (): Chunk[] => {
-  const chunks: Chunk[] = [];
-  for (const line of narration.lines) {
-    if (!line.captions) continue;
-    let wordIdx = 0;
-    const lineChunks: Chunk[] = [];
-    for (const part of line.captions.split(' / ')) {
-      const words: Word[] = [];
-      for (const raw of part.split(' ')) {
-        let tok = raw;
-        const hidden = tok.startsWith('~');
-        if (hidden) tok = tok.slice(1);
-        const span = /\{(\d+)\}/.exec(tok);
-        tok = tok.replace(/\{\d+\}/, '');
-        const col = /\^([a-z])$/.exec(tok);
-        if (col) tok = tok.slice(0, -2);
-        if (!hidden) words.push({text: tok.replace(/_/g, ' '), at: wordAt(line.id, wordIdx), color: col ? HIGHLIGHT[col[1]] : undefined});
-        wordIdx += span ? Number(span[1]) : 1;
-      }
-      if (words.length) lineChunks.push({from: words[0].at, to: 0, words});
-    }
-    lineChunks.forEach((c, k) => {
-      c.to = k + 1 < lineChunks.length ? lineChunks[k + 1].from : lineEnd(line.id) + 10;
-    });
-    chunks.push(...lineChunks);
-  }
-  // Never overlap the next line's first chunk.
-  chunks.sort((a, b) => a.from - b.from);
-  chunks.forEach((c, k) => {
-    if (k + 1 < chunks.length) c.to = Math.min(c.to, chunks[k + 1].from);
-  });
-  return chunks;
-};
-
-export const CAPTIONS: Chunk[] = buildCaptions();
-
-export const LINES = narration.lines.map((l) => ({id: l.id, scene: l.scene as SceneKey, start: lineStartMap[l.id], end: lineEnd(l.id)}));
+export const FINAL_HIT_BAR = (TL.hitFrame - SCENES.final.from) / BAR;
 
 /** Song structure for scripts/generate-audio.mjs --song (bars per scene). */
 export const songSections = () => {

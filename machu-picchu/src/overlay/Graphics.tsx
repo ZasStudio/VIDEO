@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill } from "remotion";
+import { AbsoluteFill, useVideoConfig } from "remotion";
 import { EASE_IN, pop, ramp, rand } from "../anim";
 import { FONT } from "../theme";
 
@@ -140,12 +140,14 @@ export const Rain: React.FC<{
   opacity?: number;
   count?: number;
 }> = ({ frame, opacity = 0.55, count = 140 }) => {
+  const { width, height } = useVideoConfig();
   const lines = [];
   for (let i = 0; i < count; i++) {
     const speed = 70 + rand(i) * 50;
     const len = 50 + rand(i + 3) * 70;
-    const x0 = rand(i + 7) * 2300 - 200;
-    const y = ((rand(i + 11) * 1400 + frame * speed) % 1400) - 200;
+    const x0 = rand(i + 7) * (width + 380) - 200;
+    const wrap = height + 320;
+    const y = ((rand(i + 11) * wrap + frame * speed) % wrap) - 200;
     const x = x0 - y * 0.25;
     lines.push(
       <line
@@ -162,7 +164,7 @@ export const Rain: React.FC<{
   }
   return (
     <AbsoluteFill style={{ opacity, pointerEvents: "none" }}>
-      <svg width={1920} height={1080}>
+      <svg width={width} height={height}>
         {lines}
       </svg>
     </AbsoluteFill>
@@ -175,6 +177,7 @@ export const Lightning: React.FC<{
   x: number;
   seed?: number;
 }> = ({ frame, at, x, seed = 1 }) => {
+  const { width, height } = useVideoConfig();
   const d = frame - at;
   if (d < 0 || d > 7) return null;
   const pts: [number, number][] = [[x, -20]];
@@ -187,7 +190,7 @@ export const Lightning: React.FC<{
   const op = d < 2 ? 1 : d < 4 ? 0.3 : d < 5 ? 0.9 : 1 - (d - 5) / 2;
   return (
     <AbsoluteFill style={{ pointerEvents: "none", opacity: op }}>
-      <svg width={1920} height={1080}>
+      <svg width={width} height={height}>
         <path
           d={path}
           stroke="rgba(170,200,255,0.6)"
@@ -223,6 +226,7 @@ export const Confetti: React.FC<{
   at: number;
   count?: number;
 }> = ({ frame, at, count = 120 }) => {
+  const { width, height } = useVideoConfig();
   const d = frame - at;
   if (d < 0) return null;
   const pieces = [];
@@ -232,10 +236,10 @@ export const Confetti: React.FC<{
     const vy = -(26 + rand(i + 1) * 28);
     const g = 1.25;
     const t = d;
-    const x0 = side < 0 ? -40 : 1960;
+    const x0 = side < 0 ? -40 : width + 40;
     const x = x0 + vx * t * (1 - Math.min(0.5, t * 0.012));
-    const y = 900 + vy * t + 0.5 * g * t * t;
-    if (y > 1200) continue;
+    const y = height * 0.833 + vy * t + 0.5 * g * t * t;
+    if (y > height + 120) continue;
     const rot = t * (8 + rand(i + 2) * 14) * (rand(i + 9) > 0.5 ? 1 : -1);
     const w = 14 + rand(i + 4) * 14;
     pieces.push(
@@ -268,6 +272,7 @@ export const Burst: React.FC<{
   color?: string;
   size?: number;
 }> = ({ frame, at, x, y, color = "#FFD60A", size = 420 }) => {
+  const { width, height } = useVideoConfig();
   const d = frame - at;
   if (d < 0 || d > 14) return null;
   const t = d / 14;
@@ -292,7 +297,7 @@ export const Burst: React.FC<{
   }
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>
-      <svg width={1920} height={1080}>
+      <svg width={width} height={height}>
         {rays}
         <circle
           cx={x}
