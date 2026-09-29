@@ -11,11 +11,11 @@ import { V3, eulerY, noise3, toy } from "../inca/kit";
 // Units follow the oxygen props: WORLD units sized for Nubi at size 2 (Nubi is then 2 wide and
 // 1.98 tall), ground at y = 0, and every creature faces +z. `size` is a plain scale factor: at
 // size 1 each dinosaur has its canonical size next to a Nubi of size 2:
-//   TRex      6.9 tall (top of the eye bumps) ≈ 3.5x Nubi; ≈ 9 long (snout to tail), 3.5 wide.
-//   Raptor    2.0 tall (crest tip)            ≈ 1x Nubi (turkey-sized); ≈ 3.2 long.
-//   Brachio   15.8 tall (top of the head)     ≈ 8x Nubi; ≈ 21 long.
-//   Trike     2.4 tall (top of the frill)     ≈ 1.2x Nubi; ≈ 3.3 long.
-//   BabyDino  1.39 tall (top of the head)     ≈ 0.7x Nubi.
+//   TRex      6.9 tall (top of the eye bumps) ≈ 3.5x Nubi; ≈ 9.3 long (snout to tail), 3.6 wide.
+//   Raptor    2.0 tall (top of the head)      ≈ 1x Nubi (turkey-sized); crest tip ≈ 2.3, ≈ 3.7 long.
+//   Brachio   15.8 tall (top of the head)     ≈ 8x Nubi; ≈ 19 long, back ≈ 9.
+//   Trike     2.4 tall (top of the frill)     ≈ 1.2x Nubi; ≈ 4 long (beak to tail).
+//   BabyDino  1.39 tall (top of the head)     ≈ 0.7x Nubi; ≈ 1.3 long.
 // Next to a Nubi of another size s, multiply `size` by s / 2.
 //
 // Animation only comes from props (`pose`); geometries and materials are cached and shared.
@@ -163,9 +163,8 @@ const fluff = (amp: number, freq: number, seed: number) =>
     const v = new THREE.Vector3();
     for (let i = 0; i < p.count; i++) {
       v.fromBufferAttribute(p, i).normalize();
-      const f = freq;
-      const n1 = noise3(v.x * f + seed, v.y * f, v.z * f);
-      const n2 = noise3(v.x * f * 2.3, v.y * f * 2.3 + seed, v.z * f * 2.3);
+      const n1 = noise3(v.x * freq + seed, v.y * freq, v.z * freq);
+      const n2 = noise3(v.x * freq * 2.3, v.y * freq * 2.3 + seed, v.z * freq * 2.3);
       // Ridged: soft round tufts separated by creases.
       const k = 0.6 * (1 - 2 * Math.abs(n1)) + 0.4 * n2;
       v.multiplyScalar(1 + amp * k);
@@ -460,21 +459,28 @@ const REX_NOSTRILS: V3[] = [
 export const TREX_BITE: V3 = [0, 0.05, 2.2];
 
 /**
- * First-person camera for <TRexHead> (head space, size 1; multiply by `size` and add the head's
- * position): just above and behind the eye bumps, looking out over the snout, which fills the
- * bottom of the frame with the nostrils in view. Use a near plane ≤ 0.1.
+ * First-person camera for <TRexHead>, in head space at size 1 (trexHeadCamera turns it into
+ * world space): just above and behind the eye bumps, looking out over the snout, which runs up
+ * the bottom of the frame between the two eye bumps with the nostrils in view. Nothing is
+ * closer than ≈ 0.7, so the scenes' default near plane (0.5) is fine.
  */
 export const TREX_HEAD_FP = { position: [0, 1.8, -0.2] as V3, target: [0, 1.0, 6.0] as V3, fov: 60 };
 
 /**
  * World camera ({position, target, fov}) for the first-person shot, given how the <TRexHead> is
- * placed (same position / rotation / size props). Pitch the head down (rotation x > 0) to look
+ * placed (same position / rotation / yaw / pitch / size props: pass the same object to both). Pitch the head down (pitch > 0) to look
  * down at something on the ground: the snout then points at it from the bottom of the frame.
+ * Feed the result to CameraRig; move the head and the camera follows.
  */
-export const trexHeadCamera = (head: { position?: V3; rotation?: V3; size?: number }, fp = TREX_HEAD_FP) => {
+export const trexHeadCamera = (
+  head: { position?: V3; rotation?: V3; yaw?: number; pitch?: number; size?: number },
+  fp = TREX_HEAD_FP,
+) => {
+  const [rp, ry, rr] = head.rotation ?? [0, 0, 0];
   const mtx = new THREE.Matrix4().compose(
     new THREE.Vector3(...(head.position ?? [0, 0, 0])),
-    new THREE.Quaternion().setFromEuler(new THREE.Euler(...(head.rotation ?? [0, 0, 0]))),
+    // Same order as <TRexHead>: turn (yaw) first, then nod (pitch) about the head's own x axis.
+    new THREE.Quaternion().setFromEuler(new THREE.Euler(rp + (head.pitch ?? 0), ry + (head.yaw ?? 0), rr, "YXZ")),
     new THREE.Vector3().setScalar(head.size ?? 1),
   );
   const p = new THREE.Vector3(...fp.position).applyMatrix4(mtx);
@@ -539,13 +545,12 @@ const RexHeadModel: React.FC<{
         ))}
       </group>
       {children ? <group position={TREX_BITE}>{children}</group> : null}
-      {snort > 0
-        ? REX_NOSTRILS.map((p, i) => (
-            <group key={`b${i}`} position={[p[0], p[1] + 0.02, p[2] + 0.06]} rotation={[0.22, (i ? 1 : -1) * 0.38, 0]}>
-              <Breath progress={snort} seed={i * 3.1} />
-            </group>
-          ))
-        : null}
+      {/* Always mounted (Breath draws nothing at 0), so snorts reuse their materials. */}
+      {REX_NOSTRILS.map((p, i) => (
+        <group key={`b${i}`} position={[p[0], p[1] + 0.02, p[2] + 0.06]} rotation={[0.22, (i ? 1 : -1) * 0.38, 0]}>
+          <Breath progress={snort} seed={i * 3.1} />
+        </group>
+      ))}
     </group>
   );
 };
@@ -775,23 +780,33 @@ export const TRexHead: React.FC<{
   jaw?: number;
   blink?: number;
   snort?: number;
+  /** Turn (radians, > 0 towards +x) and nod (radians, > 0 snout down), applied yaw first. */
+  yaw?: number;
+  pitch?: number;
+  /**
+   * Alternative to yaw / pitch: [pitch, yaw, roll] applied in "YXZ" order (turn first, then
+   * nod about the head's own x axis, then roll), added to them. E.g. [0.6, Math.PI, 0] faces
+   * -z and looks down.
+   */
+  rotation?: V3;
   neck?: boolean;
   position?: V3;
-  rotation?: V3;
   children?: React.ReactNode;
-}> = ({ size = 1, jaw = 0, blink = 0, snort = 0, neck = true, position = [0, 0, 0], rotation = [0, 0, 0], children }) => {
+}> = ({ size = 1, jaw = 0, blink = 0, snort = 0, yaw = 0, pitch = 0, rotation = [0, 0, 0], neck = true, position = [0, 0, 0], children }) => {
   const m = rexMats();
   return (
-    <group position={position} rotation={rotation} scale={size}>
-      {neck ? (
-        <group rotation={[PI + REX_NECK_TILT, 0, 0]}>
-          <mesh geometry={taper(0.78, 0.92, 1.5)} material={m.skin} />
-          <mesh geometry={taper(0.66, 0.78, 1.5)} material={m.belly} position={[0, 0, -0.2]} />
-        </group>
-      ) : null}
-      <RexHeadModel jaw={jaw} blink={blink} roar={0} snort={snort}>
-        {children}
-      </RexHeadModel>
+    <group position={position} rotation={[0, rotation[1] + yaw, 0]}>
+      <group rotation={[rotation[0] + pitch, 0, rotation[2]]} scale={size}>
+        {neck ? (
+          <group rotation={[PI + REX_NECK_TILT, 0, 0]}>
+            <mesh geometry={taper(0.78, 0.92, 1.5)} material={m.skin} />
+            <mesh geometry={taper(0.66, 0.78, 1.5)} material={m.belly} position={[0, 0, -0.2]} />
+          </group>
+        ) : null}
+        <RexHeadModel jaw={jaw} blink={blink} roar={0} snort={snort}>
+          {children}
+        </RexHeadModel>
+      </group>
     </group>
   );
 };
@@ -803,7 +818,7 @@ export type RaptorPose = {
   /** Run cycle amplitude 0..1 and phase (radians). */
   run?: number;
   runPhase?: number;
-  /** Mouth: 0 = closed (one cheeky fang shows), 1 = wide open. */
+  /** Mouth: 0 = closed (two little fangs peek out), 1 = wide open. */
   jaw?: number;
   /** Head turn (radians): > 0 towards +x. */
   headYaw?: number;
@@ -864,10 +879,10 @@ const basisEuler = (y: THREE.Vector3, z: THREE.Vector3): V3 => {
 
 const RAP_LEG = { x: 0.26, z: 0.02, lens: [0.38, 0.42, 0.3], a1: PI - 0.55, knee: 1.1, ankle: -0.85, toeR: 0.045 };
 const RAP_HIP_REST = RAP_LEG.toeR - fk(RAP_LEG.lens, [RAP_LEG.a1, RAP_LEG.a1 + RAP_LEG.knee, RAP_LEG.a1 + RAP_LEG.knee + RAP_LEG.ankle]).y;
-const RAP_NECK_BASE: V3 = [0, 1.3, 0.52];
+const RAP_NECK_BASE: V3 = [0, 1.26, 0.52];
 const RAP_NECK = [
-  { r0: 0.2, r1: 0.17, len: 0.3 },
-  { r0: 0.17, r1: 0.15, len: 0.26 },
+  { r0: 0.2, r1: 0.17, len: 0.27 },
+  { r0: 0.17, r1: 0.15, len: 0.22 },
 ];
 const RAP_NECK_ROT = [0.3, -0.35];
 const RAP_BODY = { p: [0, 1.12, 0.12] as V3, r: [0.44, 0.44, 0.7] as V3, tilt: -0.15 };
@@ -880,12 +895,13 @@ const rapSnoutHalf = (z: number) =>
 const rapJawHalf = (z: number) => (RAP_JAW.w / 2) * (1 - RAP_JAW.k * clamp01((z - RAP_JAW.p[2]) / RAP_JAW.d + 0.5));
 
 /**
- * Raptor mouth attachment: `children` of <Raptor> render in its head space at `position`, the
- * bite point between the front teeth, so they follow snatch / yaw / pitch. +z runs along the
- * snout, +y up; raptor units (world units at size 1, scaled with `size`). A flat box held by
- * its near edge: <group position={[0, 0, depth / 2 - 0.04]}> (the snout tip then overlaps the
- * box edge; thickness up to ≈ 0.12) with jaw ≈ 0.25 so the teeth grip it. `rest` is the bite
- * point in Raptor space in the rest pose (at size 1).
+ * Raptor mouth attachment. <Raptor> already renders its `children` AT the bite point: their
+ * origin is `position` (head space: between the front teeth), +z runs along the snout, +y up,
+ * raptor units (world units at size 1, scaled with `size`), and they follow snatch / yaw /
+ * pitch. So do not add `position` again inside the children. A flat box held by its near edge:
+ * <Raptor pose={{ jaw: 0.25 }}><group position={[0, 0, depth / 2 - 0.05]}><Box /></group></Raptor>
+ * (thickness up to ≈ 0.12; jaw ≈ 0.25 so the teeth grip it). `rest` is the bite point in Raptor
+ * space in the rest pose (at size 1), for placing a box that is about to be snatched.
  */
 export const RAPTOR_MOUTH: { position: V3; rest: V3 } = { position: [0, -0.085, 0.62], rest: [0, 0, 0] };
 
@@ -983,8 +999,9 @@ const Feather: React.FC<{
  * cape of dark shingled feathers, cream chest and throat, an orange collar ruff, a rainbow
  * crest, feathered arms folded like little wings (teal-tipped), a stiff banded tail ending in a
  * fan of teal-tipped feathers, yellow scaly legs with the raised sickle claw, and sly half-lidded
- * eyes over a grin with two little fangs. ≈ 2.0 tall (crest) at size 1 = Nubi's height at size
- * 2; ≈ 3.2 long. `children` render in its jaws: see RAPTOR_MOUTH.
+ * eyes over a grin with two little fangs. At size 1 the top of its head is ≈ 2.0 (Nubi's height
+ * at size 2: turkey-sized next to him), the crest tip ≈ 2.3; ≈ 3.7 long from snout to tail fan.
+ * `children` render in its jaws: see RAPTOR_MOUTH.
  */
 export const Raptor: React.FC<{
   size?: number;
@@ -1063,8 +1080,8 @@ export const Raptor: React.FC<{
       ))}
       {/* Rainbow crest swept back over the head. */}
       {m.crest.map((mat, i) => (
-        <group key={`c${i}`} position={[0, 0.25 - i * 0.012, 0.1 - i * 0.055]} rotation={[-0.15 - i * 0.27, 0, (i % 2 ? 1 : -1) * 0.12]}>
-          <Feather len={0.44 - Math.abs(i - 1.5) * 0.04} w={0.1} m={mat} bend={-0.55} thin={0.45} />
+        <group key={`c${i}`} position={[0, 0.25 - i * 0.012, 0.1 - i * 0.055]} rotation={[-0.3 - i * 0.26, 0, (i % 2 ? 1 : -1) * 0.12]}>
+          <Feather len={0.38 - Math.abs(i - 1.5) * 0.035} w={0.1} m={mat} bend={-0.55} thin={0.45} />
         </group>
       ))}
       <group position={RAP_JAW.hinge} rotation={[jawAngle, 0, 0]}>
@@ -1266,9 +1283,10 @@ const BRA_SPOTS: V3[] = [
 
 /**
  * Gentle giant brachiosaurus: periwinkle blue with lilac spots and a pale belly, a long
- * swan-curved neck, a big cute head with the nasal dome, sleepy-happy eyes, pink cheeks and a
- * smile, pillar legs with cream toenails. At size 1 the top of its head is ≈ 15.8 (8x Nubi at
- * size 2), its back ≈ 9 and it is ≈ 21 long: for city streets and prehistoric backdrops.
+ * swan-curved neck, a big cute head with the nasal dome, big eyes, pink cheeks and a smile,
+ * pillar legs with cream toenails. At size 1 the top of its head is ≈ 15.8 (8x Nubi at size 2),
+ * its back ≈ 9, it is ≈ 19 long (the head ≈ 4.8 in front of its origin, the tail tip ≈ 12.3
+ * behind) and ≈ 5 wide: for city streets and prehistoric backdrops.
  */
 export const Brachio: React.FC<{
   size?: number;
@@ -1436,7 +1454,7 @@ const TRI_LEGS = [
 /**
  * Cute triceratops: turquoise with a pale belly, a big orange frill with a scalloped yellow rim
  * and yellow spots, three cream horns, a little beak and pink cheeks, four stumpy legs. At
- * size 1 it is ≈ 2.4 tall to the top of the frill (1.2x Nubi at size 2) and ≈ 3.3 long.
+ * size 1 it is ≈ 2.4 tall to the top of the frill (1.2x Nubi at size 2) and ≈ 4 long.
  */
 export const Trike: React.FC<{
   size?: number;

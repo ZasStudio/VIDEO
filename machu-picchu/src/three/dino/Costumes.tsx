@@ -4,7 +4,7 @@ import { mulberry } from "../noise";
 import { V3, canvasTexture, gold, goldDark, toy, useFontsReady, useRounded } from "../inca/kit";
 import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { NUBI_BODY } from "../inca/Costumes";
-import { drawPizzaSlice } from "./Props";
+import { Bone, drawPizzaSlice } from "./Props";
 
 // Costumes for the dinosaur short ("¿Y si los dinosaurios nunca se hubieran extinguido?").
 // Every piece is in Nubi's model space (body 10 wide, y 2.5..9.9, front face z = +4.4) and is a
@@ -626,28 +626,6 @@ const TUNIC_BAND: BandSpec = {
   bulge: 0.07,
   rows: 8,
   hem: { period: 0.95, depth: 0.5 },
-};
-
-/** A cartoon bone along x, `len` long between the knob centres. */
-export const Bone: React.FC<{ len?: number; radius?: number; color?: string }> = ({ len = 3.9, radius = 0.26, color = "#F6ECD4" }) => {
-  const geos = useMemo(
-    () => ({
-      shaft: new THREE.CylinderGeometry(1, 1, 1, 14),
-      knob: new THREE.SphereGeometry(1, 18, 12),
-    }),
-    [],
-  );
-  const mat = toy(color, { rough: 0.55, glow: 0.2 });
-  return (
-    <group>
-      <mesh geometry={geos.shaft} material={mat} rotation={[0, 0, Math.PI / 2]} scale={[radius, len, radius]} castShadow />
-      {[-1, 1].flatMap((s) =>
-        [-1, 1].map((k) => (
-          <mesh key={`${s}${k}`} geometry={geos.knob} material={mat} position={[(s * len) / 2, k * radius * 1.05, 0]} scale={radius * 1.62} />
-        )),
-      )}
-    </group>
-  );
 };
 
 /** One-shoulder strap over the screen-right top edge: [position, rotation, size, texture size]. */

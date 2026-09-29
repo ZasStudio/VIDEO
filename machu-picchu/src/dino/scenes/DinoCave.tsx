@@ -5,7 +5,7 @@ import { ExistenceMeter } from "../../overlay/dino/DinoUI";
 import { Shake, Stage } from "../../scenes/common";
 import { Vec3, lerp3 } from "../../three/CameraRig";
 import { Brachio, TRex, Trike } from "../../three/dino/Dinos";
-import { Club } from "../../three/dino/Props";
+import { CLUB_HOLD_R, Club } from "../../three/dino/Props";
 import { PrehistoricValley } from "../../three/dino/Sets";
 import { Nubi } from "../../three/Nubi";
 import { CAVE } from "../beats";
@@ -65,7 +65,11 @@ export const DinoCave: React.FC = () => {
               <TRex size={0.8} position={[3.6, 0, -3.5]} rotationY={-0.6} pose={{ jaw: 0.2, headYaw: -0.4, tail: Math.sin(g * 0.06) * 0.4, blink: g % 90 < 3 ? 1 : 0 }} />
               <Trike size={1.1} position={[-2.6, 0, 0.8]} rotationY={0.7} pose={{ headYaw: 0.3, blink: g % 77 < 3 ? 1 : 0 }} />
               <group position={[NUBI_AT[0] + jitter, 0, NUBI_AT[2]]} rotation={[0, -0.1, 0]} scale={[scale * (1 + glitch * 0.2 * Math.sin(g)), scale, scale]}>
-                <Nubi size={1.5} pose={pose} shadowOpacity={0.4} holdR={<Club />}>
+                <Nubi size={1.5} pose={pose} shadowOpacity={0.4} holdR={
+                  <group {...CLUB_HOLD_R}>
+                    <Club />
+                  </group>
+                }>
                   <Outfit kind="caveman" />
                 </Nubi>
               </group>

@@ -5,8 +5,8 @@ import { FactCard, SpeechBubble } from "../../overlay/dino/DinoUI";
 import { Shake, Stage } from "../../scenes/common";
 import { Vec3 } from "../../three/CameraRig";
 import { Twinkles } from "../../three/Effects3D";
-import { BabyDino, RAPTOR_MOUTH, Raptor } from "../../three/dino/Dinos";
-import { PizzaBox, PottedPlant } from "../../three/dino/Props";
+import { BabyDino, Raptor } from "../../three/dino/Dinos";
+import { PIZZA_BOX, PizzaBox, PottedPlant } from "../../three/dino/Props";
 import { CityStreet } from "../../three/dino/Sets";
 import { Nubi } from "../../three/Nubi";
 import { Poof, SweatDrops } from "../../inca/effects";
@@ -48,7 +48,7 @@ export const DinoPizza: React.FC = () => {
     0,
     eye[2] - 2.6 - away * 9,
   ];
-  const boxHeld: Vec3 = [eye[0], 1.05 + bob * 0.5, eye[2] - 1.05];
+  const boxHeld: Vec3 = [eye[0], eye[1] - 0.62 + bob * 0.3, eye[2] - 1.6];
 
   // ---- Third person ----
   const munch = windowIn(g, DATO - 6, MASCOTAS - 2, 6);
@@ -84,7 +84,7 @@ export const DinoPizza: React.FC = () => {
             <directionalLight position={[-6, 12, 8]} intensity={2.4} color="#FFF6E8" />
             <CityStreet t={t} />
             {g < SNATCH ? (
-              <group position={boxHeld} rotation={[0.15, 0, 0]}>
+              <group position={boxHeld} rotation={[0.25, 0, 0]} scale={0.6}>
                 <PizzaBox open={0} />
               </group>
             ) : null}
@@ -94,11 +94,10 @@ export const DinoPizza: React.FC = () => {
               rotationY={g < SNATCH + 2 ? -Math.PI / 2 - 0.3 : Math.PI}
               pose={{ run: 1, runPhase: g * 0.9, snatch: grab * (1 - away), jaw: g < SNATCH ? 0.6 : 0.25 }}
             >
+              {/* Children already sit at the bite point: just push the box out by half its depth. */}
               {g >= SNATCH ? (
-                <group position={RAPTOR_MOUTH.position}>
-                  <group position={[0, 0, 0.3]}>
-                    <PizzaBox open={0} />
-                  </group>
+                <group position={[0, 0, PIZZA_BOX.d / 2 - 0.05]}>
+                  <PizzaBox open={0} />
                 </group>
               ) : null}
             </Raptor>

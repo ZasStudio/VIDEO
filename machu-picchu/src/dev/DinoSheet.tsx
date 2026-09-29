@@ -18,11 +18,14 @@ import {
 
 // Review sheet for the dinosaurs (1920 x 1080). Nubi is always at size 2 for scale.
 //   Frame 0: lineup with height guides, the T-Rex roaring at Nubi, the brachiosaurus for scale.
-//   Frame 1: T-Rex details (grin, open jaw, walk / lean / arms), raptor poses (rest, crouch,
-//            run, snatch with a box in its jaws), triceratops and baby.
-//   Frame 2: first-person framing through TRexHead (vertical), brachio neck poses, profiles.
+//   Frame 1: T-Rex details (grin, open jaw + snort, walk / lean / neck / arms / blink), raptor
+//            poses (rest, crouch, run, snatch with a box in its jaws), triceratops and baby.
+//   Frame 2: first-person framing through TRexHead (vertical, trexHeadCamera), the head seen
+//            from outside with the camera spot, brachio neck poses, raptor mouth, profiles.
+//   Frame 3: close-ups (T-Rex mouth, raptor face / wing, baby and trike faces, brachio head).
+//   Frame 4: walk / run cycles at four phases (feet stay on the ground).
 
-export const DINO_SHEET_FRAMES = 4;
+export const DINO_SHEET_FRAMES = 5;
 
 type Cam = { position: Vec3; target: Vec3; fov: number };
 
@@ -227,13 +230,13 @@ const Details: React.FC = () => (
       w={640}
       h={540}
       background={SKY}
-      title="TREX: walk 1, lean 0.6, neck 0.6, arms -1"
+      title="TREX: walk 1, lean 0.6, neck 0.6, arms -1, blink 1"
       cam={{ position: [9, 4.0, 13], target: [0, 3.1, 0], fov: 34 }}
     >
       <Lights />
       <Ground />
-      <TRex rotationY={0.9} pose={{ walk: 1, walkPhase: 1.3, lean: 0.6, neck: 0.6, armsWave: -1, tail: 0.7 }} />
-      <Nubi size={2} position={[3.4, 0, 4.2]} rotationY={-0.8} pose={{ eyeScale: 1.3, finR: 0.6 }} />
+      <TRex rotationY={0.9} pose={{ walk: 1, walkPhase: 1.3, lean: 0.6, neck: 0.6, armsWave: -1, tail: 0.7, blink: 1 }} />
+      <Nubi size={2} position={[5.2, 0, 1.8]} rotationY={-0.9} pose={{ eyeScale: 1.3, finR: 0.6 }} />
     </Panel>
     <Panel
       x={0}
@@ -268,6 +271,7 @@ const Details: React.FC = () => (
       ]}
     >
       <Lights />
+      <Nubi size={2} position={[0.2, 0, -2.6]} rotationY={0.3} pose={{ eyeScale: 1.3, lookX: -0.4 }} />
       <Raptor position={[-1.4, 0, 0]} rotationY={Math.PI / 2} pose={{ run: 1, runPhase: 0.6 }} />
       <Raptor position={[1.2, 0, -0.4]} rotationY={-0.8} pose={{ snatch: 1, jaw: 0.25 }}>
         {heldBox}
@@ -279,31 +283,33 @@ const Details: React.FC = () => (
       w={640}
       h={540}
       background={SKY}
-      title="TRIKE / BABYDINO"
-      cam={{ position: [0.5, 2.2, 9.2], target: [0.3, 1.1, 0], fov: 32 }}
+      title="TRIKE / BABYDINO + Nubi 2"
+      cam={{ position: [0.5, 2.4, 10.4], target: [0.3, 1.1, 0], fov: 32 }}
       labels={[
-        { text: "Trike", x: 130, y: 470 },
-        { text: "Trike walk 1", x: 300, y: 470 },
-        { text: "Baby hop / jaw 1", x: 505, y: 470 },
+        { text: "Trike", x: 120, y: 470 },
+        { text: "Trike walk 1", x: 290, y: 470 },
+        { text: "Baby hop / jaw 1 / blink", x: 500, y: 470 },
       ]}
     >
       <Lights />
       <Ground />
-      <Trike position={[-2.2, 0, 0]} rotationY={0.5} />
+      <Trike position={[-2.4, 0, 0]} rotationY={0.5} />
       <Trike position={[0.2, 0, -0.8]} rotationY={-Math.PI / 2 + 0.3} pose={{ walk: 1, walkPhase: 1.0, headYaw: 0.3 }} />
-      <BabyDino position={[2.1, 0, 0.6]} rotationY={-0.35} pose={{ hop: 0.25, tail: 0.7, headTilt: -0.25 }} />
-      <BabyDino position={[3.1, 0, 0.9]} rotationY={-0.6} pose={{ jaw: 1, blink: 0, tail: -0.5 }} />
+      <Nubi size={2} position={[2.4, 0, -1.4]} rotationY={-0.4} pose={{ lookX: -0.5, finL: 0.4 }} />
+      <BabyDino position={[1.7, 0, 1.0]} rotationY={-0.35} pose={{ hop: 0.25, tail: 0.7, headTilt: -0.25 }} />
+      <BabyDino position={[2.7, 0, 1.3]} rotationY={-0.6} pose={{ jaw: 1, tail: -0.5 }} />
+      <BabyDino position={[3.6, 0, 1.0]} rotationY={-0.8} pose={{ blink: 1, headTilt: 0.3 }} />
     </Panel>
   </>
 );
 
 // First-person framing: the T-Rex looks down at Nubi; the camera is its eyes.
-const FP_HEAD = { position: [0, 5.5, 0] as Vec3, rotation: [0.45, 0, 0] as Vec3, size: 1 };
+const FP_HEAD = { position: [0, 5.5, 0] as Vec3, pitch: 0.45, size: 1 };
 const FP_CAM = trexHeadCamera(FP_HEAD);
 
 const FirstPerson: React.FC = () => (
   <>
-    <Panel x={0} y={0} w={608} h={1080} background={SKY} title="PRIMERA PERSONA (TRexHead)" cam={FP_CAM} near={0.05}>
+    <Panel x={0} y={0} w={608} h={1080} background={SKY} title="PRIMERA PERSONA (TRexHead)" cam={FP_CAM} near={0.5}>
       <Lights />
       <Ground />
       <TRexHead {...FP_HEAD} snort={0.22} />
@@ -417,11 +423,55 @@ const CloseUps: React.FC = () => (
   </>
 );
 
+const PHASES = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
+const phaseLabels = (w: number, xs: number[], cam: Cam, y: number) =>
+  xs.map((x, i) => ({ text: `fase ${["0", "π/2", "π", "3π/2"][i]}${" ".repeat(i)}`, x: projectToScreen(cam, [x, 0, 0], w - 16, 524).x, y }));
+const CYC_REX: Cam = { position: [-1.5, 2.2, 31], target: [-1.5, 2.6, 0], fov: 30 };
+const CYC_RAP: Cam = { position: [-0.4, 0.8, 11.5], target: [-0.4, 0.95, 0], fov: 30 };
+const CYC_TRI: Cam = { position: [0, 1.0, 13.5], target: [0, 1.0, 0], fov: 30 };
+const CYC_BRA: Cam = { position: [0, 8, 95], target: [0, 8, 0], fov: 30 };
+
+const Cycles: React.FC = () => (
+  <>
+    <Panel x={0} y={0} w={960} h={540} background={SKY} title="TREX walk 1 (perfil)" cam={CYC_REX} labels={phaseLabels(960, [-10.5, -3.5, 3.5, 10.5], CYC_REX, 470)}>
+      <Lights />
+      <Ground radius={200} />
+      {PHASES.map((ph, i) => (
+        <TRex key={i} position={[-10.5 + i * 7, 0, 0]} rotationY={Math.PI / 2} pose={{ walk: 1, walkPhase: ph, armsWave: Math.sin(ph * 2) }} />
+      ))}
+    </Panel>
+    <Panel x={960} y={0} w={960} h={540} background={SKY} title="RAPTOR run 1 (perfil)" cam={CYC_RAP} labels={phaseLabels(960, [-4.2, -1.4, 1.4, 4.2], CYC_RAP, 470)}>
+      <Lights />
+      <Ground radius={200} />
+      {PHASES.map((ph, i) => (
+        <Raptor key={i} position={[-4.2 + i * 2.8, 0, 0]} rotationY={Math.PI / 2} pose={{ run: 1, runPhase: ph }} />
+      ))}
+    </Panel>
+    <Panel x={0} y={540} w={960} h={540} background={SKY} title="TRIKE walk 1 / BABY hop" cam={CYC_TRI} labels={phaseLabels(960, [-5.1, -1.7, 1.7, 5.1], CYC_TRI, 470)}>
+      <Lights />
+      <Ground radius={200} />
+      {PHASES.map((ph, i) => (
+        <group key={i}>
+          <Trike position={[-5.1 + i * 3.4, 0, 0]} rotationY={Math.PI / 2} pose={{ walk: 1, walkPhase: ph }} />
+          <BabyDino position={[-5.1 + i * 3.4, 0, 1.6]} rotationY={Math.PI / 2 - 0.4} pose={{ hop: 0.3 * Math.max(0, Math.sin(ph)), squash: 1 - 0.12 * Math.max(0, -Math.sin(ph)), tail: Math.sin(ph * 2) }} />
+        </group>
+      ))}
+    </Panel>
+    <Panel x={960} y={540} w={960} h={540} background={DUSK} title="BRACHIO walk 1 (perfil)" cam={CYC_BRA} labels={phaseLabels(960, [-24, -8, 8, 24], CYC_BRA, 470)}>
+      <Lights sky="#F4F0FF" />
+      <Ground color="#86C07A" radius={300} />
+      {PHASES.map((ph, i) => (
+        <Brachio key={i} position={[-24 + i * 16, 0, 0]} rotationY={Math.PI / 2} pose={{ walk: 1, walkPhase: ph }} />
+      ))}
+    </Panel>
+  </>
+);
+
 export const DinoSheet: React.FC = () => {
   const frame = useCurrentFrame();
   return (
     <AbsoluteFill style={{ background: "linear-gradient(135deg, #123A2A 0%, #1E6E4E 50%, #7A8C2E 100%)" }}>
-      {frame === 0 ? <Lineup /> : frame === 1 ? <Details /> : frame === 2 ? <FirstPerson /> : <CloseUps />}
+      {frame === 0 ? <Lineup /> : frame === 1 ? <Details /> : frame === 2 ? <FirstPerson /> : frame === 3 ? <CloseUps /> : <Cycles />}
     </AbsoluteFill>
   );
 };
