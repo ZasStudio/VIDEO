@@ -1,0 +1,22 @@
+{
+  "_title": "¿Y si los dinosaurios nunca se hubieran extinguido?",
+  "_voices": "Magnific TTS, ElevenLabs v3. nubi = 'Nerea Escudero' (stability 0.45, speed 0.95); mama = 'Norah Salgado' (Nubi's mum, off screen).",
+  "_captions": "Same syntax as src/narration.json. Mum's line is in pink-ish orange (^o).",
+  "lines": [
+    {"id": "L01", "voice": "nubi", "scene": "intro", "tts": "[curious] Hace sesenta y seis millones de años, un asteroide cambió todo… [mischievous] ¿y si hubiera fallado?", "captions": "HACE 66{3}^y MILLONES^y DE AÑOS, / UN ASTEROIDE^r / CAMBIÓ TODO… / ¿Y SI HUBIERA FALLADO?^c"},
+    {"id": "L02", "voice": "nubi", "scene": "pasa", "tts": "[excited] ¡Los dinosaurios seguirían vivos!", "captions": "¡LOS DINOSAURIOS^g / SEGUIRÍAN VIVOS!^g"},
+    {"id": "L03", "voice": "nubi", "scene": "pasa", "tts": "[nervous] Espera… eso no estaba en el plan.", "captions": "ESPERA… / ESO NO ESTABA / EN EL PLAN.^r"},
+    {"id": "L04", "voice": "nubi", "scene": "ciudad", "tts": "Las ciudades tendrían muros gigantes y parques con seguridad extrema…", "captions": "LAS CIUDADES TENDRÍAN / MUROS GIGANTES^y / Y PARQUES CON / SEGURIDAD EXTREMA…^r"},
+    {"id": "L05", "voice": "nubi", "scene": "ciudad", "tts": "[laughs] …y señales de «No alimentar al T-Rex».", "captions": "…Y SEÑALES DE / «NO ALIMENTAR / AL T-REX».^g"},
+    {"id": "L06", "voice": "nubi", "scene": "pizza", "tts": "Pedir pizza sería un deporte extremo.", "captions": "PEDIR PIZZA^o SERÍA / UN DEPORTE EXTREMO.^r"},
+    {"id": "L07", "voice": "nubi", "scene": "pizza", "tts": "[whispers] Dato: los velociraptores eran del tamaño de un pavo… ¡y con plumas!", "captions": "DATO:^c LOS VELOCIRAPTORES / ERAN DEL TAMAÑO / DE UN PAVO…^y / ¡Y CON PLUMAS!^y"},
+    {"id": "L08", "voice": "nubi", "scene": "pizza", "tts": "¿Y las mascotas? [pleading] «Mamá, ¿puedo tener un dinosaurio?»", "captions": "¿Y LAS MASCOTAS? / «MAMÁ, ¿PUEDO TENER / UN DINOSAURIO?»^g"},
+    {"id": "L09", "voice": "mama", "scene": "pizza", "tts": "[annoyed] ¡Ni siquiera puedes cuidar una planta!", "captions": "¡NI SIQUIERA^o PUEDES^o / CUIDAR^o UNA^o PLANTA!^o"},
+    {"id": "L10", "voice": "nubi", "scene": "cavernicola", "tts": "Los mamíferos, como nosotros, casi no habríamos podido evolucionar.", "captions": "LOS MAMÍFEROS,^y / COMO NOSOTROS, / CASI NO HABRÍAMOS / PODIDO EVOLUCIONAR.^c"},
+    {"id": "L11", "voice": "nubi", "scene": "cavernicola", "tts": "[dramatic] O sea… puede que los humanos ni siquiera existiéramos.", "captions": "O SEA… / PUEDE QUE LOS HUMANOS^y / NI SIQUIERA / EXISTIÉRAMOS.^r"},
+    {"id": "L12", "voice": "nubi", "scene": "rey", "tts": "[proud] En este mundo, los dinosaurios mandarían…", "captions": "EN ESTE MUNDO, / LOS DINOSAURIOS^g / MANDARÍAN…^y"},
+    {"id": "L13", "voice": "nubi", "scene": "rey", "tts": "[nervous] …y nosotros seríamos el snack.", "captions": "…Y NOSOTROS / SERÍAMOS EL SNACK.^r"},
+    {"id": "L14", "voice": "nubi", "scene": "final", "tts": "[out of breath] Sería increíble… ¡pero prefiero verlos desde una pantalla!", "captions": "SERÍA INCREÍBLE…^y / ¡PERO PREFIERO / VERLOS DESDE / UNA PANTALLA!^c"},
+    {"id": "L15", "voice": "nubi", "scene": "final", "tts": "[curious] ¿Tú tendrías un dinosaurio de mascota? ¡Te leo en los comentarios!", "captions": "¿TÚ TENDRÍAS / UN DINOSAURIO^g / DE MASCOTA? / ¡TE LEO EN / LOS COMENTARIOS!^c"}
+  ]
+}

@@ -12,7 +12,9 @@ export const Captions: React.FC<{
   bottom?: number;
   fontSize?: number;
   maxWidth?: number;
-}> = ({ chunks = CAPTIONS, bottom = 92, fontSize = 86, maxWidth = 1560 }) => {
+  /** Horizontal offset of the block (px), e.g. to keep clear of TikTok's button column. */
+  shiftX?: number;
+}> = ({ chunks = CAPTIONS, bottom = 92, fontSize = 86, maxWidth = 1560, shiftX = 0 }) => {
   const frame = useCurrentFrame();
   const chunk = chunks.find((c) => frame >= c.from && frame < c.to);
   if (!chunk) return null;
@@ -37,7 +39,7 @@ export const Captions: React.FC<{
           rowGap: 0,
           maxWidth,
           marginBottom: bottom,
-          transform: `scale(${1 - exit * 0.25})`,
+          transform: `translateX(${shiftX}px) scale(${1 - exit * 0.25})`,
           opacity: 1 - exit,
         }}
       >

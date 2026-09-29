@@ -1,0 +1,8 @@
+// TikTok-safe layout for the dinosaur short: the top bar covers y < 200, the like/comment/share
+// column covers x > 950 from y ≈ 700, the description covers y > 1400.
+export const SAFE = {
+  /** Captions: a little higher and narrower than before, shifted away from the button column. */
+  captions: { bottom: 520, fontSize: 80, maxWidth: 820, shiftX: -40 },
+  /** Nubi's feet should sit around here so the captions don't cover the body. */
+  feetY: 1230,
+};
