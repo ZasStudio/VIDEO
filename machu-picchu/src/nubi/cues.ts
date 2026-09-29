@@ -15,8 +15,8 @@ const hook = (): Cue[] => {
     [LAND - 6, "whoosh-short", 0.3],
     [LAND, "stone-thud", 0.45],
     [LAND + 4, "pop", 0.38],
-    [PEAK - 1, "pop", 0.4],
-    [PEAK, "impact", 0.4],
+    [PEAK - 1, "pop", 0.34],
+    [PEAK, "impact", 0.32],
     [end("hook") - 8, "whoosh-short", 0.4],
   ];
 };
@@ -65,6 +65,6 @@ const final = (): Cue[] => [
 export const NUBI_CUES: Cue[] = [...hook(), ...piedras(), ...sismo(), ...final()].filter(([f]) => f >= 0).sort((a, b) => a[0] - b[0]);
 
 export const NUBI_BEDS: Bed[] = [
-  [0, end("hook") - 4, "rumble", 0.55],
+  [0, end("hook") - 4, "rumble", 0.4],
   [wordAt("L03", 2), wordAt("L03", 5) + 4, "rumble", 0.55],
 ];
