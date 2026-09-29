@@ -75,6 +75,7 @@ export const FINAL = {
   END: end("final"),
   PANTALLA: wordAt("L14", 7),
   GRAB: lineEnd("L14") + 1,
-  CTA: lineStart("L15"),
+  /** The question pops once the photo is taken (the phone view has faded out). */
+  CTA: lineEnd("L14") + 23,
   TE: wordAt("L15", 6),
 };

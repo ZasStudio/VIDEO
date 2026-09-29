@@ -18,10 +18,10 @@ import { DINO } from "../timeline";
 // parques con seguridad extrema…" A T-Rex stomps down the street, blocking it. "…y señales de
 // «No alimentar al T-Rex»." The sign pops up; the T-Rex sniffs it; Nubi snaps a photo.
 
-const NUBI_AT: Vec3 = [-1.0, 0, 3.2];
-const SIGN_AT: Vec3 = [1.5, 0, 2.2];
-const CAM_A = { position: [0.2, 2.4, 12.5] as Vec3, target: [0.0, 3.4, -6] as Vec3 };
-const CAM_B = { position: [0.1, 2.2, 11.2] as Vec3, target: [0.0, 3.2, -6] as Vec3 };
+const NUBI_AT: Vec3 = [-1.0, 0, 4.0];
+const SIGN_AT: Vec3 = [1.9, 0, 2.6];
+const CAM_A = { position: [0.2, 2.6, 14.6] as Vec3, target: [0.0, 4.4, -20] as Vec3 };
+const CAM_B = { position: [0.1, 2.4, 13.4] as Vec3, target: [0.0, 4.2, -20] as Vec3 };
 
 export const DinoCiudad: React.FC = () => {
   const frame = useCurrentFrame();
@@ -34,14 +34,14 @@ export const DinoCiudad: React.FC = () => {
   const lookWall = windowIn(g, MUROS - 6, SENALES - 10, 10);
   const cam = {
     position: lerp3(CAM_A.position, CAM_B.position, u),
-    target: [0, 3.3 + lookWall * 2.2, -6] as Vec3,
-    fov: 44,
+    target: [0, 4.3 + lookWall * 5, -20] as Vec3,
+    fov: 50,
   };
 
   // The T-Rex strolls up the street, then leans down to sniff the sign.
   const walkIn = ramp(g, S.from, SENALES, [0, 1], (x) => x);
   const sniff = ramp(g, SENALES + 10, TREX + 4, [0, 1], EASE_IN_OUT);
-  const rexPos: Vec3 = [0.6, 0, -9 + walkIn * 5];
+  const rexPos: Vec3 = [0.8, 0, -12 + walkIn * 8];
   const rexPose = {
     walk: 1 - ramp(g, SENALES - 6, SENALES + 4),
     walkPhase: g * 0.16,

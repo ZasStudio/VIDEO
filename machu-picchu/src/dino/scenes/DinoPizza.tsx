@@ -3,7 +3,7 @@ import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { EASE_IN, EASE_OUT, pop, ramp, windowIn } from "../../anim";
 import { FactCard, SpeechBubble } from "../../overlay/dino/DinoUI";
 import { Shake, Stage } from "../../scenes/common";
-import { Vec3 } from "../../three/CameraRig";
+import { Vec3, lerp3 } from "../../three/CameraRig";
 import { Twinkles } from "../../three/Effects3D";
 import { BabyDino, Raptor } from "../../three/dino/Dinos";
 import { PIZZA_BOX, PizzaBox, PottedPlant } from "../../three/dino/Props";
@@ -21,11 +21,13 @@ import { DINO } from "../timeline";
 // there. "¿Y las mascotas? «Mamá, ¿puedo tener un dinosaurio?»" — "¡Ni siquiera puedes cuidar
 // una planta!" — the plant wilts.
 
-const NUBI_AT: Vec3 = [-0.9, 0, 3.0];
-const RAPTOR_AT: Vec3 = [1.0, 0, 2.6];
-const PLANT_AT: Vec3 = [-2.2, 0, 3.4];
-const BABY_AT: Vec3 = [0.6, 0, 3.6];
-const CAM = { position: [0.0, 2.3, 10.8] as Vec3, target: [0.0, 1.35, 0] as Vec3, fov: 42 };
+const NUBI_AT: Vec3 = [-0.7, 0, 3.0];
+const RAPTOR_AT: Vec3 = [0.9, 0, 1.5];
+const PLANT_AT: Vec3 = [-1.75, 0, 4.3];
+const BABY_AT: Vec3 = [0.35, 0, 3.9];
+// Third person: Nubi's feet just above the captions, the raptor on the right, clear of the app buttons.
+const CAM_A = { position: [0.2, 2.8, 14.6] as Vec3, target: [-0.096, 0.935, 0] as Vec3 };
+const CAM_B = { position: [0.15, 2.7, 13.9] as Vec3, target: [-0.136, 0.84, 0] as Vec3 };
 
 export const DinoPizza: React.FC = () => {
   const frame = useCurrentFrame();
@@ -51,6 +53,8 @@ export const DinoPizza: React.FC = () => {
   const boxHeld: Vec3 = [eye[0], eye[1] - 0.62 + bob * 0.3, eye[2] - 1.6];
 
   // ---- Third person ----
+  const u = ramp(g, POV_END, END, [0, 1], (x) => x);
+  const cam = { position: lerp3(CAM_A.position, CAM_B.position, u), target: lerp3(CAM_A.target, CAM_B.target, u), fov: 42 };
   const munch = windowIn(g, DATO - 6, MASCOTAS - 2, 6);
   const petsIn = pop(g, MASCOTAS - 2, { damping: 9, stiffness: 180 });
   const plead = windowIn(g, MAMA - 4, MOM + 4, 5);
@@ -103,7 +107,7 @@ export const DinoPizza: React.FC = () => {
             </Raptor>
           </Stage>
         ) : (
-          <Stage cam={CAM}>
+          <Stage cam={cam}>
             <hemisphereLight args={["#FFFFFF", "#7F8FA8", 1.3]} />
             <directionalLight position={[-6, 12, 8]} intensity={2.4} color="#FFF6E8" />
             <CityStreet t={t} />
@@ -139,7 +143,8 @@ export const DinoPizza: React.FC = () => {
             at={DATO}
             out={MASCOTAS - 8}
             x={500}
-            y={640}
+            y={570}
+            scale={0.85}
             text={"VELOCIRAPTOR: TAMAÑO DE UN PAVO…\n*¡Y CON PLUMAS!*"}
             visual="raptor-vs-turkey"
             highlightAt={PLUMAS}

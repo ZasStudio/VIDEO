@@ -214,13 +214,31 @@ const getTrailGeo = () => {
   return trailGeo;
 };
 
-/** Trail layers: colour, opacity, width and length (× rock radius), render order. */
-const TRAIL: [string, number, number, number, number][] = [
-  ["#FFF6D0", 1, 1.35, 1.9, 0],
-  ["#FFE45C", 1, 1.85, 3.0, 0],
-  ["#FF9A1A", 0.82, 2.4, 4.3, 2],
-  ["#FF4A1A", 0.55, 2.95, 5.7, 3],
+/** Trail layers: colours from the rock to the tip, opacity, width and length (× rock radius), render order. */
+const TRAIL: [string[], number, number, number, number][] = [
+  [["#FFFFFF", "#FFF6C8", "#FFE680"], 1, 1.35, 1.9, 0],
+  [["#FFF8D0", "#FFE45C", "#FFB22E"], 1, 1.85, 3.0, 0],
+  [["#FFE45C", "#FFA21A", "#FF6A1A"], 0.75, 2.4, 4.3, 2],
+  [["#FFB42E", "#FF6A1A", "#E0301A", "#B81E14"], 0.5, 2.95, 5.7, 3],
 ];
+
+const trailLayerGeos: THREE.BufferGeometry[] = [];
+/** The comet teardrop with a vertex-colour gradient along its length for trail layer i. */
+const getTrailLayerGeo = (i: number) => {
+  if (trailLayerGeos[i]) return trailLayerGeos[i];
+  const g = getTrailGeo().clone();
+  const p = g.attributes.position;
+  const col = new Float32Array(p.count * 3);
+  for (let k = 0; k < p.count; k++) {
+    const c = lerpColors(TRAIL[i][0], p.getY(k));
+    col[k * 3] = c.r;
+    col[k * 3 + 1] = c.g;
+    col[k * 3 + 2] = c.b;
+  }
+  g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+  trailLayerGeos[i] = g;
+  return g;
+};
 const TONGUES = 7;
 
 /**
@@ -239,9 +257,9 @@ export const Asteroid: React.FC<{ size?: number; fire?: number; t?: number }> = 
   const layerMats = useMemo(
     () =>
       TRAIL.map(
-        ([c, o]) =>
+        ([, o]) =>
           new THREE.MeshBasicMaterial({
-            color: c,
+            vertexColors: true,
             transparent: o < 1,
             opacity: o,
             depthWrite: o >= 1,
@@ -265,7 +283,7 @@ export const Asteroid: React.FC<{ size?: number; fire?: number; t?: number }> = 
           {TRAIL.map(([, , w, l, order], i) => (
             <mesh
               key={i}
-              geometry={getTrailGeo()}
+              geometry={getTrailLayerGeo(i)}
               material={layerMats[i]}
               position={[0, -0.55, 0]}
               rotation={[0.05 * Math.sin(t * 5 + i), 0, 0.05 * Math.sin(t * 6.3 + i * 2)]}
@@ -556,9 +574,10 @@ export const PizzaBox: React.FC<{ open?: number }> = ({ open = 0 }) => {
 /**
  * Pizza box balanced flat on the raised screen-right fin like a waiter's tray (fin-tip space,
  * model units; use with pose finR ≈ 0.9): <Nubi pose={{ finR: 0.9 }} holdR={<group
- * {...PIZZA_HOLD_R}><PizzaBox /></group>} />. The counter-rotation keeps the box level.
+ * {...PIZZA_HOLD_R}><PizzaBox /></group>} />. The counter-rotation keeps the box level side to
+ * side and tips its lid ≈ 24° towards the camera so the logo reads.
  */
-export const PIZZA_HOLD_R = { position: [1.35, 0.4, 0.2] as V3, rotation: [0, 0.25, -0.5] as V3, scale: 5 };
+export const PIZZA_HOLD_R = { position: [1.35, 0.4, 0.2] as V3, rotation: [0.42, 0.2, -0.5] as V3, scale: 5 };
 /**
  * Pizza box held upright against Nubi's belly with the logo facing the camera (Nubi-local,
  * size 2; it spans y ≈ 0.09..0.91, just below the eyes, resting on the front legs): <group {...PIZZA_FRONT}><PizzaBox /></group>
@@ -890,10 +909,10 @@ export const PottedPlant: React.FC<{ wilt?: number }> = ({ wilt = 0 }) => {
       <mesh geometry={geos.rim} material={toy("#EE8753", { rough: 0.55 })} position={[0, 0.355, 0]} castShadow />
       <mesh geometry={geos.soil} material={toy("#5A3A22", { rough: 1 })} position={[0, SOIL_Y - 0.01, 0]} />
       {/* Rosette. */}
-      {Array.from({ length: 6 }).map((_, i) => (
-        <group key={i} position={[0, SOIL_Y, 0]} rotation={[0, (i / 6) * Math.PI * 2 + 0.3, 0]}>
-          <group position={[0, 0, 0.04]} rotation={[-0.72 + 0.62 * w, 0, 0]}>
-            <Leaf geo={geos.blob} mat={i % 2 ? mats.leaf : mats.leafDark} len={0.36} curl={leafDown} shrink={1 - 0.35 * w} />
+      {Array.from({ length: 7 }).map((_, i) => (
+        <group key={i} position={[0, SOIL_Y, 0]} rotation={[0, (i / 7) * Math.PI * 2 + 0.3, 0]}>
+          <group position={[0, 0, 0.04]} rotation={[-0.78 + 0.66 * w, 0, 0]}>
+            <Leaf geo={geos.blob} mat={i % 2 ? mats.leaf : mats.leafDark} len={0.42} curl={leafDown} shrink={1 - 0.35 * w} />
           </group>
         </group>
       ))}
@@ -1079,7 +1098,7 @@ const throneStones = () => {
     geos.push(stoneBlock(0.64, 0.56, 2.2, tone(), [s * 1.96, 1.2, 0.06], jitter(0.04)));
   }
   // Back wall: courses of blocks, staggered, with a big capstone.
-  const courses = [0.72, 0.66, 0.7, 0.64];
+  const courses = [0.72, 0.66, 0.7, 0.64, 0.66];
   let y = 0.32;
   courses.forEach((h, row) => {
     const n = row % 2 ? 3 : 2;
@@ -1128,11 +1147,6 @@ const frillShape = () => {
     else s.lineTo(x, y);
   }
   s.closePath();
-  for (const sx of [-1, 1]) {
-    const h = new THREE.Path();
-    h.absellipse(sx * 0.5, 0.56, 0.24, 0.17, 0, Math.PI * 2, false, 0);
-    s.holes.push(h);
-  }
   return s;
 };
 
@@ -1165,6 +1179,7 @@ const TriceratopsSkull: React.FC = () => {
     <group>
       <group position={[0, 0.42, -0.42]} rotation={[-0.38, 0, 0]}>
         <mesh geometry={geos.frill} material={shade} position={[0, 0, -0.08]} castShadow />
+        <mesh geometry={geos.frill} material={bone} position={[0, 0.12, 0.08]} scale={[0.72, 0.7, 0.6]} />
         {Array.from({ length: 11 }).map((_, i) => {
           const a = -0.2 + ((Math.PI + 0.4) * i) / 10;
           return (
@@ -1180,16 +1195,16 @@ const TriceratopsSkull: React.FC = () => {
       </group>
       <mesh geometry={head} material={bone} position={[0, 0, 0.2]} castShadow />
       <mesh geometry={snout} material={bone} position={[0, -0.16, 0.9]} castShadow />
-      <mesh geometry={geos.beak} material={shade} position={[0, -0.34, 1.3]} rotation={[Math.PI / 2 + 0.5, 0, 0]} />
+      <mesh geometry={geos.beak} material={shade} position={[0, -0.36, 1.32]} rotation={[Math.PI / 2 + 0.55, 0, 0]} scale={[1.2, 1.5, 1.2]} />
       {[-1, 1].map((s) => (
         <group key={s}>
-          <mesh geometry={geos.ball} material={dark} position={[s * 0.34, 0.14, 0.72]} scale={[0.2, 0.22, 0.12]} />
+          <mesh geometry={geos.ball} material={dark} position={[s * 0.36, 0.2, 0.7]} scale={[0.15, 0.17, 0.1]} rotation={[0, 0, s * 0.5]} />
           <mesh geometry={geos.horn} material={bone} position={[s * 0.3, 0.52, 0.62]} rotation={[1.0, 0, -s * 0.18]} castShadow />
           <mesh geometry={geos.knob} material={shade} position={[s * 0.56, -0.28, 0.3]} rotation={[0, 0, s * 2.4]} scale={1.4} />
         </group>
       ))}
       <mesh geometry={geos.nose} material={bone} position={[0, 0.2, 1.12]} rotation={[0.55, 0, 0]} />
-      <mesh geometry={geos.ball} material={dark} position={[0, -0.08, 1.27]} scale={[0.14, 0.09, 0.06]} />
+      <mesh geometry={geos.ball} material={dark} position={[0, -0.02, 1.27]} scale={[0.09, 0.06, 0.05]} />
     </group>
   );
 };
@@ -1200,8 +1215,8 @@ export const BONE_THRONE_SEAT: V3 = [0, 1.23, 0.15];
 /**
  * Bone throne: a stone dais (4.6 × 3.9) and stepped stone seat with a tufted red cushion
  * (Nubi stands on it at BONE_THRONE_SEAT), stone armrests topped with femur bones, a stacked
- * stone back wall flanked by curved rib bones, and a big Triceratops skull on top (≈ 6.2 tall
- * in all, ≈ 3 × Nubi). Faces +z; origin at the middle of the dais' bottom.
+ * stone back wall flanked by curved rib bones, and a big Triceratops skull on top, above a
+ * standing Nubi's crown (≈ 6.4 tall in all, ≈ 3 × Nubi). Faces +z; origin at the middle of the dais' bottom.
  */
 export const BoneThrone: React.FC = () => {
   const geos = useMemo(() => {
@@ -1264,7 +1279,7 @@ export const BoneThrone: React.FC = () => {
         <Bone len={0.75} radius={0.06} color={BONE} />
       </group>
       {/* Skull on top of the back wall. */}
-      <group position={[0, 3.55, -1.2]} rotation={[0.12, 0, 0]} scale={1.15}>
+      <group position={[0, 4.55, -1.15]} rotation={[0.1, 0, 0]} scale={1.2}>
         <TriceratopsSkull />
       </group>
     </group>

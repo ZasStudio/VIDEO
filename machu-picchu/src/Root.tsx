@@ -4,6 +4,8 @@ import "./fonts";
 import { MachuPicchuVideo } from "./MachuPicchuVideo";
 import { IncaPhoneShort, IncaSoundtrack } from "./inca/IncaPhoneShort";
 import { OxigenoShort, OxigenoSoundtrack } from "./oxigeno/OxigenoShort";
+import { DinoShort, DinoSoundtrack } from "./dino/DinoShort";
+import { DINO, DINO_HEIGHT, DINO_WIDTH } from "./dino/timeline";
 import { OXI, OXI_HEIGHT, OXI_WIDTH } from "./oxigeno/timeline";
 import { INCA, INCA_HEIGHT, INCA_WIDTH } from "./inca/timeline";
 import { NubiShort, NubiSoundtrack } from "./nubi/NubiShort";
@@ -21,6 +23,7 @@ import { OXI_UI_SHEET_DURATION, OxiUISheet } from "./dev/OxiUISheet";
 import { OXI_PROPS_SHEET_FRAMES, OxiPropsSheet } from "./dev/OxiPropsSheet";
 import { DINO_UI_SHEET_DURATION, DinoUISheet } from "./dev/DinoUISheet";
 import { DINO_SHEET_FRAMES, DinoSheet } from "./dev/DinoSheet";
+import { DINO_PROPS_SHEET_FRAMES, DinoPropsSheet } from "./dev/DinoPropsSheet";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -96,6 +99,24 @@ export const RemotionRoot: React.FC = () => {
         fps={FPS}
         width={OXI_WIDTH}
         height={OXI_HEIGHT}
+      />
+      {/* Nubi's vertical short: what if the dinosaurs had never gone extinct? (60 s). */}
+      <Composition
+        id="DinoShort"
+        component={DinoShort}
+        durationInFrames={DINO.DURATION}
+        fps={FPS}
+        width={DINO_WIDTH}
+        height={DINO_HEIGHT}
+        defaultProps={{ withAudio: true }}
+      />
+      <Composition
+        id="DinoShortAudio"
+        component={DinoSoundtrack}
+        durationInFrames={DINO.DURATION}
+        fps={FPS}
+        width={DINO_WIDTH}
+        height={DINO_HEIGHT}
       />
       <Folder name="Dev">
         <Composition
@@ -174,6 +195,14 @@ export const RemotionRoot: React.FC = () => {
           id="DinoSheet"
           component={DinoSheet}
           durationInFrames={DINO_SHEET_FRAMES}
+          fps={30}
+          width={1920}
+          height={1080}
+        />
+        <Composition
+          id="DinoPropsSheet"
+          component={DinoPropsSheet}
+          durationInFrames={DINO_PROPS_SHEET_FRAMES}
           fps={30}
           width={1920}
           height={1080}

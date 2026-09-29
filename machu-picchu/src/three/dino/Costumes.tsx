@@ -2,7 +2,6 @@ import React, { useMemo } from "react";
 import * as THREE from "three";
 import { mulberry } from "../noise";
 import { V3, canvasTexture, gold, goldDark, toy, useFontsReady, useRounded } from "../inca/kit";
-import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { NUBI_BODY } from "../inca/Costumes";
 import { Bone, drawPizzaSlice } from "./Props";
 
@@ -142,6 +141,75 @@ const bandGeometry = (s: BandSpec) => {
 
 /** Height of the band's texture (including the hem) for a spec. */
 const bandTexH = (s: BandSpec) => s.y1 - s.y0 + (s.hem ? s.hem.depth : 0);
+
+/** The ring rotated to start and end at the back centre (keeps smooth-shading seams at the back). */
+const RING_BACK = (() => {
+  const k = RING.findIndex((p) => Math.abs(p.x) < 1e-6 && p.z < 0);
+  return [...RING.slice(k, RING.length - 1), ...RING.slice(0, k + 1)];
+})();
+
+/**
+ * Cap crown: a dome whose footprint is the body's rounded square (offset by t) at y0, curving
+ * in to a point H above it; `k` < 1 makes it fuller.
+ */
+const domeGeometry = (y0: number, H: number, t: number, k = 0.6, rows = 16) => {
+  const N = RING_BACK.length;
+  const pos: number[] = [];
+  const idx: number[] = [];
+  for (let j = 0; j <= rows; j++) {
+    const a = (j / rows) * (Math.PI / 2);
+    const s = Math.pow(Math.max(0, Math.cos(a)), k);
+    const y = y0 + H * Math.sin(a);
+    for (const p of RING_BACK) pos.push((p.x + p.nx * t) * s, y, (p.z + p.nz * t) * s);
+  }
+  for (let j = 0; j < rows; j++) {
+    for (let i = 0; i < N - 1; i++) {
+      const A = j * N + i;
+      idx.push(A, A + 1, A + N + 1, A, A + N + 1, A + N);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+};
+
+/** [scale towards the centre, outward offset, height] of one ring of a profile shell. */
+type ShellPt = [number, number, number];
+
+/**
+ * Surface swept round the body's rounded-square cross-section: each profile point is the ring
+ * scaled by s towards the centre, pushed out by t and lifted to y. `closed` joins the last ring
+ * to the first (thick brims drawn as a loop).
+ */
+const shellGeometry = (profile: ShellPt[], closed = false) => {
+  const N = RING_BACK.length;
+  const pos: number[] = [];
+  const idx: number[] = [];
+  for (const [k, t, y] of profile) for (const p of RING_BACK) pos.push(p.x * k + p.nx * t, y, p.z * k + p.nz * t);
+  const rows = profile.length;
+  for (let j = 0; j < (closed ? rows : rows - 1); j++) {
+    const j1 = (j + 1) % rows;
+    for (let i = 0; i < N - 1; i++) {
+      const A = j * N + i;
+      const B = j1 * N + i;
+      idx.push(A, A + 1, B + 1, A, B + 1, B);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+};
+
+/** Closed curve round the body at height y, offset t from the surface (piping, trims). */
+const ringCurve = (y: number, t: number) =>
+  new THREE.CatmullRomCurve3(
+    RING_BACK.slice(0, -1).filter((_, i) => i % 2 === 0).map((p) => new THREE.Vector3(p.x + p.nx * t, y, p.z + p.nz * t)),
+    true,
+  );
 
 // =======================================================================================
 // Fabric textures, painted in model units (PX pixels per unit).
@@ -356,36 +424,43 @@ const leopardTexture = (w: number, h: number, seed: number) =>
 
 const SHIRT_BAND: BandSpec = { y0: 2.0, y1: 4.3, t0: 0.5, t1: 0.12, bulge: 0.07, rows: 8 };
 const HAT = "#EFCF8E";
-const HAT_BAND = "#FF4FA0";
+const HAT_BAND_COLOR = "#FF4FA0";
 
-/** Bucket-hat crown (r, y) from the base up, and the brim as a closed loop (drawn double-sided). */
-const HAT_CROWN: [number, number][] = [
-  [4.66, 0],
-  [4.62, 0.14],
-  [4.46, 1.2],
-  [4.22, 2.0],
-  [3.72, 2.34],
-  [2.6, 2.48],
-  [0, 2.52],
+/**
+ * Bucket hat shaped to Nubi's rounded-square head: crown hugging the top of the body from
+ * y 9.15 and doming to 11.9, a pink band, and a brim sloping down and out 2.5 (lowest at y 8.3,
+ * two units above the eyes) drawn as a closed loop, double-sided.
+ */
+const HAT_CROWN: ShellPt[] = [
+  [1, 0.34, 9.15],
+  [1, 0.36, 9.8],
+  [0.985, 0.33, 10.5],
+  [0.94, 0.28, 11.05],
+  [0.84, 0.22, 11.45],
+  [0.66, 0.15, 11.7],
+  [0.4, 0.08, 11.84],
+  [0.15, 0.03, 11.9],
+  [0, 0, 11.92],
 ];
-const HAT_BRIM: [number, number][] = [
-  [4.35, 0.42],
-  [5.6, 0.26],
-  [7.0, -0.46],
-  [7.32, -0.7],
-  [7.16, -0.9],
-  [5.5, -0.08],
-  [4.35, 0.12],
-  [4.35, 0.42],
+const HAT_BRIM: ShellPt[] = [
+  [1, 0.34, 9.45],
+  [1, 1.2, 9.25],
+  [1, 2.1, 8.8],
+  [1, 2.45, 8.55],
+  [1, 2.55, 8.42],
+  [1, 2.4, 8.32],
+  [1, 2.0, 8.52],
+  [1, 1.1, 8.98],
+  [1, 0.34, 9.2],
+];
+const HAT_BAND: ShellPt[] = [
+  [1, 0.38, 9.48],
+  [1, 0.42, 9.75],
+  [1, 0.42, 9.98],
+  [1, 0.39, 10.18],
 ];
 /** Where the camera body's centre sits (model units): on the chest, below the eyes. */
-const CAMERA_AT: V3 = [0, 3.42, 5.34];
-
-const lathe = (p: [number, number][], seg = 48) =>
-  new THREE.LatheGeometry(
-    p.map(([r, h]) => new THREE.Vector2(r, h)),
-    seg,
-  );
+const CAMERA_AT: V3 = [0, 3.3, 5.4];
 
 /** Chunky retro camera: black body with a tan leather band, chrome top, big blue lens. */
 const TouristCamera: React.FC = () => {
@@ -408,7 +483,7 @@ const TouristCamera: React.FC = () => {
   const black = toy("#262A33", { rough: 0.4, glow: 0.08 });
   const chrome = toy("#DCE3EA", { metal: 0.7, rough: 0.25, glow: 0.14 });
   return (
-    <group position={CAMERA_AT}>
+    <group position={CAMERA_AT} scale={1.1}>
       <mesh geometry={body} material={black} castShadow />
       <mesh geometry={leather} material={toy("#A8672F", { rough: 0.7 })} position={[0, -0.1, 0]} />
       <mesh geometry={top} material={chrome} position={[0, 0.72, 0]} />
@@ -433,7 +508,7 @@ const TouristCamera: React.FC = () => {
 const strapPoints = () => {
   const [cx, cy, cz] = CAMERA_AT;
   const half: [number, number, number][] = [
-    [cx + 1.34, cy + 0.46, cz],
+    [cx + 1.47, cy + 0.53, cz],
     [2.2, 3.9, 4.98],
     [3.3, 3.98, 4.76],
     [4.4, 4.08, 4.66],
@@ -444,14 +519,14 @@ const strapPoints = () => {
     [5.02, 9.86, 2.0],
     [3.6, 10.14, 1.6],
   ];
-  const right = half.map(([x, y, z]) => new THREE.Vector3(x, y, z));
-  const left = half.map(([x, y, z]) => new THREE.Vector3(-x, y, z)).reverse();
+  const left = half.map(([x, y, z]) => new THREE.Vector3(-x, y, z));
+  const right = half.map(([x, y, z]) => new THREE.Vector3(x, y, z)).reverse();
   return [...left, new THREE.Vector3(0, 10.18, 1.4), ...right];
 };
 
 /**
- * Tourist: a khaki bucket hat with a pink band on top (brim at y ≈ 9.0–9.9, well above the
- * eyes), a chunky retro camera hanging on a red strap on the chest (camera y 2.8..4.2, between
+ * Tourist: a khaki bucket hat with a pink band shaped to the head (crown y 9.15..11.9, brim
+ * sloping down to y 8.3, two units above the eyes), a chunky retro camera hanging on a red strap on the chest (camera y 2.8..4.2, between
  * and below the eyes; the strap runs along the chest under the eyes and up the sides) and a
  * blue Hawaiian shirt with hibiscus flowers round the lower body (y 2.0..4.3, top behind the
  * eye bars). Child of <Nubi>; no transform needed.
@@ -460,9 +535,9 @@ export const TouristOutfit: React.FC = () => {
   const geos = useMemo(
     () => ({
       shirt: bandGeometry(SHIRT_BAND),
-      crown: lathe(HAT_CROWN),
-      brim: lathe(HAT_BRIM),
-      band: new THREE.CylinderGeometry(4.56, 4.7, 0.62, 48, 1, true),
+      crown: shellGeometry(HAT_CROWN),
+      brim: shellGeometry(HAT_BRIM, true),
+      band: shellGeometry(HAT_BAND),
       strap: new THREE.TubeGeometry(new THREE.CatmullRomCurve3(strapPoints()), 160, 0.16, 8, false),
     }),
     [],
@@ -473,10 +548,10 @@ export const TouristOutfit: React.FC = () => {
       <mesh geometry={geos.shirt} material={fabricMat(shirtTexture(bandTexH(SHIRT_BAND)))} castShadow />
       <mesh geometry={geos.strap} material={toy("#E0322B", { rough: 0.6 })} />
       <TouristCamera />
-      <group position={[0, 9.58, -0.1]} rotation={[-0.07, 0, 0.04]} scale={[1.16, 1, 1.06]}>
+      <group rotation={[-0.03, 0, 0.02]}>
         <mesh geometry={geos.crown} material={hat} castShadow />
         <mesh geometry={geos.brim} material={hat} castShadow />
-        <mesh geometry={geos.band} material={toy(HAT_BAND, { rough: 0.6, glow: 0.18, side: THREE.DoubleSide })} position={[0, 0.48, 0]} />
+        <mesh geometry={geos.band} material={toy(HAT_BAND_COLOR, { rough: 0.6, glow: 0.18, side: THREE.DoubleSide })} />
       </group>
     </group>
   );
@@ -486,6 +561,8 @@ export const TouristOutfit: React.FC = () => {
 // Pizza delivery: red cap with a pizza logo, red-and-white uniform with a "PIZZA" badge
 
 const DELIVERY_RED = "#E3262B";
+/** Cap crown: base height, dome height, offset from the body. */
+const CAP = { y0: 8.55, h: 3.3, t: 0.38 };
 const UNIFORM_BAND: BandSpec = { y0: 2.0, y1: 4.36, t0: 0.5, t1: 0.16, bulge: 0.06, rows: 8 };
 
 const capLogoTexture = () =>
@@ -539,40 +616,75 @@ const printMat = (tex: THREE.Texture, glow = 0.22) => {
   return m;
 };
 
-/** Baseball-cap bill: a D shape curving down at the sides and dipping a little at the front. */
+/**
+ * Baseball-cap bill: a D-shaped plate, 8.6 wide and 3.05 long, built as a grid so it can bend:
+ * the root is level (it tucks under the crown), the bill dips forward and arches down at the sides.
+ */
 const billGeometry = () => {
-  const s = new THREE.Shape();
-  s.moveTo(-4.3, 0);
-  s.lineTo(4.3, 0);
-  s.bezierCurveTo(4.45, 1.7, 2.9, 2.95, 0, 3.05);
-  s.bezierCurveTo(-2.9, 2.95, -4.45, 1.7, -4.3, 0);
-  let g: THREE.BufferGeometry = new THREE.ExtrudeGeometry(s, {
-    depth: 0.24,
-    bevelEnabled: true,
-    bevelThickness: 0.08,
-    bevelSize: 0.08,
-    bevelSegments: 2,
-    curveSegments: 24,
-  });
-  // Shape y → +z (forward), extrusion → -y (down).
-  g.rotateX(Math.PI / 2);
-  const p = g.attributes.position;
-  for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i);
-    const z = p.getZ(i);
-    p.setY(i, p.getY(i) - 0.032 * x * x - 0.1 * z);
+  const W = 4.3;
+  const L = 3.05;
+  const TH = 0.28;
+  const NU = 28;
+  const NV = 10;
+  const zMax = (x: number) => L * Math.pow(Math.max(0, 1 - Math.pow(Math.abs(x / W), 2.6)), 0.5);
+  const topY = (x: number, z: number) => -0.3 * z - 0.85 * (x / W) ** 2 * Math.min(1, z / 1.2);
+  const pos: number[] = [];
+  const idx: number[] = [];
+  const grid = (bottom: boolean) => {
+    const base = pos.length / 3;
+    for (let j = 0; j <= NV; j++) {
+      for (let i = 0; i <= NU; i++) {
+        const x = -W + (2 * W * i) / NU;
+        const z = (j / NV) * zMax(x);
+        pos.push(x, topY(x, z) - (bottom ? TH : 0), z);
+      }
+    }
+    for (let j = 0; j < NV; j++) {
+      for (let i = 0; i < NU; i++) {
+        const a = base + j * (NU + 1) + i;
+        const b = a + 1;
+        const d = a + NU + 1;
+        const c = d + 1;
+        if (bottom) idx.push(a, b, c, a, c, d);
+        else idx.push(a, c, b, a, d, c);
+      }
+    }
+  };
+  grid(false);
+  grid(true);
+  // Rounded front rim: top edge, a row pushed out at mid thickness, bottom edge.
+  const rim = pos.length / 3;
+  for (let i = 0; i <= NU; i++) {
+    const x = -W + (2 * W * i) / NU;
+    const z = zMax(x);
+    const dz = (zMax(x + 0.01) - zMax(x - 0.01)) / 0.02;
+    const l = Math.hypot(dz, 1);
+    const [nx, nz] = Number.isFinite(dz) ? [-dz / l, 1 / l] : [Math.sign(x), 0];
+    const y = topY(x, z);
+    pos.push(x, y, z, x + nx * 0.09, y - TH / 2, z + nz * 0.09, x, y - TH, z);
   }
-  g.deleteAttribute("uv");
-  g = mergeVertices(g);
+  for (let i = 0; i < NU; i++) {
+    for (let k = 0; k < 2; k++) {
+      const a = rim + i * 3 + k;
+      const b = a + 3;
+      const d = a + 1;
+      const c = b + 1;
+      idx.push(a, c, b, a, d, c);
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
   g.computeVertexNormals();
   return g;
 };
 
 /**
- * Pizza delivery: a red baseball cap (crown over the top of the body from y 8.1, bill sticking
- * out 3 units over the face at y ≈ 8.3, two units above the eyes) with a round pizza logo on the
- * front, and a red polo with white stripes round the lower body (y 2.0..4.36, collar behind the
- * eye bars) with a big "PIZZA" badge on the chest (y 2.5..3.6, centred between the eyes' x).
+ * Pizza delivery: a red baseball cap (a rounded crown over the top of the body from y 8.55 up
+ * to 11.85 with white piping and a button, and a bill dipping forward over the face from y 8.8
+ * to 7.7, well above the eyes) with a round pizza logo on the front, and a red polo with white
+ * stripes round the lower body (y 2.0..4.36, collar behind the eye bars) with a big "PIZZA"
+ * badge on the chest (y 2.6..3.9, below and between the eyes).
  * Child of <Nubi>; no transform needed.
  */
 export const DeliveryOutfit: React.FC = () => {
@@ -581,36 +693,36 @@ export const DeliveryOutfit: React.FC = () => {
     () => ({
       uniform: bandGeometry(UNIFORM_BAND),
       collar: bandGeometry({ y0: 4.02, y1: 4.38, t0: 0.2, t1: 0.2, bulge: 0.03, rows: 2 }),
-      dome: new THREE.SphereGeometry(1, 40, 16, 0, Math.PI * 2, 0, Math.PI / 2),
-      button: new THREE.SphereGeometry(0.5, 20, 12),
+      crown: domeGeometry(CAP.y0, CAP.h, CAP.t),
+      piping: new THREE.TubeGeometry(ringCurve(CAP.y0 + 0.08, CAP.t + 0.02), 120, 0.13, 8, true),
+      button: new THREE.SphereGeometry(0.55, 20, 12),
       bill: billGeometry(),
-      logo: new THREE.CircleGeometry(0.82, 40),
+      logo: new THREE.CircleGeometry(0.9, 40),
     }),
     [],
   );
-  const shell = useRounded(10.6, 2.6, 9.4, 0.8, 5);
-  const plate = useRounded(3.4, 1.16, 0.14, 0.12, 2);
+  const plate = useRounded(4.3, 1.36, 0.16, 0.14, 2);
   const red = toy(DELIVERY_RED, { rough: 0.45, glow: 0.16 });
   return (
     <group>
       <mesh geometry={geos.uniform} material={fabricMat(fabric("uniform", TILE, bandTexH(UNIFORM_BAND), paintUniform))} castShadow />
       <mesh geometry={geos.collar} material={toy("#FFFFFF", { rough: 0.7, glow: 0.12 })} />
       {/* Badge on the chest, tilted with the flare of the polo. */}
-      <group position={[0, 3.05, 4.88]} rotation={[0.14, 0, 0]}>
+      <group position={[0, 3.25, 4.9]} rotation={[0.14, 0, 0]}>
         <mesh geometry={plate} material={toy("#FFFFFF", { rough: 0.5 })} />
         {ready ? (
-          <mesh position={[0, 0, 0.075]}>
-            <planeGeometry args={[3.3, 1.03]} />
+          <mesh position={[0, 0, 0.085]}>
+            <planeGeometry args={[4.2, 1.31]} />
             <primitive object={printMat(badgeTexture())} attach="material" />
           </mesh>
         ) : null}
       </group>
       {/* Cap. */}
-      <mesh geometry={shell} material={red} position={[0, 9.4, -0.02]} castShadow />
-      <mesh geometry={geos.dome} material={red} position={[0, 10.45, -0.1]} scale={[4.95, 1.3, 4.45]} castShadow />
-      <mesh geometry={geos.button} material={red} position={[0, 11.72, -0.1]} scale={[1, 0.5, 1]} />
-      <mesh geometry={geos.bill} material={red} position={[0, 8.56, 4.3]} castShadow />
-      <mesh geometry={geos.logo} material={printMat(capLogoTexture(), 0.25)} position={[0, 9.42, 4.7]} />
+      <mesh geometry={geos.crown} material={red} castShadow />
+      <mesh geometry={geos.piping} material={toy("#FFFFFF", { rough: 0.6, glow: 0.14 })} />
+      <mesh geometry={geos.button} material={red} position={[0, CAP.y0 + CAP.h - 0.05, 0]} scale={[1, 0.5, 1]} />
+      <mesh geometry={geos.bill} material={red} position={[0, CAP.y0 + 0.28, 4.45]} castShadow />
+      <mesh geometry={geos.logo} material={printMat(capLogoTexture(), 0.25)} position={[0, 9.75, 4.64]} rotation={[-0.28, 0, 0]} />
     </group>
   );
 };
@@ -656,7 +768,7 @@ const StrapPiece: React.FC<{ piece: (typeof STRAP_PIECES)[number] }> = ({ piece 
  * Caveman: a leopard-print tunic round the lower body (y 1.65..4.32 with a zigzag hem over the
  * tops of the legs) with a one-shoulder strap over the screen-right top edge (on the front face
  * at x 3.5..4.5, outside the eyes), and a little brown topknot on top of the head with a big bone
- * stuck through it (y 10..11.8). Child of <Nubi>; no transform needed. Hold the Club (Props) in
+ * stuck through it (y 10..12.3). Child of <Nubi>; no transform needed. Hold the Club (Props) in
  * holdR for the full look.
  */
 export const CavemanOutfit: React.FC = () => {
@@ -683,7 +795,7 @@ export const CavemanOutfit: React.FC = () => {
       {STRAP_PIECES.map((piece, i) => (
         <StrapPiece key={i} piece={piece} />
       ))}
-      <group position={[0.2, 9.9, 0.3]}>
+      <group position={[0.2, 9.8, 0.3]} scale={1.3}>
         <mesh geometry={geos.bun} material={hair} position={[0, 0.45, 0]} scale={[1.1, 0.78, 1]} castShadow />
         {locks.map(([rz, rx], i) => (
           <mesh
@@ -711,8 +823,17 @@ const HOOD_DARK = "#2A8F45";
 const SPIKE = "#FF8A1F";
 const CAPE_RED = "#D7263D";
 /** The hood's upper jaw pivots here (model units); `roar` tilts it up round the x axis. */
-const JAW_PIVOT: V3 = [0, 9.35, 4.3];
+const JAW_PIVOT: V3 = [0, 9.6, 4.3];
 const CAPE = { top: 7.35, phi0: 0.34, cols: 32, rows: 16 };
+
+/**
+ * Point round the back of the body on a squircle (half-axes A, B; exponent e < 1 is squarer, so
+ * it clears the body's rounded corners), angle phi from +x round through -z.
+ */
+const squircle = (phi: number, A: number, B: number, e: number): [number, number] => {
+  const c = Math.cos(phi);
+  return [A * Math.sign(c) * Math.pow(Math.abs(c), e), -B * Math.pow(Math.abs(Math.sin(phi)), e)];
+};
 
 /** A point on the cape: u 0..1 from the screen-right edge round the back, v 0..1 top to hem. */
 const capeAt = (u: number, v: number) => {
@@ -720,10 +841,9 @@ const capeAt = (u: number, v: number) => {
   const side = Math.abs(u - 0.5) * 2;
   const yBot = 0.5 + 2.4 * side * side;
   const y = CAPE.top + (yBot - CAPE.top) * v;
-  const A = 5.45 + 1.35 * v;
-  const B = 5.0 + 1.3 * v;
+  const [x, z] = squircle(phi, 5.45 + 1.3 * v, 5.0 + 1.3 * v, 0.34 + 0.2 * v);
   const fold = 1 + 0.045 * v * Math.sin(u * Math.PI * 8);
-  return new THREE.Vector3(A * Math.cos(phi) * fold, y, -B * Math.sin(phi) * fold - 0.05);
+  return new THREE.Vector3(x * fold, y, z * fold - 0.05);
 };
 
 const capeGeometry = () => {
@@ -768,7 +888,8 @@ const collarCurve = () => {
   const a1 = Math.PI - a0;
   for (let i = 0; i <= 24; i++) {
     const phi = a0 + ((a1 - a0) * i) / 24;
-    pts.push(new THREE.Vector3(5.55 * Math.cos(phi), CAPE.top + 0.05, -5.08 * Math.sin(phi) - 0.05));
+    const [x, z] = squircle(phi, 5.55, 5.1, 0.34);
+    pts.push(new THREE.Vector3(x, CAPE.top + 0.05, z - 0.05));
   }
   return new THREE.CatmullRomCurve3(pts);
 };
@@ -795,14 +916,14 @@ const spikeGeometry = () => {
 
 /** [position, x rotation (apex tilt, 0 = up, -π/2 = straight back), height]. */
 const SPIKES: [V3, number, number][] = [
-  [[0, 10.85, -2.0], 0, 1.65],
-  [[0, 10.8, -3.45], -0.3, 1.5],
-  [[0, 10.38, -4.62], -0.87, 1.35],
-  [[0, 9.2, -4.98], -Math.PI / 2, 1.25],
-  [[0, 8.1, -4.82], -Math.PI / 2 - 0.3, 1.05],
-  [[0, 6.1, -5.26], -Math.PI / 2 - 0.19, 1.0],
-  [[0, 4.7, -5.53], -Math.PI / 2 - 0.19, 0.85],
-  [[0, 3.3, -5.79], -Math.PI / 2 - 0.19, 0.7],
+  [[0, 10.85, -2.35], -0.1, 1.9],
+  [[0, 10.78, -3.75], -0.4, 1.8],
+  [[0, 10.2, -4.78], -0.95, 1.65],
+  [[0, 9.05, -4.98], -Math.PI / 2 + 0.05, 1.5],
+  [[0, 7.95, -4.85], -Math.PI / 2 - 0.25, 1.3],
+  [[0, 6.0, -5.28], -Math.PI / 2 - 0.19, 1.3],
+  [[0, 4.6, -5.55], -Math.PI / 2 - 0.19, 1.15],
+  [[0, 3.2, -5.81], -Math.PI / 2 - 0.19, 1.0],
 ];
 
 /** Front teeth then side teeth under the upper jaw: [x, z (jaw space), size]. */
@@ -876,6 +997,7 @@ const HoodEye: React.FC<{ side: 1 | -1 }> = ({ side }) => {
   return (
     <group position={[side * 3.05, 10.9, 2.95]} rotation={[-0.15, side * 0.28, 0]}>
       <mesh geometry={geos.ball} material={toy(HOOD, { rough: 0.6, glow: 0.14 })} position={[0, -0.45, -0.15]} scale={[1.45, 0.9, 1.2]} />
+      <mesh geometry={geos.ball} material={toy(HOOD, { rough: 0.6, glow: 0.14 })} position={[0, 0.05, -0.42]} scale={[1.26, 1.34, 0.95]} />
       <mesh geometry={geos.ball} material={toy("#FFFFFF", { rough: 0.3, glow: 0.2 })} scale={[1.18, 1.26, 1.0]} />
       <mesh geometry={geos.ball} material={toy("#151515", { rough: 0.25 })} position={[-side * 0.08, 0.05, 0.62]} scale={[0.62, 0.72, 0.5]} />
       <mesh geometry={geos.ball} material={toy("#FFFFFF", { glow: 0.9 })} position={[-side * 0.28 - 0.1, 0.38, 1.02]} scale={0.2} />
@@ -886,7 +1008,7 @@ const HoodEye: React.FC<{ side: 1 | -1 }> = ({ side }) => {
 /**
  * Dino king: a green dinosaur mascot hood over the top of the head (lower rim at y ≈ 7.5 on the
  * face, above the eyes) with big googly eyes on top, nostrils and an upper jaw jutting out over
- * the face whose big rounded teeth end above the eyes (tips at y ≈ 7.4); orange plates down the
+ * the face whose big rounded teeth end above the eyes (front tips at y ≈ 7.6); orange plates down the
  * back (over the hood and on down the cape), a gold crown on top (y 10.9..13.1) and a red royal
  * cape with an ermine collar hanging behind the body (sides behind the fins, hem at y 0.5 at the
  * back rising to 2.9 at the edges, clear of the legs). `roar` 0..1 lifts the jaw wide open
@@ -946,14 +1068,14 @@ export const DinoKingOutfit: React.FC<{ roar?: number }> = ({ roar = 0 }) => {
       <HoodEye side={-1} />
       <HoodEye side={1} />
       {/* Upper jaw: lifts round its back edge with `roar`. */}
-      <group position={JAW_PIVOT} rotation={[-(0.08 + 0.5 * r), 0, 0]}>
+      <group position={JAW_PIVOT} rotation={[-(0.12 + 0.42 * r), 0, 0]}>
         <mesh geometry={snout} material={green} position={[0, -0.4, 2.15]} castShadow />
         <mesh geometry={palate} material={toy("#FF8FA3", { rough: 0.6, glow: 0.18 })} position={[0, -1.44, 2.25]} />
         {[-1, 1].map((s) => (
           <mesh key={s} geometry={geos.nostril} material={toy("#1F6B35", { rough: 0.6 })} position={[s * 1.25, 0.62, 4.15]} scale={[1.3, 0.75, 0.6]} />
         ))}
         {TEETH.map(([x, z, k], i) => (
-          <mesh key={i} geometry={geos.tooth} material={tooth} position={[x, -1.45, z]} scale={k} />
+          <mesh key={i} geometry={geos.tooth} material={tooth} position={[x, -1.45, z]} scale={k * 1.2} />
         ))}
       </group>
       {/* Crown, a little askew. */}

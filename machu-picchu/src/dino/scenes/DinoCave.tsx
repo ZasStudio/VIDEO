@@ -19,7 +19,10 @@ import { DINO } from "../timeline";
 // existence meter drains and Nubi glitches out of existence.
 
 const NUBI_AT: Vec3 = [0.2, 0, 3.4];
-const CAM = { position: [0.4, 2.4, 11.8] as Vec3, target: [0.1, 2.6, 0] as Vec3, fov: 44 };
+const NUBI_SIZE = 1.1;
+// Low camera: tiny Nubi's feet just above the captions, the giants towering over it.
+const CAM_A = { position: [0.3, 1.6, 12.4] as Vec3, target: [0.163, 0.89, 0] as Vec3 };
+const CAM_B = { position: [0.3, 1.5, 11.6] as Vec3, target: [0.159, 0.829, 0] as Vec3 };
 
 export const DinoCave: React.FC = () => {
   const frame = useCurrentFrame();
@@ -41,7 +44,7 @@ export const DinoCave: React.FC = () => {
   const scale = (1 - gone) * (flicker ? 1 : 0.001);
 
   const u = ramp(g, POV_END, END, [0, 1], (x) => x);
-  const cam = { position: lerp3(CAM.position, [0.3, 2.2, 10.4], u), target: CAM.target, fov: CAM.fov };
+  const cam = { position: lerp3(CAM_A.position, CAM_B.position, u), target: lerp3(CAM_A.target, CAM_B.target, u), fov: 46 };
   const pose = dinoTalk(g, {
     finR: 0.5 + 0.15 * Math.sin(g * 0.4),
     lookY: 0.6,
@@ -61,11 +64,11 @@ export const DinoCave: React.FC = () => {
             <Brachio size={0.55} position={[1.2 - brachioWalk, 0, 0.5]} rotationY={-Math.PI / 2} pose={{ walk: 1, walkPhase: g * 0.12, neck: 0.2 }} />
           ) : (
             <>
-              <Brachio size={0.8} position={[-3.5 + (g - S.from) * 0.012, 0, -9]} rotationY={Math.PI / 2 - 0.3} pose={{ walk: 1, walkPhase: g * 0.1, neck: Math.sin(g * 0.03) * 0.3 }} />
-              <TRex size={0.8} position={[3.6, 0, -3.5]} rotationY={-0.6} pose={{ jaw: 0.2, headYaw: -0.4, tail: Math.sin(g * 0.06) * 0.4, blink: g % 90 < 3 ? 1 : 0 }} />
-              <Trike size={1.1} position={[-2.6, 0, 0.8]} rotationY={0.7} pose={{ headYaw: 0.3, blink: g % 77 < 3 ? 1 : 0 }} />
+              <Brachio size={1} position={[8 - (g - S.from) * 0.02, 0, -34]} rotationY={-Math.PI / 2 + 0.3} pose={{ walk: 1, walkPhase: g * 0.1, neck: Math.sin(g * 0.03) * 0.3 }} />
+              <TRex size={0.8} position={[2.6, 0, -4.5]} rotationY={-0.6} pose={{ jaw: 0.2, headYaw: -0.4, tail: Math.sin(g * 0.06) * 0.4, blink: g % 90 < 3 ? 1 : 0 }} />
+              <Trike size={1.1} position={[-1.9, 0, 0.6]} rotationY={0.7} pose={{ headYaw: 0.3, blink: g % 77 < 3 ? 1 : 0 }} />
               <group position={[NUBI_AT[0] + jitter, 0, NUBI_AT[2]]} rotation={[0, -0.1, 0]} scale={[scale * (1 + glitch * 0.2 * Math.sin(g)), scale, scale]}>
-                <Nubi size={1.5} pose={pose} shadowOpacity={0.4} holdR={
+                <Nubi size={NUBI_SIZE} pose={pose} shadowOpacity={0.4} holdR={
                   <group {...CLUB_HOLD_R}>
                     <Club />
                   </group>

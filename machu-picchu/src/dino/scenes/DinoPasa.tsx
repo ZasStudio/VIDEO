@@ -21,7 +21,7 @@ import { DUSK, HILL_CAM_B, HILL_NUBI } from "./DinoIntro";
 // no estaba en el plan." Cut to the T-Rex's own eyes, looking down at tiny Nubi.
 
 // The T-Rex head for the first-person shot: behind and above Nubi, pitched down to look at it.
-const REX_HEAD = { position: [HILL_NUBI[0] + 0.3, 5.6, HILL_NUBI[2] + 5.2] as Vec3, rotation: [0.62, Math.PI, 0] as Vec3, size: 1 };
+const REX_HEAD = { position: [HILL_NUBI[0] + 0.3, 5.4, HILL_NUBI[2] + 9] as Vec3, rotation: [0.45, Math.PI, 0] as Vec3, size: 1 };
 
 export const DinoPasa: React.FC = () => {
   const frame = useCurrentFrame();
@@ -35,7 +35,7 @@ export const DinoPasa: React.FC = () => {
 
   // ---- Space: the rock crosses in front of the Earth and away ----
   const k = ramp(g, S.from, CHEER + 2, [0, 1], (x) => x);
-  const rock: Vec3 = lerp3([-7, 4, 4], [8, -3, 7], k);
+  const rock: Vec3 = lerp3([-9, 6.5, 2], [9, 2.5, 6], k);
 
   // ---- The hill: celebration, stomps, the shadow ----
   const party = windowIn(g, CHEER, STOMP1 - 2, 4);
@@ -84,14 +84,14 @@ export const DinoPasa: React.FC = () => {
           />
         ))}
         <Shake frame={g} impacts={[{ at: PASS + 6, amp: 18, dur: 14 }]}>
-          <Stage cam={{ position: [0, 0.4, 16], target: [0, 0, 0], fov: 40 }}>
+          <Stage cam={{ position: [0, 0, 16], target: [0, 0.4, 0], fov: 52 }}>
             <hemisphereLight args={["#FFFFFF", "#1B2A6B", 0.9]} />
             <directionalLight position={[-8, 4, 8]} intensity={2.6} color="#FFF3E0" />
-            <group rotation={[0.3, 0, 0.2]}>
-              <EarthGlobe spin={t * 0.3} />
+            <group position={[0.3, -3.9, -2]} scale={3.4}>
+              <EarthGlobe spin={1.2 + t * 0.15} />
             </group>
-            {/* Trail along its local -z: point +z along the flight (15, -7, 3). */}
-            <group position={rock} rotation={[0.43, 1.37, 0, "YXZ"]}>
+            {/* Trail along its local -z: point +z along the flight (18, -4, 4). */}
+            <group position={rock} rotation={[0.21, 1.35, 0, "YXZ"]}>
               <Asteroid size={1.4} fire={1} t={t} />
             </group>
           </Stage>

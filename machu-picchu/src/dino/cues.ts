@@ -70,6 +70,7 @@ const final = (): Cue[] => {
   return [
     [START + 2, "dino/roar", 0.35],
     [GRAB - 2, "dino/snatch", 0.55],
+    [GRAB + 10, "inca/shutter", 0.55],
     [CTA - 2, "pop", 0.3],
     [TE, "ding", 0.35],
   ];
