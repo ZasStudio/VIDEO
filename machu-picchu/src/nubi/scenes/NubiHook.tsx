@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
-import { EASE_IN, EASE_OUT, ramp, rand } from "../../anim";
+import { EASE_IN, ramp, rand } from "../../anim";
 import { Burst, Card } from "../../overlay/Graphics";
 import { SMOOTH, Shake, Stage } from "../../scenes/common";
 import { CLAWD_SPOT } from "../../scenes/places";
@@ -63,7 +63,6 @@ export const NubiHook: React.FC = () => {
       });
 
   const tag = projectToScreen(cam, [NUBI_SPOT[0], NUBI_SPOT[1] + 3.1, NUBI_SPOT[2]], NUBI_WIDTH, NUBI_HEIGHT);
-  const whiteout = 1 - ramp(g, S.from + 1, S.from + 16, [0, 1], EASE_OUT);
   const redPulse = ramp(g, PEAK - 2, PEAK + 2) * (1 - ramp(g, PEAK + 4, PEAK + 22));
 
   return (
@@ -94,7 +93,6 @@ export const NubiHook: React.FC = () => {
             />
           ))}
         </Stage>
-        <AbsoluteFill style={{ background: "#fff", opacity: whiteout }} />
         <Card
           frame={g}
           at={LAND + 4}
