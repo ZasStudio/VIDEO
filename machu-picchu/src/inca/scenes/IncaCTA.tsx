@@ -16,6 +16,8 @@ import { INCA } from "../timeline";
 // the comment button.
 
 const NUBI_AT: Vec3 = [-0.9, 0, 1.6];
+const CAM_A = { position: [0.4, 4.4, 16.5] as Vec3, target: [0.32, 1.69, 0] as Vec3 };
+const CAM_B = { position: [0.2, 4.0, 15.2] as Vec3, target: [0.22, 1.52, 0] as Vec3 };
 
 export const IncaCTA: React.FC = () => {
   const frame = useCurrentFrame();
@@ -24,11 +26,7 @@ export const IncaCTA: React.FC = () => {
   const { END, EPOCA, TE } = CTA;
 
   const u = ramp(g, S.from, END, [0, 1], (x) => x);
-  const cam = {
-    position: lerp3([0.4, 4.4, 16.5], [0.2, 4.0, 15.2], u),
-    target: lerp3([0.3, 1.9, 0], [0.3, 1.8, 0], u),
-    fov: 40,
-  };
+  const cam = { position: lerp3(CAM_A.position, CAM_B.position, u), target: lerp3(CAM_A.target, CAM_B.target, u), fov: 40 };
 
   // Wonders (looks up at the bubbles, fin on "chin"), then points right at the comments.
   const wonder = windowIn(g, EPOCA - 6, TE - 4, 6);
@@ -63,7 +61,7 @@ export const IncaCTA: React.FC = () => {
           </group>
           <Twinkles frame={g} at={S.from + 2} position={[NUBI_AT[0], 1.6, NUBI_AT[2]]} radius={2.2} count={14} />
         </Stage>
-        <CommentsCTA frame={g} at={EPOCA - 8} x={540} y={640} />
+        <CommentsCTA frame={g} at={EPOCA - 8} x={630} y={610} />
       </Shake>
     </AbsoluteFill>
   );

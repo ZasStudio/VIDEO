@@ -23,8 +23,8 @@ export type Sfx =
   // Effects generated with Magnific for the Inca-phone short: public/inca/sfx/<name>.wav
   | `inca/${string}`;
 
-/** [global frame, sound, volume, optional max length in frames] */
-export type Cue = [number, Sfx, number, number?];
+/** [global frame, sound, volume, optional max length in frames, optional frames skipped at its start] */
+export type Cue = [number, Sfx, number, number?, number?];
 /** Looping ambience: [from, to, sound, volume]. */
 export type Bed = [number, number, Sfx, number];
 

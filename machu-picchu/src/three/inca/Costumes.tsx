@@ -770,6 +770,14 @@ export const Quipu: React.FC<{ swing?: number; phase?: number }> = ({ swing = 0,
 
 /** Quipu in <Nubi holdL>, held by the middle of its main cord, clear of the body. */
 export const QUIPU_HOLD_L = { position: [-1.2, 0.1, 0.3] as V3, rotation: [0, 0.2, 0] as V3, scale: 0.9 };
+/** Quipu in <Nubi holdR> (mirror of QUIPU_HOLD_L). */
+export const QUIPU_HOLD_R = { position: [1.2, 0.1, 0.3] as V3, rotation: [0, -0.2, 0] as V3, scale: 0.9 };
+/**
+ * Quipu hanging at Nubi's screen-right hip (a <Nubi> child): main cord running front to back
+ * along the side of the body just under the fin, cords hanging outside the unku. It reads from
+ * side and 3/4 views (edge-on from straight ahead). Mirror x and the y rotation for the left hip.
+ */
+export const QUIPU_HIP_R = { position: [6.1, 3.35, 1.4] as V3, rotation: [0, -Math.PI / 2 + 0.5, 0] as V3, scale: 0.7 };
 
 // ---------------------------------------------------------------------------------------
 
@@ -782,7 +790,7 @@ export const QUIPU_HOLD_L = { position: [-1.2, 0.1, 0.3] as V3, rotation: [0, 0.
 export const Mascaypacha: React.FC<{ sway?: number }> = ({ sway = 0 }) => {
   const band = useMemo(() => bandGeometry({ y0: 8.65, y1: 9.65, t0: 0.26, t1: 0.26, bulge: 0.08, rows: 5 }), []);
   const bar = useRounded(6.1, 0.3, 0.36, 0.12);
-  const tassel = useMemo(() => new THREE.CapsuleGeometry(0.17, 0.78, 4, 12), []);
+  const tassel = useMemo(() => new THREE.CapsuleGeometry(0.17, 0.74, 4, 12), []);
   const cap = useMemo(() => new THREE.CylinderGeometry(0.15, 0.15, 0.26, 12), []);
   const plate = useRounded(1.8, 1.3, 0.22, 0.1);
   const disc = useMemo(() => new THREE.CylinderGeometry(0.42, 0.42, 0.1, 28), []);
@@ -797,9 +805,11 @@ export const Mascaypacha: React.FC<{ sway?: number }> = ({ sway = 0 }) => {
       {Array.from({ length: 13 }).map((_, i) => {
         const x = -2.7 + i * 0.45;
         return (
-          <group key={i} position={[x, 8.43, 4.6]} rotation={[sway * 0.12, 0, sway * 0.06]}>
-            <mesh geometry={cap} material={gold()} position={[0, -0.13, 0]} />
-            <mesh geometry={tassel} material={wool} position={[0, -0.82, -0.03]} scale={[1, 1, 0.85]} />
+          // Tassel fronts (z ≈ 4.64) stay behind the eye bars (z = 4.7): even wide-open eyes looking
+          // up are drawn over the fringe, never hidden by it.
+          <group key={i} position={[x, 8.43, 4.56]} rotation={[sway * 0.12, 0, sway * 0.06]}>
+            <mesh geometry={cap} material={gold()} position={[0, -0.13, 0.02]} />
+            <mesh geometry={tassel} material={wool} position={[0, -0.8, -0.055]} scale={[1, 1, 0.8]} />
           </group>
         );
       })}

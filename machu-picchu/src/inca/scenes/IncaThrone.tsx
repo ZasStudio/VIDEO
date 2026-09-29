@@ -21,8 +21,9 @@ import { INCA, SPEAKER } from "../timeline";
 /** Nubi stands on the tiana (the royal stool) of the ThroneRoom set. */
 export const THRONE_NUBI_AT: Vec3 = [0, 0.62, 0.35];
 const NUBI_SIZE = 2.0;
-const CAM_A = { position: [0.5, 2.2, 8.6] as Vec3, target: [0.1, 2.6, 0] as Vec3 };
-const CAM_B = { position: [0.3, 2.0, 7.7] as Vec3, target: [0.05, 2.55, 0] as Vec3 };
+// Nubi on the left third, the chat on the right.
+const CAM_A = { position: [0.9, 2.4, 9.6] as Vec3, target: [0.58, 1.61, 0] as Vec3 };
+const CAM_B = { position: [0.7, 2.2, 8.8] as Vec3, target: [0.53, 1.52, 0] as Vec3 };
 
 export const IncaThrone: React.FC = () => {
   const frame = useCurrentFrame();
@@ -83,7 +84,7 @@ export const IncaThrone: React.FC = () => {
           <hemisphereLight args={["#FFF1D6", "#5A2A10", 1.25]} />
           <directionalLight position={[-5, 9, 8]} intensity={2.4} color="#FFF4E0" />
           <directionalLight position={[6, 4, -5]} intensity={1.0} color="#FFB36B" />
-          <ThroneRoom />
+          <ThroneRoom flicker={g} />
           <group position={THRONE_NUBI_AT} rotation={[0, 0, 0]}>
             <Nubi size={NUBI_SIZE} pose={pose} shadowOpacity={0.4} holdR={phone}>
               <Outfit kind="inca" />
@@ -94,11 +95,11 @@ export const IncaThrone: React.FC = () => {
         </Stage>
         {storm ? (
           <AbsoluteFill style={{ opacity: 1 - exitStorm, transform: `translateY(${-exitStorm * 120}px) scale(${1 - exitStorm * 0.1})` }}>
-            <NotificationStorm frame={g} from={STORM_FROM} to={STORM_TO} count={99} x={540} y={560} />
+            <NotificationStorm frame={g} from={STORM_FROM} to={STORM_TO} count={99} x={560} y={400} scale={0.88} />
           </AbsoluteFill>
         ) : null}
         <Burst frame={g} at={NOVENTA} x={540} y={520} color="#FF3D3D" size={640} />
-        <PhoneFrame frame={g} at={CHAT_IN} out={END + 10} x={540} y={590} scale={0.6}>
+        <PhoneFrame frame={g} at={CHAT_IN} out={END + 10} x={785} y={720} scale={0.62} tilt={-3}>
           <ChatScreen
             frame={g}
             contact={{ name: "Chasqui del Norte", avatar: "chasqui" }}
@@ -107,6 +108,7 @@ export const IncaThrone: React.FC = () => {
               { at: SEND, from: "me", text: "¡Manda tu ubicación, pues!", typingFrom: ENTONCES + 2 },
               { at: LOC_AT, from: "them", kind: "location", place: "Tumbes, norte del imperio", typingFrom: SEND + 3 },
             ]}
+            fontSize={60}
           />
         </PhoneFrame>
       </Shake>

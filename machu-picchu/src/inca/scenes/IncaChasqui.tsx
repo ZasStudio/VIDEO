@@ -5,7 +5,7 @@ import { ChatScreen, PhoneFrame } from "../../overlay/inca/PhoneUI";
 import { SMOOTH, Shake, Stage } from "../../scenes/common";
 import { Vec3, lerp3, projectToScreen } from "../../three/CameraRig";
 import { DustPuff, Twinkles } from "../../three/Effects3D";
-import { Pututu } from "../../three/inca/Costumes";
+import { PUTUTU_HOLD_R, Pututu } from "../../three/inca/Costumes";
 import { Phone3D } from "../../three/inca/Phone3D";
 import { QhapaqNan } from "../../three/inca/Sets";
 import { Nubi } from "../../three/Nubi";
@@ -27,8 +27,10 @@ const HEADING = 0.95;
 /** Road scroll speed while running (world units per frame). */
 const V = 0.22;
 
-const RUN_CAM = { position: [-1.1, 2.0, 9.2] as Vec3, target: [0.7, 2.1, 0] as Vec3 };
-const FRONT_CAM = { position: [0.25, 1.7, 6.6] as Vec3, target: [0.1, 2.2, 0] as Vec3 };
+// Side-on while running (tracking in a little), then round to the front.
+const RUN_CAM_A = { position: [-1.5, 2.4, 11.2] as Vec3, target: [0.04, 1.27, 0] as Vec3 };
+const RUN_CAM_B = { position: [-1.2, 2.3, 10.4] as Vec3, target: [0.04, 1.18, 0] as Vec3 };
+const FRONT_CAM = { position: [0.25, 2.0, 10.2] as Vec3, target: [-0.01, 1.28, 0] as Vec3 };
 
 export const IncaChasqui: React.FC = () => {
   const frame = useCurrentFrame();
@@ -52,10 +54,13 @@ export const IncaChasqui: React.FC = () => {
   // Camera: side-on while running, then round to the front for the phone and the nap.
   const turn = ramp(g, AHORA - 6, AHORA + 14, [0, 1], SMOOTH);
   const trackIn = ramp(g, S.from, AHORA, [0, 1], (x) => x);
-  const runPos = lerp3(RUN_CAM.position, [RUN_CAM.position[0] + 0.3, RUN_CAM.position[1] - 0.1, RUN_CAM.position[2] - 0.8], trackIn);
+  const run = {
+    position: lerp3(RUN_CAM_A.position, RUN_CAM_B.position, trackIn),
+    target: lerp3(RUN_CAM_A.target, RUN_CAM_B.target, trackIn),
+  };
   const cam = {
-    position: lerp3(runPos, FRONT_CAM.position, turn),
-    target: lerp3(RUN_CAM.target, FRONT_CAM.target, turn),
+    position: lerp3(run.position, FRONT_CAM.position, turn),
+    target: lerp3(run.target, FRONT_CAM.target, turn),
     fov: 42,
   };
 
@@ -93,11 +98,12 @@ export const IncaChasqui: React.FC = () => {
   // The pututu goes up for a toot before the run; the phone comes out on "ahora".
   const holdL =
     toot > 0.01 ? (
-      <Upright raise={pose.finL ?? 0} side="L">
-        <group position={[0.2, 0.9, 0.7]} rotation={[0, -0.4, 0.5]} scale={1.1}>
+      <group {...PUTUTU_HOLD_R}>
+        {/* Turned round so the mouthpiece points at Nubi in the left fin. */}
+        <group rotation={[0, Math.PI, 0]}>
           <Pututu />
         </group>
-      </Upright>
+      </group>
     ) : null;
   const holdR =
     phoneOut > 0.01 ? (
@@ -145,15 +151,17 @@ export const IncaChasqui: React.FC = () => {
           <Twinkles frame={g} at={MENSAJE + 2} position={[nubiPos[0] + 0.5, 0.9, nubiPos[2] + 0.6]} radius={0.9} count={8} />
         </Stage>
         <SpeedLines frame={g} k={running * (1 - turn)} />
-        <PhoneFrame frame={g} at={ESCRIBIRIA} out={Y - 2} x={540} y={600} scale={0.6}>
+        {/* Insert: the phone fills the frame while Nubi types, then drops away for the nap. */}
+        <PhoneFrame frame={g} at={ESCRIBIRIA} out={Y - 2} x={540} y={700} scale={0.85}>
           <ChatScreen
             frame={g}
             contact={{ name: "Sapa Inca", avatar: "crown" }}
             messages={[{ at: SEND, from: "me", text: "Mi Inca, noticias urgentes", typingFrom: MI }]}
+            fontSize={54}
           />
         </PhoneFrame>
       </Shake>
-      <Zzz frame={g} from={DORMIR + 4} x={head.x} y={head.y - 40} />
+      <Zzz frame={g} from={DORMIR + 4} x={head.x + 40} y={head.y - 30} />
       <AbsoluteFill style={{ background: "#0B1240", opacity: sleep * 0.25 * ramp(g, DORMIR, END), pointerEvents: "none" }} />
     </AbsoluteFill>
   );

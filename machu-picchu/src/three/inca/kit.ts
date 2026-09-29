@@ -87,17 +87,11 @@ export const shadeHex = (color: string, dl: number, ds = 0) => {
   return `#${c.getHexString()}`;
 };
 
-const texCache = new Map<string, THREE.CanvasTexture>();
-/** Canvas texture drawn once per key and cached (sRGB, mipmapped). */
-export const canvasTexture = (
-  key: string,
-  w: number,
-  h: number,
-  draw: (ctx: CanvasRenderingContext2D, w: number, h: number) => void,
-  o: { wrapS?: boolean; wrapT?: boolean } = {},
-) => {
-  const hit = texCache.get(key);
-  if (hit) return hit;
+type TexOpts = { wrapS?: boolean; wrapT?: boolean };
+type Draw = (ctx: CanvasRenderingContext2D, w: number, h: number) => void;
+
+/** Draws a canvas and wraps it in a texture (sRGB, mipmapped). Not cached. */
+export const makeCanvasTexture = (w: number, h: number, draw: Draw, o: TexOpts = {}) => {
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(2, Math.round(w));
   canvas.height = Math.max(2, Math.round(h));
@@ -108,8 +102,43 @@ export const canvasTexture = (
   t.anisotropy = 8;
   if (o.wrapS) t.wrapS = THREE.RepeatWrapping;
   if (o.wrapT) t.wrapT = THREE.RepeatWrapping;
+  return t;
+};
+
+const texCache = new Map<string, THREE.CanvasTexture>();
+/** Canvas texture drawn once per key and kept for the whole render. */
+export const canvasTexture = (key: string, w: number, h: number, draw: Draw, o: TexOpts = {}) => {
+  const hit = texCache.get(key);
+  if (hit) return hit;
+  const t = makeCanvasTexture(w, h, draw, o);
   texCache.set(key, t);
   return t;
+};
+
+/**
+ * Small least-recently-used texture cache for textures whose key changes with animation (a
+ * phone badge counting up): evicted textures are disposed.
+ */
+export const lruTextures = (max: number) => {
+  const map = new Map<string, THREE.CanvasTexture>();
+  return (key: string, w: number, h: number, draw: Draw) => {
+    const hit = map.get(key);
+    if (hit) {
+      map.delete(key);
+      map.set(key, hit);
+      return hit;
+    }
+    const t = makeCanvasTexture(w, h, draw);
+    map.set(key, t);
+    if (map.size > max) {
+      const oldest = map.keys().next().value;
+      if (oldest !== undefined) {
+        map.get(oldest)?.dispose();
+        map.delete(oldest);
+      }
+    }
+    return t;
+  };
 };
 
 /** Soft round glow (white centre fading out), for additive halos. */

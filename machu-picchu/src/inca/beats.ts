@@ -9,7 +9,7 @@ export const INTRO = {
   END: end("intro"),
   WAIT: wordAt("L01", 0),
   LAND: wordAt("L01", 8),
-  FALL: 20,
+  FALL: 16,
   WOW: wordAt("L01", 9),
   TODO: wordAt("L01", 11),
 };
@@ -80,7 +80,7 @@ export const SELFIE = {
   GRABAS: wordAt("L12", 10),
   OYE,
   SHOVE: OYE - 7,
-  FLASH: OYE + 16,
+  FLASH: OYE + 13,
 };
 
 const CELULARES = wordAt("L14", 2);
@@ -91,6 +91,7 @@ export const CAMINOS = {
   TOSS: CELULARES + 2,
   LOS: wordAt("L14", 3),
   TREINTA: wordAt("L14", 9),
+  KM: wordAt("L14", 11),
   WORD_CAMINOS: wordAt("L14", 13),
   CHASQUIS: wordAt("L14", 14),
   QUIPUS: wordAt("L14", 16),

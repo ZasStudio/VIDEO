@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import * as THREE from "three";
-import { V3, canvasTexture, glowTexture, planarUV, roundedRectShape, toy, useFontsReady, useRounded } from "./kit";
+import { V3, canvasTexture, glowTexture, lruTextures, planarUV, roundedRectShape, toy, useFontsReady, useRounded } from "./kit";
 
 // A modern (brand-free) smartphone: 1 tall x 0.5 wide x 0.05 deep at scale 1, origin at its
 // centre, screen facing +z. Screens are drawn on a canvas per variant: an original look (the
@@ -441,7 +441,6 @@ const drawNotifs = (ctx: Ctx, badge: number) => {
   const rg = ctx.createRadialGradient(SW / 2 - 30, 260, 10, SW / 2, 300, 114);
   rg.addColorStop(0, "rgba(255,255,255,0.35)");
   rg.addColorStop(1, "rgba(255,255,255,0)");
-  circle(ctx, SW / 2, 300, 114, "rgba(0,0,0,0)");
   ctx.fillStyle = rg;
   ctx.beginPath();
   ctx.arc(SW / 2, 300, 114, 0, Math.PI * 2);
@@ -623,9 +622,12 @@ const drawOff = (ctx: Ctx) => {
   ctx.fillRect(0, 0, SW, SH);
 };
 
+// Screens are cached in a small LRU: an animated badge (0 → 99) makes a new texture per value.
+const phoneTextures = lruTextures(24);
+
 const screenTexture = (screen: PhoneScreen, badge: number, messages: ChatMessage[], res: number) => {
-  const key = `inca-phone|${screen}|${screen === "home" || screen === "notifs" ? badge : 0}|${screen === "chat" ? JSON.stringify(messages) : ""}|${res}`;
-  return canvasTexture(key, SW * res, SH * res, (ctx) => {
+  const key = `${screen}|${screen === "home" || screen === "notifs" ? badge : 0}|${screen === "chat" ? JSON.stringify(messages) : ""}|${res}`;
+  return phoneTextures(key, SW * res, SH * res, (ctx) => {
     ctx.scale(res, res);
     if (screen === "home") drawHome(ctx, badge);
     else if (screen === "chat") drawChat(ctx, messages);
@@ -770,7 +772,10 @@ export const GiantPhone: React.FC<PhoneProps & { height?: number; squash?: numbe
   );
 };
 
-/** Phone in <Nubi holdR>: screen to the camera, bottom edge resting in the fin tip. */
-export const PHONE_HOLD_R = { position: [0.25, 1.3, 0.75] as V3, rotation: [0.08, -0.22, 0.06] as V3, scale: 3 };
+/**
+ * Phone in <Nubi holdR>: screen to the camera, turned a touch towards Nubi, its lower edge
+ * sunk into the fin tip so the fin grips it. Spread on a group around <Phone3D />.
+ */
+export const PHONE_HOLD_R = { position: [0.15, 1.25, 0.35] as V3, rotation: [0.06, -0.18, 0.04] as V3, scale: 3.3 };
 /** Mirror of PHONE_HOLD_R for <Nubi holdL>. */
-export const PHONE_HOLD_L = { position: [-0.25, 1.3, 0.75] as V3, rotation: [0.08, 0.22, -0.06] as V3, scale: 3 };
+export const PHONE_HOLD_L = { position: [-0.15, 1.25, 0.35] as V3, rotation: [0.06, 0.18, -0.04] as V3, scale: 3.3 };

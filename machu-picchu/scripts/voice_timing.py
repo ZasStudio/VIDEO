@@ -14,8 +14,10 @@ Everything goes to the timing JSON.
     python3 scripts/voice_timing.py <raw_dir> --standin  # first synthesise stand-ins with eSpeak
 
 Options (paths relative to the project): --narration src/narration.json,
---out src/voice-timing.json, --voice-dir public/voice. Nubi's short uses
---narration src/nubi/narration.json --out src/nubi/voice-timing.json --voice-dir public/nubi/voice
+--out src/voice-timing.json, --voice-dir public/voice, --tempo 1 (speed factor, pitch kept).
+Nubi's short uses --narration src/nubi/narration.json --out src/nubi/voice-timing.json
+--voice-dir public/nubi/voice; the Inca-phone short --narration src/inca/narration.json
+--out src/inca/voice-timing.json --voice-dir public/inca/voice --tempo 1.06
 """
 
 import json
@@ -88,12 +90,14 @@ def write_wav(path, x, sr):
         w.writeframes(pcm.tobytes())
 
 
-def load_clip(raw_dir, line_id, tmp_dir):
+def load_clip(raw_dir, line_id, tmp_dir, tempo=1.0):
     for ext in ("wav", "mp3"):
         p = os.path.join(raw_dir, f"{line_id}.{ext}")
         if os.path.exists(p):
             out = os.path.join(tmp_dir, f"{line_id}-48k.wav")
-            ffmpeg("-i", p, "-ac", "1", "-ar", str(OUT_RATE), "-sample_fmt", "s16", out)
+            # atempo speeds the speech up without changing its pitch.
+            speed = ["-af", f"atempo={tempo}"] if tempo != 1.0 else []
+            ffmpeg("-i", p, *speed, "-ac", "1", "-ar", str(OUT_RATE), "-sample_fmt", "s16", out)
             return read_wav(out)
     raise FileNotFoundError(f"no raw clip for {line_id} in {raw_dir}")
 
@@ -196,14 +200,35 @@ def dtw_path(A, B):
     return path[::-1]
 
 
+def merge_events(events, words):
+    """eSpeak may split a word ("TikTok" -> "Tik", "Tok"): joins its events back so there is
+    one per word of the text, or returns None if they cannot be matched."""
+    norm = lambda t: re.sub(r"\W", "", t.lower())
+    out, i = [], 0
+    for w in words:
+        if i >= len(events):
+            return None
+        first, acc = events[i], norm(events[i]["text"])
+        i += 1
+        while acc != norm(w) and i < len(events) and len(acc) < len(norm(w)):
+            acc += norm(events[i]["text"])
+            i += 1
+        out.append(first)
+    return out if i == len(events) else None
+
+
 def align(real, sr, tts, words):
     """Word start times (s) in `real` by DTW against an eSpeak rendering of the text."""
     from espeak_tts import synthesize
 
-    ref, ref_sr, events = synthesize(tts_to_spoken(tts), voice="es-419", rate=150)
+    # Hyphenated spellings ("Pí-o-ví") are one word: eSpeak would split them at the hyphens.
+    text = re.sub(r"(?<=\w)-(?=\w)", "", tts_to_spoken(tts))
+    ref, ref_sr, events = synthesize(text, voice="es-419", rate=150)
     ref = np.asarray(ref, dtype=np.float64) / 32768
     if len(events) != len(words):
-        print(f"    note: eSpeak found {len(events)} words, text has {len(words)}; using proportional fallback")
+        events = merge_events(events, words)
+    if events is None:
+        print(f"    note: eSpeak words do not match the text ({len(words)} words); using proportional fallback")
         return None
     A = features(ref, ref_sr)
     B = features(real, sr)
@@ -456,7 +481,7 @@ def main():
         words = spoken_words(line["tts"])
         if line["captions"] and caption_word_count(line["captions"]) != len(words):
             raise SystemExit(f"{lid}: captions cover {caption_word_count(line['captions'])} words, text has {len(words)}")
-        x, sr = load_clip(raw_dir, lid, tmp_dir)
+        x, sr = load_clip(raw_dir, lid, tmp_dir, float(option("--tempo", "1")))
         a, b = trim_bounds(x, sr)
         x = level(cap_pauses(x[a:b].copy(), sr), sr)
         fade = int(0.01 * sr)
@@ -465,6 +490,14 @@ def main():
         write_wav(os.path.join(out_dir, f"{lid}.wav"), x, sr)
         starts = align(x, sr, line["tts"], words) or proportional(x, sr, words)
         starts, ends = refine(x, sr, line["tts"], words, starts)
+        # Hand corrections where the aligner is fooled (e.g. a word drawn out syllable by
+        # syllable): "word_starts": {"<word index>": seconds in the trimmed clip}.
+        for k, v in sorted((int(k), v) for k, v in line.get("word_starts", {}).items()):
+            starts[k] = v
+            if k > 0:
+                ends[k - 1] = v
+            if k + 1 < len(starts):
+                ends[k] = starts[k + 1]
         spans = [[round(s, 3), round(e, 3)] for s, e in zip(starts, ends)]
         env, acc = frame_envelope(x, sr)
         result["lines"][lid] = {"duration": round(len(x) / sr, 3), "words": spans, "env": env, "accents": acc}

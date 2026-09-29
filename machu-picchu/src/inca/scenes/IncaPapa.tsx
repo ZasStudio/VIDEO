@@ -30,8 +30,8 @@ const PLANTS: Vec3[] = [
   [1.7, 0, 1.7],
   [2.4, 0, 1.4],
 ];
-const CAM_A = { position: [0.7, 2.6, 9.4] as Vec3, target: [0.3, 2.3, 0] as Vec3 };
-const CAM_B = { position: [0.5, 2.4, 8.4] as Vec3, target: [0.25, 2.2, 0] as Vec3 };
+const CAM_A = { position: [1.0, 3.0, 11.6] as Vec3, target: [-0.38, 1.04, 0] as Vec3 };
+const CAM_B = { position: [0.8, 2.8, 10.6] as Vec3, target: [-0.43, 0.89, 0] as Vec3 };
 
 export const IncaPapa: React.FC = () => {
   const frame = useCurrentFrame();
@@ -122,7 +122,7 @@ export const IncaPapa: React.FC = () => {
           <Twinkles frame={g} at={BOT_POP} position={BOT_AT} radius={1.0} count={10} color="#9FF3FF" />
           <Twinkles frame={g} at={PAPA_TEC} position={[1.4, 0.8, 1.9]} radius={1.8} count={16} />
         </Stage>
-        <WeatherCard frame={g} at={P_START} out={SEMBRAR - 4} x={540} y={470} />
+        <WeatherCard frame={g} at={P_START} out={SEMBRAR - 4} x={560} y={500} scale={0.85} />
         <Burst frame={g} at={PAPA_TEC} x={600} y={900} color="#FFD60A" size={620} />
       </Shake>
     </AbsoluteFill>

@@ -8,7 +8,7 @@ import { canvasTexture, glowTexture, noise3, toy, useRounded } from "./kit";
 // Nubi-style eyes, pink blush and a floating cyan light ring that pulses while it talks.
 // No mouth: like Nubi, it talks by bouncing (drive `hop` / `squash` with the voice).
 // Model units like Nubi's (size = body width in world units, model scaled by size / 10): the
-// potato is 10 wide, 7.2 tall and 8.2 deep, sitting on y = 0; the ring floats at y ≈ 9.8.
+// potato is ≈10.5 wide, 7.2 tall and 8.2 deep, sitting on y = 0; the ring floats at y ≈ 10.
 
 export type PapaBotPose = {
   hop?: number;
@@ -26,7 +26,7 @@ const P = { rx: 5.0, ry: 3.6, rz: 4.1, cy: 3.55 };
 
 /** Radial lumpiness of the potato for a unit direction. */
 const lump = (x: number, y: number, z: number) =>
-  1 + 0.075 * noise3(x * 1.25 + 3, y * 1.25, z * 1.25) + 0.035 * noise3(x * 2.9, y * 2.9 + 7, z * 2.9);
+  (1 + 0.1 * noise3(x * 1.1 + 3, y * 1.1, z * 1.1) + 0.04 * noise3(x * 2.9, y * 2.9 + 7, z * 2.9)) * (1 + 0.07 * x - 0.03 * y * x);
 
 /** Point on the potato surface in the direction of the ellipsoid point (x, y, z). */
 const surfacePoint = (x: number, y: number, front = 1) => {
@@ -93,20 +93,24 @@ export const PapaBot: React.FC<{
       p.setXYZ(i, x * P.rx * k, py + P.cy, z * P.rz * k);
     }
     body.computeVertexNormals();
-    const ring = new THREE.TorusGeometry(2.7, 0.2, 14, 96);
+    const ring = new THREE.TorusGeometry(3.1, 0.24, 14, 96);
     ring.rotateX(Math.PI / 2);
-    const ringThin = new THREE.TorusGeometry(3.25, 0.06, 8, 96);
+    const ringThin = new THREE.TorusGeometry(3.7, 0.07, 8, 96);
     ringThin.rotateX(Math.PI / 2);
-    const disc = new THREE.CircleGeometry(3.0, 48);
+    const disc = new THREE.CircleGeometry(3.4, 48);
     disc.rotateX(-Math.PI / 2);
-    const beam = new THREE.CylinderGeometry(2.6, 1.0, 2.2, 40, 1, true);
-    return { body, ring, ringThin, disc, beam, blush: new THREE.SphereGeometry(1, 20, 12), seg: new THREE.BoxGeometry(0.34, 1, 0.34) };
+    const beam = new THREE.CylinderGeometry(3.0, 1.2, 2.4, 40, 1, true);
+    // A light ray lying in the ring plane, pointing outwards (+x), base at the origin.
+    const seg = new THREE.CapsuleGeometry(0.13, 1, 3, 8);
+    seg.rotateZ(Math.PI / 2);
+    seg.translate(0.5, 0, 0);
+    return { body, ring, ringThin, disc, beam, blush: new THREE.SphereGeometry(1, 20, 12), seg };
   }, []);
-  const eye = useRounded(0.95, 1.55, 0.45, 0.2);
+  const eye = useRounded(1.1, 1.8, 0.5, 0.22);
 
   const features = useMemo(() => {
-    const eyes = [-1, 1].map((k) => surfacePoint(k * 1.65, 0.75));
-    const blush = [-1, 1].map((k) => surfacePoint(k * 3.05, -0.2));
+    const eyes = [-1, 1].map((k) => surfacePoint(k * 1.75, 0.85));
+    const blush = [-1, 1].map((k) => surfacePoint(k * 3.15, -0.25));
     const q = (n: THREE.Vector3) => new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), n);
     return {
       eyes: eyes.map(({ p, n }) => ({ p: p.clone().addScaledVector(n, 0.02).add(new THREE.Vector3(0, P.cy, 0)), q: q(n) })),
@@ -173,27 +177,24 @@ export const PapaBot: React.FC<{
         </group>
         {/* Voice-assistant light ring floating above (not squashed, just carried by the hop). */}
         {g > 0.001 ? (
-          <group position={[0, 9.8 + tk * 0.25, 0]}>
-            <mesh geometry={geos.beam} material={mats.beam} position={[0, -1.25, 0]} renderOrder={2} />
-            <mesh geometry={geos.disc} material={mats.halo} scale={ringScale * 1.25} renderOrder={2} />
-            <group scale={ringScale}>
-              <mesh geometry={geos.ring} material={mats.ring} renderOrder={3} />
-              <mesh geometry={geos.ringThin} material={mats.thin} renderOrder={3} />
-              {Array.from({ length: SEGS }).map((_, i) => {
-                const a = (i / SEGS) * Math.PI * 2;
-                const h = 0.25 + tk * (0.5 + 0.45 * Math.abs(Math.sin(i * 1.7 + tk * 3)));
-                return (
-                  <mesh
-                    key={i}
-                    geometry={geos.seg}
-                    material={mats.seg}
-                    position={[Math.cos(a) * 2.7, h / 2 - 0.05, Math.sin(a) * 2.7]}
-                    rotation={[0, -a, 0]}
-                    scale={[1, h, 1]}
-                    renderOrder={4}
-                  />
-                );
-              })}
+          <group position={[0, 10.1 + tk * 0.3, 0]}>
+            <mesh geometry={geos.beam} material={mats.beam} position={[0, -1.35, 0]} renderOrder={2} />
+            {/* Tilted towards the camera so it reads as a ring, not a line. */}
+            <group rotation={[0.38, 0, 0]}>
+              <mesh geometry={geos.disc} material={mats.halo} scale={ringScale * 1.3} renderOrder={2} />
+              <group scale={ringScale}>
+                <mesh geometry={geos.ring} material={mats.ring} renderOrder={3} />
+                <mesh geometry={geos.ringThin} material={mats.thin} renderOrder={3} />
+                {Array.from({ length: SEGS }).map((_, i) => {
+                  const a = (i / SEGS) * Math.PI * 2;
+                  const len = 0.15 + tk * (0.45 + 0.5 * Math.abs(Math.sin(i * 1.7 + tk * 3)));
+                  return (
+                    <group key={i} rotation={[0, -a, 0]}>
+                      <mesh geometry={geos.seg} material={mats.seg} position={[3.45, 0, 0]} scale={[len, 1, 1]} renderOrder={4} />
+                    </group>
+                  );
+                })}
+              </group>
             </group>
           </group>
         ) : null}

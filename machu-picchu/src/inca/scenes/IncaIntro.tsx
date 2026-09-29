@@ -7,7 +7,7 @@ import { SMOOTH, Shake, Stage } from "../../scenes/common";
 import { CLAWD_SPOT } from "../../scenes/places";
 import { Vec3, lerp3, projectToScreen } from "../../three/CameraRig";
 import { DustPuff, Twinkles } from "../../three/Effects3D";
-import { Phone3D } from "../../three/inca/Phone3D";
+import { GiantPhone } from "../../three/inca/Phone3D";
 import { Nubi } from "../../three/Nubi";
 import { LOOKS } from "../../three/Text3D";
 import { Atmosphere, World, skyGradient } from "../../three/World";
@@ -25,12 +25,11 @@ export const INTRO_SIZE = 2.1;
 export const INTRO_YAW = 0.2;
 
 // Vertical framing: Nubi just above the captions, the phone on the screen-right side.
-const CAM_A = { position: [3.95, 2.6, 32.2] as Vec3, target: [2.4, -0.95, 0] as Vec3 };
-const CAM_B = { position: [3.9, 2.4, 30.8] as Vec3, target: [2.4, -0.9, 0] as Vec3 };
+const CAM_A = { position: [3.95, 2.6, 32.2] as Vec3, target: [2.74, -0.58, 0] as Vec3 };
+const CAM_B = { position: [3.9, 2.4, 30.8] as Vec3, target: [2.76, -0.82, 0] as Vec3 };
 
-/** Where the phone sits in the right fin (fin-tip space, after Upright) and its size. */
-const PHONE_AT: Vec3 = [0.9, 2.6, 0.9];
-const PHONE_SCALE = 8;
+/** Where the giant phone's bottom rests in the right fin (fin-tip space, after Upright). */
+const PHONE_AT: Vec3 = [0.9, -0.4, 0.9];
 
 export const IncaIntro: React.FC = () => {
   const frame = useCurrentFrame();
@@ -71,14 +70,15 @@ export const IncaIntro: React.FC = () => {
   });
 
   // The phone: spins down from the sky, lands in the fin with a bounce, then lights up.
+  // Drops in from just above the frame and speeds up (in the fin's units: 40 = ~8 world units).
   const ft = ramp(g, LAND - FALL, LAND, [0, 1], (x) => x);
-  const fallY = landed ? 1.3 * Math.abs(Math.sin(dl * 0.5)) * Math.exp(-dl / 5) : 160 * (1 - ft * ft);
+  const fallY = landed ? 1.3 * Math.abs(Math.sin(dl * 0.5)) * Math.exp(-dl / 5) : 40 * (1 - 0.35 * ft - 0.65 * ft * ft);
   const spin = landed ? 0.12 * Math.sin(dl * 0.5) * Math.exp(-dl / 6) : (1 - ft) * 3.2;
   const glow = ramp(g, LAND + 10, LAND + 18);
   const phone = g >= LAND - FALL - 2 ? (
     <Upright raise={finR}>
-      <group position={[PHONE_AT[0], PHONE_AT[1] + fallY, PHONE_AT[2]]} rotation={[spin * 0.3, spin * 0.5, spin]} scale={PHONE_SCALE}>
-        <Phone3D screen={glow > 0 ? "home" : "off"} glow={glow} />
+      <group position={[PHONE_AT[0], PHONE_AT[1] + fallY, PHONE_AT[2]]} rotation={[spin * 0.3, spin * 0.5, spin]}>
+        <GiantPhone height={8} squash={landed ? 1 - 0.12 * Math.exp(-dl / 3) * Math.cos(dl * 0.9) : 1.06} screen={glow > 0 ? "home" : "off"} glow={glow} />
       </group>
     </Upright>
   ) : null;
@@ -112,14 +112,14 @@ export const IncaIntro: React.FC = () => {
           <group scale={1 + 0.06 * bump}>
             <TitleSlam
               frame={g}
-              at={WAIT + 4}
-              out={END - 12}
+              at={-16}
+              out={LAND - FALL - 12}
               exit="up"
               lines={[
-                { text: "¿ASÍ SERÍA", size: 0.8, look: LOOKS.white, y: 4.3 },
-                { text: "VIVIR EN EL", size: 0.77, look: LOOKS.white, y: 3.45 },
-                { text: "IMPERIO INCA", size: 0.64, look: LOOKS.gold, y: 2.65 },
-                { text: "CON CELULAR?", size: 0.6, look: LOOKS.cyan, y: 1.9 },
+                { text: "¿ASÍ SERÍA", size: 0.8, look: LOOKS.white, y: 4.3, delay: 0 },
+                { text: "VIVIR EN EL", size: 0.77, look: LOOKS.white, y: 3.45, delay: 4 },
+                { text: "IMPERIO INCA", size: 0.64, look: LOOKS.gold, y: 2.65, delay: 8 },
+                { text: "CON CELULAR?", size: 0.6, look: LOOKS.cyan, y: 1.9, delay: 12 },
               ]}
             />
           </group>

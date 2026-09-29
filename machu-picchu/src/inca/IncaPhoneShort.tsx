@@ -13,7 +13,7 @@ import { IncaIntro } from "./scenes/IncaIntro";
 import { IncaPapa } from "./scenes/IncaPapa";
 import { IncaSelfie } from "./scenes/IncaSelfie";
 import { IncaThrone } from "./scenes/IncaThrone";
-import { INCA, IncaScene } from "./timeline";
+import { INCA, IncaScene, MUSIC_TRIM } from "./timeline";
 
 // "¿Así sería vivir en el Imperio Inca con celular?" Nubi's vertical short (1080 x 1920, 60 s).
 // Every scene change is a costume change behind a cloud of smoke.
@@ -51,6 +51,7 @@ const SceneSlot: React.FC<{ k: IncaScene }> = ({ k }) => {
 export const IncaSoundtrack: React.FC = () => (
   <Mix
     music="inca/music.wav"
+    musicTrim={MUSIC_TRIM}
     duration={INCA.DURATION}
     fadeOut={20}
     cues={INCA_CUES}

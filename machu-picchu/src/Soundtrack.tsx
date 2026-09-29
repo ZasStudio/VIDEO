@@ -83,10 +83,11 @@ export const Mix: React.FC<{
       {beds.map(([from, to, sfx, volume]) => (
         <Bed key={`${sfx}${from}`} from={from} to={to} sfx={sfx} volume={volume} len={BED_FRAMES[sfx] ?? 60} duck={ducking} />
       ))}
-      {cues.map(([from, sfx, volume, len], i) => (
+      {cues.map(([from, sfx, volume, len, trim], i) => (
         <Sequence key={i} name={sfx} from={from} durationInFrames={len} layout="none">
           <Audio
             src={staticFile(sfxFile(sfx))}
+            trimBefore={trim || undefined}
             volume={(f) =>
               SFX_GAIN *
               volume *

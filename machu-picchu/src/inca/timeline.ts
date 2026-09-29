@@ -15,20 +15,20 @@ export const INCA_TOTAL = 60 * FPS;
 
 // Seconds of silence before the first line, before each following line ([id, gap]) and after the last.
 const PLAN: PlanScene<IncaScene>[] = [
-  // The phone falls from the sky into Nubi's fins.
-  {scene: 'intro', pre: 0.6, lines: [['L01', 0]], post: 0.3},
-  // Poof: chasqui. Pututu, running, the trip, typing, the nap.
-  {scene: 'chasqui', pre: 0.8, lines: [['L02', 0], ['L03', 0.9], ['L04', 0.4]], post: 1.3},
+  // The phone falls from the sky into Nubi's fin.
+  {scene: 'intro', pre: 0.3, lines: [['L01', 0]], post: 0.25},
+  // Poof: chasqui. Pututu, running, the trip (and getting up), typing, the nap.
+  {scene: 'chasqui', pre: 0.45, lines: [['L02', 0], ['L03', 0.65], ['L04', 0.2]], post: 0.8},
   // Poof: Sapa Inca on the throne, 99 notifications.
-  {scene: 'inca', pre: 0.8, lines: [['L05', 0], ['L06', 0.4], ['L07', 0.3]], post: 0.9},
+  {scene: 'inca', pre: 0.55, lines: [['L05', 0], ['L06', 0.3], ['L07', 0.2]], post: 0.45},
   // Poof: farmer on the terraces, the potato assistant pops out of the phone.
-  {scene: 'papa', pre: 0.7, lines: [['L08', 0], ['L09', 0.5], ['L10', 0.3]], post: 0.9},
-  // Machu Picchu selfie, llamas photobomb, one shoves Nubi out.
-  {scene: 'selfie', pre: 0.6, lines: [['L11', 0], ['L12', 0.4], ['L13', 0.25]], post: 1.4},
+  {scene: 'papa', pre: 0.4, lines: [['L08', 0], ['L09', 0.35], ['L10', 0.2]], post: 0.5},
+  // Machu Picchu selfie, llamas photobomb, one shoves Nubi out; the photo freezes.
+  {scene: 'selfie', pre: 0.3, lines: [['L11', 0], ['L12', 0.25], ['L13', 0.1]], post: 1.15},
   // Poof: chasqui again in front of the Qhapaq Ñan map.
-  {scene: 'caminos', pre: 0.6, lines: [['L14', 0]], post: 0.6},
+  {scene: 'caminos', pre: 0.3, lines: [['L14', 0]], post: 0.2},
   // "¿A qué otra época debería viajar Nubi?"
-  {scene: 'cta', pre: 0.3, lines: [['L15', 0]], post: 0.8},
+  {scene: 'cta', pre: 0.2, lines: [['L15', 0]], post: 0.4},
 ];
 
 export const INCA = createTimeline(narration as Narration, timing as unknown as VoiceTiming, PLAN, {
@@ -50,3 +50,10 @@ export const SPEAKER = {
   celular: INCA.speakerTrack(linesOf('celular')),
   papa: INCA.speakerTrack(linesOf('papa')),
 };
+
+/**
+ * Frames skipped at the start of the music (Magnific, 101 BPM): the video opens on the downbeat
+ * where the song's full section starts (38.1 s), and its quiet breakdown arrives under the
+ * closing question.
+ */
+export const MUSIC_TRIM = 1143;

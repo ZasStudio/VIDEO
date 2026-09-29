@@ -5,7 +5,7 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 import { getStoneTexture } from "../Citadel";
 import { mulberry } from "../noise";
 import { IntiSun } from "../Props";
-import { V3, canvasTexture, gold, goldDark, loopNoise, paintGeo, shadeHex, toy, useRounded, vertexMat, wrap } from "./kit";
+import { V3, canvasTexture, gold, goldDark, loopNoise, noise3, paintGeo, shadeHex, toy, useRounded, vertexMat, wrap } from "./kit";
 
 // Scene sets for the Inca-phone short. Each is self-contained, centred at the origin with the
 // ground at y = 0, in world units sized for Nubi at size ≈ 2 (2 wide, 2 tall).
@@ -217,14 +217,18 @@ const Brazier: React.FC<{ position: V3; flicker: number; seed: number }> = ({ po
     [],
   );
   const f = (k: number) => 1 + 0.12 * Math.sin(flicker * 0.9 + seed + k * 2.1) + 0.06 * Math.sin(flicker * 2.3 + k);
+  const flame = useMemo(
+    () => ["#FF6A1A", "#FFB21A", "#FFF1A8"].map((c) => new THREE.MeshBasicMaterial({ color: c, toneMapped: false })),
+    [],
+  );
   return (
     <group position={position}>
       <mesh geometry={geos.foot} material={goldDark()} position={[0, 0.05, 0]} />
       <mesh geometry={geos.stem} material={gold()} position={[0, 0.55, 0]} />
       <mesh geometry={geos.bowl} material={gold()} position={[0, 1.1, 0]} />
-      <mesh geometry={geos.flame} material={toy("#FF7A1A", { glow: 1.2, rough: 1 })} position={[0, 1.42, 0]} scale={[0.3, 0.62 * f(0), 0.3]} />
-      <mesh geometry={geos.flame} material={toy("#FFC21A", { glow: 1.4, rough: 1 })} position={[0.04, 1.38, 0.05]} scale={[0.19, 0.44 * f(1), 0.19]} />
-      <mesh geometry={geos.flame} material={toy("#FFF3B0", { glow: 1.6, rough: 1 })} position={[-0.03, 1.33, 0.08]} scale={[0.1, 0.26 * f(2), 0.1]} />
+      <mesh geometry={geos.flame} material={flame[0]} position={[0, 1.2 + 0.42 * f(0), 0]} scale={[0.34, 0.84 * f(0), 0.34]} />
+      <mesh geometry={geos.flame} material={flame[1]} position={[0.03, 1.2 + 0.3 * f(1), 0.1]} scale={[0.23, 0.6 * f(1), 0.23]} />
+      <mesh geometry={geos.flame} material={flame[2]} position={[-0.02, 1.2 + 0.18 * f(2), 0.16]} scale={[0.12, 0.36 * f(2), 0.12]} />
     </group>
   );
 };
@@ -379,9 +383,63 @@ const soilTexture = () =>
     { wrapS: true, wrapT: true },
   );
 
+const M4 = () => new THREE.Matrix4();
+const T = (x: number, y: number, z: number) => M4().makeTranslation(x, y, z);
+const S = (x: number, y = x, z = x) => M4().makeScale(x, y, z);
+const RX = (a: number) => M4().makeRotationX(a);
+const RY = (a: number) => M4().makeRotationY(a);
+const chain = (...ms: THREE.Matrix4[]) => ms.reduce((acc, m) => acc.multiply(m), M4());
+const placed = (base: THREE.BufferGeometry, color: string, m: THREE.Matrix4) => paintGeo(base.clone(), color).applyMatrix4(m);
+
+const plantCache = new Map<string, { base: THREE.BufferGeometry; leaves: THREE.BufferGeometry }>();
+/** The plant merged into two vertex-coloured meshes (soil + potatoes, foliage + flowers). */
+const plantGeometry = (seed: number, flowers: boolean, potatoes: boolean) => {
+  const key = `${seed}|${flowers}|${potatoes}`;
+  const hit = plantCache.get(key);
+  if (hit) return hit;
+  const rnd = mulberry(seed * 97 + 13);
+  const leaf = new THREE.SphereGeometry(1, 10, 8);
+  const stem = new THREE.CylinderGeometry(0.025, 0.035, 1, 6);
+  const mound = new THREE.SphereGeometry(1, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+  const petal = new THREE.SphereGeometry(1, 8, 6);
+  const potato = new THREE.DodecahedronGeometry(1, 1);
+  const base = [placed(mound, "#7A4E2A", S(0.34, 0.12, 0.3))];
+  if (potatoes) {
+    base.push(placed(potato, "#C98E4E", chain(T(0.2, 0.04, 0.14), M4().makeRotationFromEuler(new THREE.Euler(0.3, 0.5, 0)), S(0.1, 0.075, 0.085))));
+    base.push(placed(potato, "#B97E42", chain(T(-0.17, 0.03, 0.17), M4().makeRotationFromEuler(new THREE.Euler(0.1, 1.3, 0.2)), S(0.085, 0.065, 0.075))));
+  }
+  const fol = [placed(stem, "#2F9A40", chain(T(0, 0.28, 0), S(1, 0.56, 1)))];
+  for (let i = 0; i < 9; i++) {
+    const tier = i < 6 ? 0 : 1;
+    const a = tier ? (i / 3) * Math.PI * 2 + rnd() : (i / 6) * Math.PI * 2 + rnd() * 0.4;
+    const tilt = tier ? 1.0 + rnd() * 0.3 : 0.45 + rnd() * 0.3;
+    const len = tier ? 0.2 + rnd() * 0.05 : 0.27 + rnd() * 0.07;
+    const y = tier ? 0.34 + rnd() * 0.06 : 0.12 + rnd() * 0.08;
+    const color = rnd() < 0.5 ? "#2F9A40" : "#48B84E";
+    fol.push(placed(leaf, color, chain(RY(a), T(0, y, 0), RX(-tilt), T(0, 0, len * 0.85), S(0.18, 0.05, len * 0.9))));
+  }
+  for (let i = 0; i < 3; i++) {
+    const a = (i / 3) * Math.PI * 2 + rnd();
+    const r = 0.08 + rnd() * 0.06;
+    const y = 0.56 + rnd() * 0.08;
+    if (!flowers) continue;
+    const x = Math.cos(a) * r;
+    const z = Math.sin(a) * r;
+    fol.push(placed(stem, "#2F9A40", chain(T(x / 2, y / 2 + 0.2, z / 2), S(0.6, y - 0.35, 0.6))));
+    for (let k = 0; k < 5; k++) {
+      const pa = (k / 5) * Math.PI * 2;
+      fol.push(placed(petal, i % 2 ? "#C9A2FF" : "#FFFFFF", chain(T(x + Math.cos(pa) * 0.055, y, z + Math.sin(pa) * 0.055), S(0.05, 0.02, 0.05))));
+    }
+    fol.push(placed(petal, "#FFC21A", chain(T(x, y + 0.014, z), S(0.03))));
+  }
+  const out = { base: mergeAll(base), leaves: mergeAll(fol) };
+  plantCache.set(key, out);
+  return out;
+};
+
 /**
  * A cute potato plant (≈0.7 tall at scale 1): leafy clump on a soil mound, white and lilac
- * flowers, two little potatoes peeking out. `sway` (-1..1) bends it in the wind.
+ * flowers, two little potatoes peeking out. `sway` (-1..1) bends it in the wind. Two meshes.
  */
 export const PotatoPlant: React.FC<{ seed?: number; flowers?: boolean; potatoes?: boolean; sway?: number }> = ({
   seed = 1,
@@ -389,77 +447,11 @@ export const PotatoPlant: React.FC<{ seed?: number; flowers?: boolean; potatoes?
   potatoes = true,
   sway = 0,
 }) => {
-  const data = useMemo(() => {
-    const rnd = mulberry(seed * 97 + 13);
-    const leaves: { a: number; tilt: number; len: number; y: number; shade: number }[] = [];
-    for (let i = 0; i < 9; i++) {
-      const tier = i < 6 ? 0 : 1;
-      leaves.push({
-        a: tier ? (i / 3) * Math.PI * 2 + rnd() : (i / 6) * Math.PI * 2 + rnd() * 0.4,
-        tilt: tier ? 1.0 + rnd() * 0.3 : 0.45 + rnd() * 0.3,
-        len: tier ? 0.2 + rnd() * 0.05 : 0.27 + rnd() * 0.07,
-        y: tier ? 0.34 + rnd() * 0.06 : 0.12 + rnd() * 0.08,
-        shade: rnd(),
-      });
-    }
-    const flw = [0, 1, 2].map((i) => ({ a: (i / 3) * Math.PI * 2 + rnd(), r: 0.08 + rnd() * 0.06, y: 0.56 + rnd() * 0.08 }));
-    return { leaves, flw };
-  }, [seed]);
-  const geos = useMemo(
-    () => ({
-      leaf: new THREE.SphereGeometry(1, 10, 8),
-      stem: new THREE.CylinderGeometry(0.025, 0.035, 1, 6),
-      mound: new THREE.SphereGeometry(1, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2),
-      petal: new THREE.SphereGeometry(1, 8, 6),
-      potato: new THREE.DodecahedronGeometry(1, 1),
-    }),
-    [],
-  );
-  const leafA = toy("#2F9A40", { rough: 0.7, glow: 0.12, flat: true });
-  const leafB = toy("#48B84E", { rough: 0.7, glow: 0.12, flat: true });
+  const geo = useMemo(() => plantGeometry(seed, flowers, potatoes), [seed, flowers, potatoes]);
   return (
     <group>
-      <mesh geometry={geos.mound} material={toy("#7A4E2A", { rough: 1, glow: 0.06 })} scale={[0.34, 0.12, 0.3]} receiveShadow />
-      {potatoes ? (
-        <>
-          <mesh geometry={geos.potato} material={toy("#C98E4E", { rough: 0.8, glow: 0.12 })} position={[0.2, 0.04, 0.14]} scale={[0.1, 0.075, 0.085]} rotation={[0.3, 0.5, 0]} />
-          <mesh geometry={geos.potato} material={toy("#B97E42", { rough: 0.8, glow: 0.12 })} position={[-0.17, 0.03, 0.17]} scale={[0.085, 0.065, 0.075]} rotation={[0.1, 1.3, 0.2]} />
-        </>
-      ) : null}
-      <group rotation={[sway * 0.08, 0, sway * 0.16]}>
-        <mesh geometry={geos.stem} material={leafA} position={[0, 0.28, 0]} scale={[1, 0.56, 1]} />
-        {data.leaves.map((l, i) => (
-          <group key={i} rotation={[0, l.a, 0]}>
-            <group position={[0, l.y, 0]} rotation={[-l.tilt, 0, 0]}>
-              <mesh geometry={geos.leaf} material={l.shade < 0.5 ? leafA : leafB} position={[0, 0, l.len * 0.9]} scale={[0.13, 0.045, l.len]} castShadow />
-            </group>
-          </group>
-        ))}
-        {flowers
-          ? data.flw.map((f, i) => {
-              const x = Math.cos(f.a) * f.r;
-              const z = Math.sin(f.a) * f.r;
-              const petal = toy(i % 2 ? "#C9A2FF" : "#FFFFFF", { rough: 0.6, glow: 0.25 });
-              return (
-                <group key={i}>
-                  <mesh geometry={geos.stem} material={leafA} position={[x / 2, f.y / 2 + 0.2, z / 2]} scale={[0.6, f.y - 0.35, 0.6]} />
-                  <group position={[x, f.y, z]}>
-                    {[0, 1, 2, 3, 4].map((k) => (
-                      <mesh
-                        key={k}
-                        geometry={geos.petal}
-                        material={petal}
-                        position={[Math.cos((k / 5) * Math.PI * 2) * 0.045, 0, Math.sin((k / 5) * Math.PI * 2) * 0.045]}
-                        scale={[0.04, 0.018, 0.04]}
-                      />
-                    ))}
-                    <mesh geometry={geos.petal} material={toy("#FFC21A", { glow: 0.3 })} position={[0, 0.012, 0]} scale={0.024} />
-                  </group>
-                </group>
-              );
-            })
-          : null}
-      </group>
+      <mesh geometry={geo.base} material={vertexMat(0.9, false, 0.1)} receiveShadow />
+      <mesh geometry={geo.leaves} material={vertexMat(0.7, true, 0.14)} rotation={[sway * 0.08, 0, sway * 0.16]} castShadow />
     </group>
   );
 };
@@ -468,7 +460,8 @@ export const PotatoPlant: React.FC<{ seed?: number; flowers?: boolean; potatoes?
  * Four stepped green andenes with stone retaining walls, curving round a hillside. The front
  * terrace (ground, y = 0, z ≈ 0.3..3.6) is freshly furrowed soil for sowing; the upper ones
  * (tops at y = 1.05, 2.1, 3.15) are grass with rows of potato plants, flying stone steps and an
- * irrigation channel along the first step. `backdrop` adds low-poly Andes far behind.
+ * irrigation channel along the first step. `backdrop` adds Huayna Picchu and the low-poly
+ * Andes behind.
  */
 export const Terraces: React.FC<{ backdrop?: boolean; flow?: number }> = ({ backdrop = true, flow = 0 }) => {
   const geos = useMemo(() => {
@@ -542,17 +535,71 @@ export const Terraces: React.FC<{ backdrop?: boolean; flow?: number }> = ({ back
           <PotatoPlant seed={pl.seed} sway={flow * Math.sin(i * 1.3)} />
         </group>
       ))}
-      {backdrop ? <Andes /> : null}
+      {backdrop ? (
+        <>
+          <HuaynaPicchu position={[3.5, -6, -32]} />
+          <Andes height={0.85} />
+        </>
+      ) : null}
     </group>
   );
 };
 
 // =======================================================================================
+// Huayna Picchu
+
+const huaynaGeometry = () => {
+  const prof: [number, number][] = [
+    [9.5, 0],
+    [8.4, 3],
+    [6.6, 7],
+    [5.0, 11],
+    [3.7, 14.5],
+    [2.6, 17.5],
+    [1.6, 19.6],
+    [0.7, 20.8],
+    [0, 21.2],
+  ];
+  const g = new THREE.LatheGeometry(
+    prof.map(([r, h]) => new THREE.Vector2(r, h)),
+    14,
+  ).toNonIndexed();
+  const p = g.attributes.position;
+  const col = new Float32Array(p.count * 3);
+  const forest = new THREE.Color("#2F6B35");
+  const green = new THREE.Color("#4A9E45");
+  const rock = new THREE.Color("#7C776C");
+  const c = new THREE.Color();
+  const v = new THREE.Vector3();
+  for (let i = 0; i < p.count; i++) {
+    v.fromBufferAttribute(p, i);
+    const k = 1 + 0.13 * noise3(v.x * 0.35, v.y * 0.25, v.z * 0.35);
+    // Lean a little and flatten front to back, like the real sugarloaf.
+    p.setXYZ(i, v.x * k + v.y * 0.1, v.y, v.z * k * 0.8);
+    const n = noise3(v.x * 0.5 + 4, v.y * 0.4, v.z * 0.5);
+    c.copy(forest).lerp(green, clamp01(0.45 + n));
+    c.lerp(rock, clamp01((v.y - 11 + 5 * n) / 5) * 0.7);
+    col[i * 3] = c.r;
+    col[i * 3 + 1] = c.g;
+    col[i * 3 + 2] = c.b;
+  }
+  g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+  g.computeVertexNormals();
+  return g;
+};
+
+/** Low-poly Huayna Picchu (the sugarloaf peak behind Machu Picchu), 21 tall, base at y = 0. */
+export const HuaynaPicchu: React.FC<{ position?: V3; scale?: number }> = ({ position = [0, 0, 0], scale = 1 }) => {
+  const geo = useMemo(huaynaGeometry, []);
+  return <mesh geometry={geo} material={vertexMat(1, true, 0.14)} position={position} scale={scale} />;
+};
+
+// =======================================================================================
 // Andes backdrop
 
-const ANDES = { period: 120, x0: -100, width: 320, z0: -34, depth: 70 };
+const ANDES = { period: 120, x0: -100, width: 320, z0: -46, depth: 70 };
 
-const andesGeometry = () => {
+const andesGeometry = (height: number) => {
   const nx = 200;
   const nz = 30;
   const g = new THREE.PlaneGeometry(ANDES.width, ANDES.depth, nx, nz);
@@ -561,9 +608,9 @@ const andesGeometry = () => {
   const p = g.attributes.position;
   const col = new Float32Array(p.count * 3);
   const foot = new THREE.Color("#4E8A5C");
-  const rock = new THREE.Color("#7D8597");
+  const rock = new THREE.Color("#6F7C96");
   const snow = new THREE.Color("#F4F7FB");
-  const haze = new THREE.Color("#BFD9F2");
+  const haze = new THREE.Color("#B7D3EE");
   const c = new THREE.Color();
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i);
@@ -571,11 +618,11 @@ const andesGeometry = () => {
     const t = clamp01((ANDES.z0 - z) / 26);
     const ridge = 1 - Math.abs(loopNoise(x, z, ANDES.period, 0.03, 1));
     const peaks = Math.pow(ridge, 2.4);
-    const y = -9 + t * (6 + 34 * peaks) + 3.5 * loopNoise(x, z, ANDES.period, 0.1, 2) * (0.4 + t);
+    const y = -12 + (t * (6 + 26 * peaks) + 3 * loopNoise(x, z, ANDES.period, 0.1, 2) * (0.4 + t)) * height;
     p.setY(i, y);
-    c.copy(foot).lerp(rock, clamp01((y - 2) / 10));
-    c.lerp(snow, clamp01((y - 15 - 3 * loopNoise(x, z, ANDES.period, 0.2, 3)) / 3));
-    c.lerp(haze, 0.25 + 0.3 * clamp01((ANDES.z0 - z - 20) / 50));
+    c.copy(foot).lerp(rock, clamp01((y + 1) / 10));
+    c.lerp(snow, clamp01((y - 12 - 16 * height + 12 - 3 * loopNoise(x, z, ANDES.period, 0.2, 3)) / 2.5));
+    c.lerp(haze, 0.1 + 0.28 * clamp01((ANDES.z0 - z - 15) / 55));
     col[i * 3] = c.r;
     col[i * 3 + 1] = c.g;
     col[i * 3 + 2] = c.b;
@@ -586,11 +633,12 @@ const andesGeometry = () => {
 };
 
 /**
- * Low-poly snowy Andes far behind a set (z ≈ -34..-104, peaks up to y ≈ 30). Seamless when
- * scrolled: pass the scene's `scroll` and it moves by scroll x `parallax`.
+ * Low-poly snowy Andes far behind a set (z ≈ -46..-116, peaks up to y ≈ 22). Seamless when
+ * scrolled: pass the scene's `scroll` and it moves by scroll x `parallax`. `height` scales the
+ * peaks (1 = up to y ≈ 22).
  */
-export const Andes: React.FC<{ scroll?: number; parallax?: number }> = ({ scroll = 0, parallax = 0.06 }) => {
-  const geo = useMemo(andesGeometry, []);
+export const Andes: React.FC<{ scroll?: number; parallax?: number; height?: number }> = ({ scroll = 0, parallax = 0.06, height = 1 }) => {
+  const geo = useMemo(() => andesGeometry(height), [height]);
   return <mesh geometry={geo} material={vertexMat(1, true, 0.18)} position={[-wrap(scroll * parallax, ANDES.period), 0, 0]} />;
 };
 
@@ -658,18 +706,20 @@ const slopeGeometry = (fn: (x: number, z: number) => number, zFrom: number, zTo:
   g.translate(-COVER / 2 + width / 2, 0, zFrom + depth / 2);
   const p = g.attributes.position;
   const col = new Float32Array(p.count * 3);
-  const grassA = new THREE.Color("#63C04E");
-  const grassB = new THREE.Color("#3E9A43");
+  const grassA = new THREE.Color("#6CC957");
+  const grassB = new THREE.Color("#2F8A3A");
   const rock = new THREE.Color("#8E8A80");
-  const dry = new THREE.Color("#B9B35A");
+  const dry = new THREE.Color("#C2B65A");
   const c = new THREE.Color();
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i);
     const z = p.getZ(i);
     p.setY(i, fn(x, z));
     const n = loopNoise(x, z, SLOPE_P, 0.35, 7);
-    c.copy(grassA).lerp(grassB, clamp01(0.5 + n));
-    c.lerp(dry, clamp01(loopNoise(x, z, SLOPE_P, 0.12, 8) * 1.5) * 0.35);
+    c.copy(grassA).lerp(grassB, clamp01(0.5 + n * 1.3));
+    // Dry puna grass in patches, more of it higher up the slope.
+    const high = palette === "up" ? 0.35 + 0.65 * clamp01((-z - 5) / 6) : 0.3;
+    c.lerp(dry, clamp01(0.15 + loopNoise(x, z, SLOPE_P, 0.14, 8) * 1.6) * 0.6 * high);
     const rocky = clamp01((loopNoise(x, z, SLOPE_P, 0.5, 9) - 0.25) * 3) * (palette === "up" ? clamp01((-z - 3) / 4) : 0.6);
     c.lerp(rock, rocky * 0.8);
     col[i * 3] = c.r;
@@ -704,6 +754,16 @@ const scatterGeometry = () => {
     for (let j = 0; j < 3; j++) {
       put(cone, j % 2 ? "#2F8A3A" : "#4DAA45", [x + (j - 1) * 0.1 * k, y + 0.16 * k, z + (rnd() - 0.5) * 0.12], [k, k * (0.8 + rnd() * 0.5), k], [(rnd() - 0.5) * 0.4, 0, (j - 1) * 0.35]);
     }
+  }
+  const bush = new THREE.IcosahedronGeometry(1, 0);
+  for (let i = 0; i < 14; i++) {
+    const x = rnd() * SLOPE_P;
+    const up = rnd() < 0.75;
+    const z = up ? -2.3 - rnd() * 8 : 2.7 + rnd() * 3;
+    const y = up ? slopeY(x, z) : vergeY(x, z);
+    const s = 0.16 + rnd() * 0.18;
+    put(bush, rnd() < 0.5 ? "#2E7D3A" : "#3F9A45", [x, y + s * 0.5, z], [s * 1.2, s, s * 1.1], [rnd() * 3, rnd() * 3, 0]);
+    if (rnd() < 0.6) put(bush, rnd() < 0.5 ? "#FFD23F" : "#FF6B8A", [x + s * 0.4, y + s * 1.1, z + s * 0.3], [0.07, 0.07, 0.07], [0, 0, 0]);
   }
   for (let i = 0; i < 16; i++) {
     const x = rnd() * SLOPE_P;

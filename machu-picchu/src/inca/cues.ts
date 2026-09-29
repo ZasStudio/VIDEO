@@ -11,10 +11,11 @@ const poofs = (): Cue[] =>
   (["chasqui", "inca", "papa", "selfie", "caminos", "cta"] as const).map((k) => [SCENES[k].from - 8, "inca/poof", 0.55]);
 
 const intro = (): Cue[] => {
-  const { WAIT, LAND, FALL, WOW, TODO } = INTRO;
+  const { WAIT, LAND, WOW, TODO } = INTRO;
   return [
     [WAIT + 4, "pop", 0.3],
-    [LAND - FALL - 14, "inca/fall", 0.6],
+    // The whistle's last second: its end (the catch) lands with the phone.
+    [LAND - 30, "inca/fall", 0.4, undefined, 22],
     [LAND, "impact", 0.32],
     [LAND + 10, "sparkle", 0.3],
     [WOW, "whoosh", 0.3],
@@ -25,15 +26,19 @@ const intro = (): Cue[] => {
 
 const chasqui = (): Cue[] => {
   const { TOOT, DIAS, TRIP, MENSAJE, ESCRIBIRIA, MI, SEND, Y, DORMIR } = CHASQUI;
+  const typing = SEND - MI;
   const nightSpan = TRIP - 2 - (DIAS - 2);
   return [
     [TOOT, "inca/pututu", 0.5],
     // Three day/night flips.
     ...[0, 1, 2].map((k): Cue => [Math.round(DIAS - 2 + (k + 0.5) * (nightSpan / 3)), "whoosh-short", 0.22]),
-    [TRIP, "inca/trip", 0.55],
+    // The file's thud comes 17 frames in: on the face-plant.
+    [MENSAJE - 17, "inca/trip", 0.6],
     [MENSAJE, "stone-thud", 0.35],
     [ESCRIBIRIA, "pop", 0.3],
-    [MI, "inca/type", 0.45, SEND - MI],
+    // Two overlapping takes of the (sparse) key taps while the message types itself.
+    [MI, "inca/type", 0.45, typing],
+    [MI + 12, "inca/type", 0.38, Math.max(1, typing - 12)],
     [SEND, "inca/sent", 0.5],
     [Y - 2, "whoosh-short", 0.25],
     [DORMIR + 6, "inca/snore", 0.5],
@@ -44,7 +49,9 @@ const throne = (): Cue[] => {
   const { STORM_FROM, NOVENTA, CHAT_IN, C_START, SEND, LOC_AT, PUES } = THRONE;
   return [
     [STORM_FROM, "inca/notifs", 0.5],
-    [STORM_FROM + 2, "inca/buzz", 0.45],
+    [STORM_FROM + 16, "inca/notifs", 0.42],
+    [STORM_FROM + 32, "inca/notifs", 0.36],
+    [STORM_FROM + 2, "inca/buzz", 0.28],
     [NOVENTA, "impact", 0.28],
     [CHAT_IN, "pop", 0.3],
     [C_START, "ding", 0.3],

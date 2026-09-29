@@ -29,8 +29,8 @@ const WIDE_A = { position: [4.4, 3.4, 34.5] as Vec3, target: [2.4, -0.6, 0] as V
 const WIDE_B = { position: [4.1, 3.0, 32.6] as Vec3, target: [2.4, -0.5, 0] as Vec3 };
 // Shot 2: the front camera, at arm's length, a little above Nubi.
 const SELFIE: { position: Vec3; target: Vec3 } = {
-  position: [SPOT[0] + 0.35, 1.75, SPOT[2] + 4.3],
-  target: [SPOT[0] - 0.1, 1.05, SPOT[2] - 6],
+  position: [SPOT[0] + 0.35, 1.6, SPOT[2] + 6.1],
+  target: [2.86, 0.65, 14.5],
 };
 
 const LLAMA_SIZE = 1.9;

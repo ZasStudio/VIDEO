@@ -1,5 +1,5 @@
 import React from "react";
-import { ChasquiHat, EarSpools, FarmerBand, Mascaypacha, Pututu, Quipu, Unku } from "../three/inca/Costumes";
+import { ChasquiHat, EarSpools, FarmerBand, Mascaypacha, Pututu, QUIPU_HIP_R, Quipu, Unku } from "../three/inca/Costumes";
 
 // Nubi's outfits in the Inca-phone short, as <Nubi> children (model units).
 
@@ -14,14 +14,10 @@ export const Outfit: React.FC<{ kind: OutfitKind; swing?: number; hide?: ("putut
         <>
           <Unku variant="chasqui" />
           <ChasquiHat />
-          {/* The conch hangs on the left hip, the quipu on the right. */}
-          {hide.includes("pututu") ? null : (
-            <group position={[-5.3, 3.9, 1.6]} rotation={[0, -0.5, 0.35]} scale={0.9}>
-              <Pututu />
-            </group>
-          )}
+          {/* The conch hangs on its strap at the left hip, the quipu at the right. */}
+          {hide.includes("pututu") ? null : <Pututu strap side={-1} swing={swing * 0.5} />}
           {hide.includes("quipu") ? null : (
-            <group position={[5.25, 4.5, 1.8]} rotation={[0, 0.4, 0]} scale={0.8}>
+            <group {...QUIPU_HIP_R}>
               <Quipu swing={swing} />
             </group>
           )}

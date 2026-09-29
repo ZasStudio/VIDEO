@@ -39,16 +39,16 @@ const PALETTE: Record<LlamaColor, { wool: string; skin: string; muzzle: string; 
 const TASSEL = ["#FF3D8B", "#FFC21A", "#22B573", "#1E6BFF", "#E0322B"];
 
 // Internally the llama is built facing +x; the outer group turns it to face +z.
-const HIP_Y = 4.1;
+const HIP_Y = 3.5;
 const LEGS: [number, number, number][] = [
   // x, z, gait phase (diagonal pairs move together)
-  [2.1, 1.2, 0],
-  [2.1, -1.2, Math.PI],
-  [-2.3, 1.2, Math.PI],
-  [-2.3, -1.2, 0],
+  [2.2, 1.3, 0],
+  [2.2, -1.3, Math.PI],
+  [-2.3, 1.3, Math.PI],
+  [-2.3, -1.3, 0],
 ];
-const NECK_PIVOT: [number, number, number] = [2.2, 6.4, 0];
-const FRONT_HOOF_X = 2.65;
+const NECK_PIVOT: [number, number, number] = [2.2, 5.9, 0];
+const FRONT_HOOF_X = 2.75;
 
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
@@ -138,9 +138,9 @@ export const Llama: React.FC<{
 
   const geos = useMemo(
     () => ({
-      body: woolGeometry(6.6, 3.7, 4.1, 1.5, 0.3, 0.75, 1),
-      neck: woolGeometry(2.1, 4.3, 2.1, 0.9, 0.22, 0.9, 2),
-      thigh: woolGeometry(1.55, 1.6, 1.5, 0.65, 0.16, 1.1, 3),
+      body: woolGeometry(6.6, 3.9, 4.5, 1.6, 0.3, 0.75, 1),
+      neck: woolGeometry(2.2, 4.9, 2.2, 0.95, 0.22, 0.9, 2),
+      thigh: woolGeometry(1.7, 1.7, 1.65, 0.7, 0.16, 1.1, 3),
       tail: woolGeometry(1.2, 1.4, 1.1, 0.5, 0.16, 1.3, 4),
       tuft: woolGeometry(1.95, 1.0, 1.85, 0.46, 0.15, 1.4, 5),
       pom: woolGeometry(0.86, 0.86, 0.86, 0.4, 0.08, 2.6, 6),
@@ -150,7 +150,7 @@ export const Llama: React.FC<{
     }),
     [],
   );
-  const shin = useRounded(0.92, 3.3, 0.92, 0.36);
+  const shin = useRounded(0.95, 2.6, 0.95, 0.36);
   const hoof = useRounded(1.08, 0.52, 1.08, 0.2);
   const head = useRounded(3.1, 2.6, 2.5, 0.85);
   const muzzle = useRounded(1.5, 1.35, 1.85, 0.55);
@@ -185,21 +185,21 @@ export const Llama: React.FC<{
             <group position={[-FRONT_HOOF_X, bob, 0]}>
               {LEGS.map(([x, z, ph], i) => {
                 const swing = walk * 0.45 * Math.sin(walkPhase + ph);
-                const lift = walk * 0.35 * Math.max(0, Math.cos(walkPhase + ph));
+                const lift = walk * 0.3 * Math.max(0, Math.cos(walkPhase + ph));
                 return (
                   <group key={i} position={[x, HIP_Y - bob + lift, z]} rotation={[0, 0, swing]}>
                     <mesh geometry={geos.thigh} material={wool} position={[0, -0.25, 0]} castShadow />
-                    <mesh geometry={shin} material={skin} position={[0, -2.05, 0]} castShadow />
-                    <mesh geometry={hoof} material={hoofMat} position={[0.06, -3.84, 0]} />
+                    <mesh geometry={shin} material={skin} position={[0, -1.7, 0]} castShadow />
+                    <mesh geometry={hoof} material={hoofMat} position={[0.06, -3.24, 0]} />
                   </group>
                 );
               })}
-              <mesh geometry={geos.body} material={wool} position={[-0.15, 5.6, 0]} castShadow />
-              <mesh geometry={geos.tail} material={wool} position={[-3.5, 6.75, 0]} rotation={[walk * 0.3 * Math.sin(walkPhase), 0, 0.5]} castShadow />
+              <mesh geometry={geos.body} material={wool} position={[-0.15, 5.0, 0]} castShadow />
+              <mesh geometry={geos.tail} material={wool} position={[-3.5, 6.2, 0]} rotation={[walk * 0.3 * Math.sin(walkPhase), 0, 0.5]} castShadow />
               <group position={NECK_PIVOT} rotation={[0, 0, neckBend - 0.08]}>
-                <mesh geometry={geos.neck} material={wool} position={[0.25, 1.7, 0]} castShadow />
+                <mesh geometry={geos.neck} material={wool} position={[0.25, 2.0, 0]} castShadow />
                 {/* Head: counter-rotates a little so it doesn't point at the ground. */}
-                <group position={[0.45, 3.6, 0]} rotation={[0, 0, -neckBend * 0.55 + 0.08]}>
+                <group position={[0.5, 4.0, 0]} rotation={[0, 0, -neckBend * 0.55 + 0.08]}>
                   <group rotation={[0, headTurn, 0]}>
                     <mesh geometry={head} material={skin} position={[0.5, 0.65, 0]} castShadow />
                     <mesh geometry={muzzle} material={muzzleMat} position={[1.95, 0.12, 0]} />

@@ -449,7 +449,7 @@ const Keyboard: React.FC<{ pressedChar: string | null; words: string[] }> = ({ p
         ))}
       </div>
       {KB_ROWS.map((row, r) => (
-        <div key={row} style={{ display: "flex", gap: 6, padding: r === 1 ? "0 0" : undefined }}>
+        <div key={row} style={{ display: "flex", gap: 6 }}>
           {r === 2 ? (
             <Key
               flex={1.5}
@@ -518,7 +518,7 @@ const QuipuTicks: React.FC<{ frame: number; at: number; readAt: number }> = ({ f
 
 const BUBBLE_FONT = 44;
 
-const MetaRow: React.FC<{ time: string; children?: React.ReactNode; light?: boolean }> = ({ time, children }) => (
+const MetaRow: React.FC<{ time: string; children?: React.ReactNode }> = ({ time, children }) => (
   <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginTop: 4 }}>
     <span style={{ fontFamily: FONT.heavy, fontWeight: 700, fontSize: 23, color: "rgba(58,26,6,0.55)" }}>{time}</span>
     {children}
@@ -743,7 +743,6 @@ export const ChatScreen: React.FC<{
   fontSize?: number;
 }> = ({ frame, contact, messages, time = "10:32", placeholder = "Escribe tu quipu…", fontSize = BUBBLE_FONT }) => {
   const uid = useUid();
-  const bubbleFont = fontSize;
   const msgs = messages.slice().sort((a, b) => a.at - b.at);
 
   // "me" typing in the input bar.
@@ -803,7 +802,7 @@ export const ChatScreen: React.FC<{
             style={{
               fontFamily: FONT.heavy,
               fontWeight: 800,
-              fontSize: bubbleFont,
+              fontSize,
               lineHeight: 1.18,
               color: "#2B1A10",
               letterSpacing: -0.3,

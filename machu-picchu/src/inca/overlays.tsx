@@ -32,8 +32,8 @@ export const ViralHearts: React.FC<{ frame: number; at: number; out: number; x?:
   const badge = pop(frame, at, { damping: 11, stiffness: 180 }) * k;
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>
-      {Array.from({ length: 14 }, (_, i) => {
-        const born = at + i * 3.5;
+      {Array.from({ length: 22 }, (_, i) => {
+        const born = at + i * 2.5;
         const t = (frame - born) / 34;
         if (t < 0 || t > 1) return null;
         const hx = x - 120 + rand(i * 3) * 260 + Math.sin(t * 5 + i) * 30;
@@ -58,8 +58,8 @@ export const ViralHearts: React.FC<{ frame: number; at: number; out: number; x?:
       <div
         style={{
           position: "absolute",
-          left: x - 150,
-          top: y - 700,
+          left: x - 250,
+          top: y - 760,
           transform: `scale(${badge}) rotate(${(1 - badge) * -20 + 4}deg)`,
           display: "flex",
           alignItems: "center",
@@ -71,8 +71,8 @@ export const ViralHearts: React.FC<{ frame: number; at: number; out: number; x?:
           boxShadow: "0 10px 0 rgba(0,0,0,0.3), 0 20px 40px rgba(0,0,0,0.35)",
         }}
       >
-        <Heart size={70} color="#FFFFFF" />
-        <div style={{ fontFamily: FONT.title, fontSize: 70, color: "#fff", paddingTop: 8, textShadow: "0 4px 0 rgba(0,0,0,0.3)" }}>
+        <Heart size={96} color="#FFFFFF" />
+        <div style={{ fontFamily: FONT.title, fontSize: 96, color: "#fff", paddingTop: 10, textShadow: "0 5px 0 rgba(0,0,0,0.3)" }}>
           {likes.toFixed(1).replace(".", ",")} M
         </div>
       </div>

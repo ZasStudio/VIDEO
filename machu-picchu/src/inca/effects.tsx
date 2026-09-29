@@ -105,7 +105,7 @@ export const Zzz: React.FC<{ frame: number; from: number; x: number; y: number }
       {[0, 1, 2, 3, 4].map((k) => {
         const t = (frame - from - k * 12) / 40;
         if (t < 0 || t > 1) return null;
-        const size = 60 + k * 14;
+        const size = 84 + k * 18;
         return (
           <div
             key={k}

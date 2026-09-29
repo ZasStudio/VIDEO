@@ -2,6 +2,8 @@ import React from "react";
 import { Composition, Folder } from "remotion";
 import "./fonts";
 import { MachuPicchuVideo } from "./MachuPicchuVideo";
+import { IncaPhoneShort, IncaSoundtrack } from "./inca/IncaPhoneShort";
+import { INCA, INCA_HEIGHT, INCA_WIDTH } from "./inca/timeline";
 import { NubiShort, NubiSoundtrack } from "./nubi/NubiShort";
 import { NUBI, NUBI_HEIGHT, NUBI_WIDTH } from "./nubi/timeline";
 import { Soundtrack } from "./Soundtrack";
@@ -11,7 +13,7 @@ import { WorldTest } from "./dev/WorldTest";
 import { ClawdSheet } from "./dev/ClawdSheet";
 import { NubiSheet } from "./dev/NubiSheet";
 import { INCA_UI_SHEET_DURATION, IncaUISheet } from "./dev/IncaUISheet";
-import { IncaPropsSheet } from "./dev/IncaPropsSheet";
+import { INCA_PROPS_SHEET_FRAMES, IncaPropsSheet } from "./dev/IncaPropsSheet";
 import { TitleTest } from "./dev/TitleTest";
 
 export const RemotionRoot: React.FC = () => {
@@ -52,6 +54,24 @@ export const RemotionRoot: React.FC = () => {
         fps={FPS}
         width={NUBI_WIDTH}
         height={NUBI_HEIGHT}
+      />
+      {/* Nubi's vertical short: life in the Inca Empire with a smartphone (60 s). */}
+      <Composition
+        id="IncaPhoneShort"
+        component={IncaPhoneShort}
+        durationInFrames={INCA.DURATION}
+        fps={FPS}
+        width={INCA_WIDTH}
+        height={INCA_HEIGHT}
+        defaultProps={{ withAudio: true }}
+      />
+      <Composition
+        id="IncaPhoneShortAudio"
+        component={IncaSoundtrack}
+        durationInFrames={INCA.DURATION}
+        fps={FPS}
+        width={INCA_WIDTH}
+        height={INCA_HEIGHT}
       />
       <Folder name="Dev">
         <Composition
@@ -97,7 +117,7 @@ export const RemotionRoot: React.FC = () => {
         <Composition
           id="IncaPropsSheet"
           component={IncaPropsSheet}
-          durationInFrames={1}
+          durationInFrames={INCA_PROPS_SHEET_FRAMES}
           fps={30}
           width={1920}
           height={1080}
