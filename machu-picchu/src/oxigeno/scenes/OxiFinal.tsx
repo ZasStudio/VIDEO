@@ -63,7 +63,7 @@ export const OxiFinal: React.FC = () => {
       </Stage>
       <O2Gauge frame={g} at={S.from + 2} out={PERO - 4} x={780} y={430} scale={0.6} from={21} to={21} dropAt={-100} dropDur={1} />
       <AbsoluteFill style={{ background: "#050A20", opacity: hush * 0.35, pointerEvents: "none" }} />
-      <ExperimentCTA frame={g} at={CTA_START - 4} x={630} y={600} />
+      <ExperimentCTA frame={g} at={CTA_START - 4} x={580} y={620} />
     </AbsoluteFill>
   );
 };

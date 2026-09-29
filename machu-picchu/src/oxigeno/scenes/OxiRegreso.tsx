@@ -81,7 +81,7 @@ export const OxiRegreso: React.FC = () => {
           </group>
           <Twinkles frame={g} at={LIT} position={[CANDLE_AT[0], 1.3, CANDLE_AT[2]]} radius={0.8} count={10} />
         </Stage>
-        <O2Gauge frame={g} at={S.from} out={NADA - 6} x={540} y={520} scale={0.9} from={0} to={21} dropAt={-100} dropDur={1} riseAt={BACK} riseDur={20} />
+        <O2Gauge frame={g} at={S.from} out={NADA - 6} x={540} y={600} scale={0.9} from={0} to={21} dropAt={-100} dropDur={1} riseAt={BACK} riseDur={20} />
         <Burst frame={g} at={BACK} x={540} y={900} color="#7CF03C" size={760} />
         <Confetti frame={g} at={BACK} count={80} />
       </Shake>

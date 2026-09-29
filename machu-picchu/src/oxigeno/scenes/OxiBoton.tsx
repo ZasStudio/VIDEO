@@ -65,7 +65,7 @@ export const OxiBoton: React.FC = () => {
             </Nubi>
           </group>
         </Stage>
-        <O2Gauge frame={g} at={PRESS + 3} out={END + 10} x={540} y={520} scale={0.9} dropAt={PRESS + 6} dropDur={CERO - PRESS - 6} />
+        <O2Gauge frame={g} at={PRESS + 3} out={END + 10} x={540} y={680} scale={0.85} dropAt={PRESS + 6} dropDur={CERO - PRESS - 6} />
         <Card frame={g} at={POLVO} out={MIRA - 2} x={540} y={930} title="¡MITO!" sub="NO TE HACES POLVO" rotate={-4} gradient="linear-gradient(135deg, #FF6A3D 0%, #E0322B 60%, #A3161B 100%)" />
       </Shake>
       <AlarmOverlay frame={g} from={PRESS + 4} to={END + 30} />
