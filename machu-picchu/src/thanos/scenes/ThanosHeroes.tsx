@@ -24,10 +24,10 @@ export const NUBI_TEAM: Vec3 = [0, 0, 1.6];
 export const TEAM: { kind: HeroKind; at: Vec3; rot: number }[] = [
   { kind: "spider", at: [-1.75, 0, 0.3], rot: 0.25 },
   { kind: "panther", at: [1.75, 0, 0.3], rot: -0.25 },
-  { kind: "witch", at: [-2.9, 0, -1.8], rot: 0.35 },
-  { kind: "groot", at: [2.9, 0, -2.0], rot: -0.35 },
-  { kind: "starlord", at: [-1.4, 0, -3.4], rot: 0.15 },
-  { kind: "falcon", at: [1.5, 0, -3.6], rot: -0.15 },
+  { kind: "witch", at: [-3.3, 0, -1.8], rot: 0.35 },
+  { kind: "groot", at: [3.3, 0, -2.0], rot: -0.35 },
+  { kind: "starlord", at: [-1.0, 0, -3.8], rot: 0.15 },
+  { kind: "falcon", at: [1.1, 0, -4.0], rot: -0.15 },
 ];
 
 export const ThanosHeroes: React.FC = () => {
@@ -43,7 +43,7 @@ export const ThanosHeroes: React.FC = () => {
   const a = -0.16 + orbit * 0.32;
   // From a little above, so the back rows show over the front one.
   const R = 13.4 - ramp(g, S.from, EQUIPO, [0, 0.9], (x) => x);
-  const cam = aim([NUBI_TEAM[0] + Math.sin(a) * R, 4.2 - orbit * 0.6, NUBI_TEAM[2] + Math.cos(a) * R], 50, NUBI_TEAM, 540, 1290);
+  const cam = aim([NUBI_TEAM[0] + Math.sin(a) * R, 5.2 - orbit * 0.8, NUBI_TEAM[2] + Math.cos(a) * R], 50, NUBI_TEAM, 540, 1290);
 
   const nubi = thanosTalk(g, {
     finL: 0.3 + strike * 0.9,

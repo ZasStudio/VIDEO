@@ -109,7 +109,7 @@ export const Hero: React.FC<Placed & { kind: HeroKind; power?: number }> = ({ at
     witch: <WitchOutfit t={t} wind={0.35} hex={power} finL={pose.finL} finR={pose.finR} />,
     groot: <GrootLook t={t} />,
     starlord: <StarLordOutfit pose={pose} />,
-    falcon: <FalconOutfit open={0.35 + power * 0.65} flap={power * Math.sin(t * 14)} />,
+    falcon: <FalconOutfit open={0.1 + power * 0.9} flap={power * Math.sin(t * 14)} />,
   };
   const masked = kind === "spider" || kind === "panther" || kind === "starlord";
   return (
