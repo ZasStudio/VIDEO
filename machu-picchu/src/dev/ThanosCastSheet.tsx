@@ -30,7 +30,7 @@ import {
 //   Frame 3: Thanos (size 3) next to Nubi (size 2), the ArmyCrowd (150), Falcon wings open
 //            0 / 0.5 / 1, Witch hex 0 / 0.5 / 1, Iron charge and a phone-sized vertical crop.
 
-export const THANOS_CAST_SHEET_FRAMES = 4;
+export const THANOS_CAST_SHEET_FRAMES = 7;
 
 type Cam = { position: Vec3; target: Vec3; fov: number };
 
@@ -191,8 +191,9 @@ const NAMES: Record<Who, string> = {
   thanos: "Thanos (3)",
 };
 
-const LINE: Who[] = ["nubi", "thor", "cap", "iron", "strange", "spider", "panther", "witch", "groot", "starlord", "falcon", "doom", "thanos"];
-const LINE_X = LINE.map((w, i) => -19.8 + i * 3.15 + (w === "thanos" ? 0.9 : 0));
+const ROW_A: Who[] = ["nubi", "thor", "cap", "iron", "strange", "spider", "panther"];
+const ROW_B: Who[] = ["witch", "groot", "starlord", "falcon", "doom", "thanos", "nubi"];
+const rowX = (row: Who[]) => row.map((w, i) => -8.7 + i * 2.9 + (w === "thanos" ? 0.35 : 0) + (row === ROW_B && w === "nubi" ? 0.55 : 0));
 
 const STAGE = "linear-gradient(180deg, #2A1F4E 0%, #5B3F9A 58%, #3B2A62 58%, #2A1F48 100%)";
 const SKY = "linear-gradient(180deg, #7EC8FF 0%, #BFE6FF 58%, #8C7BC0 58%, #6E5A8E 100%)";
@@ -200,68 +201,95 @@ const WARM = "linear-gradient(180deg, #FFE6B8 0%, #F7C27A 62%, #B08AC9 62%, #8A6
 const PLAIN = "radial-gradient(circle at 50% 40%, #FFF4DE 0%, #E8CFA0 100%)";
 const NIGHT = "radial-gradient(circle at 50% 35%, #3A3070 0%, #120E2A 100%)";
 
-const LINE_CAM: Cam = { position: [0, 4.2, 36], target: [0, 1.9, 0], fov: 30 };
-const lineLabels = (w: number, h: number, cam: Cam, y: number) =>
-  LINE.map((who, i) => ({ text: NAMES[who], x: projectToScreen(cam, [LINE_X[i], 0, 0], w - 16, h - 16).x, y }));
+const ROW_CAM: Cam = { position: [0, 2.7, 11.6], target: [0, 1.45, 0], fov: 30 };
+const rowLabels = (row: Who[], w: number, cam: Cam) =>
+  row.map((who, i) => ({ text: `${NAMES[who]}${i === row.length - 1 && who === "nubi" ? " " : ""}`, x: projectToScreen(cam, [rowX(row)[i], 0, 0.6], w - 16, 524).x, y: 478 }));
+
+const Row: React.FC<{ row: Who[]; y: number; title: string; bg: string; view: "front" | "34" | "back" }> = ({ row, y, title, bg, view }) => (
+  <Panel x={0} y={y} w={1920} h={540} background={bg} title={title} cam={ROW_CAM} labels={rowLabels(row, 1920, ROW_CAM)}>
+    <Lights />
+    <Ground />
+    {row.map((who, i) => (
+      <Character
+        key={`${who}${i}`}
+        who={who}
+        position={[rowX(row)[i], 0, 0]}
+        yaw={view === "front" ? 0 : view === "34" ? (i % 2 ? -0.62 : 0.62) : Math.PI + (i % 2 ? -0.5 : 0.5)}
+        pose={view === "34" ? { lookX: i % 2 ? -0.4 : 0.4, finR: who === "witch" ? 0.7 : 0.15, finL: who === "witch" ? 0.4 : 0 } : {}}
+        extra={view === "34" ? { open: 1, hex: 0.8, charge: 0.5 } : {}}
+      />
+    ))}
+  </Panel>
+);
 
 const Lineup: React.FC = () => (
   <>
-    <Panel x={0} y={0} w={1920} h={540} background={SKY} title="REPARTO: FRENTE (héroes size 2, Thanos size 3)" cam={LINE_CAM} labels={lineLabels(1920, 540, LINE_CAM, 470)}>
-      <Lights />
-      <Ground />
-      {LINE.map((who, i) => (
-        <Character key={who} who={who} position={[LINE_X[i], 0, 0]} />
-      ))}
-    </Panel>
-    <Panel x={0} y={540} w={1920} h={540} background={STAGE} title="3/4" cam={LINE_CAM} labels={lineLabels(1920, 540, LINE_CAM, 470)}>
-      <Lights />
-      <Ground />
-      {LINE.map((who, i) => (
-        <Character
-          key={who}
-          who={who}
-          position={[LINE_X[i], 0, 0]}
-          yaw={i % 2 ? -0.62 : 0.62}
-          pose={{ lookX: i % 2 ? -0.4 : 0.4, finR: who === "witch" ? 0.6 : 0.2, finL: who === "witch" ? 0.4 : 0 }}
-          extra={{ open: 1, hex: 0.8, charge: 0.6 }}
-        />
-      ))}
-    </Panel>
+    <Row row={ROW_A} y={0} bg={SKY} view="front" title="REPARTO: FRENTE (size 2)" />
+    <Row row={ROW_B} y={540} bg={STAGE} view="front" title="FRENTE (Thanos size 3, Nubi 2 para escala)" />
+  </>
+);
+
+const Lineup34: React.FC = () => (
+  <>
+    <Row row={ROW_A} y={0} bg={SKY} view="34" title="3/4 (Iron charge 0.5)" />
+    <Row row={ROW_B} y={540} bg={STAGE} view="34" title="3/4 (Falcon open 1, Witch hex 0.8)" />
   </>
 );
 
 const CAPED: Who[] = ["thor", "strange", "witch", "doom"];
-const CAPE_X = [-6.6, -2.2, 2.2, 6.6];
-const CAPE_CAM: Cam = { position: [-9, 6.5, -17], target: [0, 1.6, 0], fov: 30 };
+const CAPE_X = [-4.95, -1.65, 1.65, 4.95];
+const CAPE_CAM: Cam = { position: [-6.5, 4.6, -11.5], target: [0, 1.4, 0], fov: 32 };
+const SIDE_CAM: Cam = { position: [13, 2.6, 1.5], target: [0, 1.3, 0], fov: 32 };
 
 const Backs: React.FC = () => (
   <>
-    <Panel x={0} y={0} w={1920} h={540} background={WARM} title="DE ESPALDAS (capas, alas cerradas)" cam={LINE_CAM} labels={lineLabels(1920, 540, LINE_CAM, 470)}>
-      <Lights />
-      <Ground />
-      {LINE.map((who, i) => (
-        <Character key={who} who={who} position={[LINE_X[i], 0, 0]} yaw={Math.PI + (i % 2 ? -0.55 : 0.55)} />
-      ))}
-    </Panel>
-    <Panel x={0} y={540} w={960} h={540} background={SKY} title="CAPAS wind 0.15 (t 1.3)" cam={CAPE_CAM}>
+    <Row row={ROW_A} y={0} bg={WARM} view="back" title="DE ESPALDAS" />
+    <Panel x={0} y={540} w={640} h={540} background={SKY} title="CAPAS wind 0.15" cam={CAPE_CAM}>
       <Lights />
       <Ground />
       {CAPED.map((who, i) => (
         <Character key={who} who={who} position={[CAPE_X[i], 0, 0]} yaw={0.2} extra={{ wind: 0.15 }} />
       ))}
     </Panel>
-    <Panel x={960} y={540} w={960} h={540} background={SKY} title="CAPAS wind 1 (corriendo / volando)" cam={CAPE_CAM}>
+    <Panel x={640} y={540} w={640} h={540} background={SKY} title="CAPAS wind 1" cam={CAPE_CAM}>
       <Lights />
       <Ground />
       {CAPED.map((who, i) => (
         <Character key={who} who={who} position={[CAPE_X[i], 0, 0]} yaw={0.2} extra={{ wind: 1 }} pose={{ pitch: 0.12 }} />
       ))}
     </Panel>
+    <Panel x={1280} y={540} w={640} h={540} background={SKY} title="PERFIL wind 0.15 / 0.5 / 1" cam={SIDE_CAM}>
+      <Lights />
+      <Ground />
+      {[0.15, 0.5, 1].map((w, i) => (
+        <Character key={w} who={i === 1 ? "strange" : "thor"} position={[0, 0, 3.3 - i * 3.3]} yaw={Math.PI / 2 - 0.15} extra={{ wind: w }} t={T + i * 0.4} />
+      ))}
+    </Panel>
   </>
 );
 
-const FACE_CAM: Cam = { position: [0, 1.45, 9.6], target: [0, 1.15, 0], fov: 30 };
-const FACE_X = [-2.5, 0, 2.5];
+const BacksB: React.FC = () => (
+  <>
+    <Row row={ROW_B} y={0} bg={WARM} view="back" title="DE ESPALDAS (alas cerradas)" />
+    <Panel x={0} y={540} w={960} h={540} background={SKY} title="FALCON espalda open 0 / 0.5 / 1" cam={{ position: [0, 2.6, -14], target: [0, 1.4, 0], fov: 32 }}>
+      <Lights />
+      <Ground />
+      {[0, 0.5, 1].map((o, i) => (
+        <Character key={o} who="falcon" position={[(1 - i) * 3.6, 0, 0]} yaw={Math.PI} extra={{ open: o }} />
+      ))}
+    </Panel>
+    <Panel x={960} y={540} w={960} h={540} background={STAGE} title="CAPAS 3/4 frente wind 0.6" cam={{ position: [5.5, 3.2, 12], target: [0, 1.4, 0], fov: 32 }}>
+      <Lights />
+      <Ground />
+      {CAPED.map((who, i) => (
+        <Character key={who} who={who} position={[CAPE_X[i] * 0.9, 0, -i * 0.6]} yaw={-0.5} extra={{ wind: 0.6 }} t={T + i * 0.3} pose={{ finR: 0.4 }} />
+      ))}
+    </Panel>
+  </>
+);
+
+const FACE_CAM: Cam = { position: [0, 1.55, 12.6], target: [0, 1.2, 0], fov: 30 };
+const FACE_X = [-2.45, 0, 2.45];
 const faceLabels = (texts: string[]) => texts.map((text, i) => ({ text, x: projectToScreen(FACE_CAM, [FACE_X[i], 0, 0], 624, 524).x, y: 470 }));
 
 const FacePanel: React.FC<{ x: number; y: number; title: string; items: { who: Who; pose?: NubiPose; extra?: Extra; label: string; yaw?: number }[]; bg?: string }> = ({
@@ -428,11 +456,38 @@ const ScaleAndArmy: React.FC = () => (
   </>
 );
 
+
+const Debug: React.FC = () => (
+  <>
+    <Panel x={0} y={0} w={960} h={540} background={SKY} title="DBG falcon front open 1 / 0.5" cam={{ position: [0, 1.6, 12], target: [0, 1.3, 0], fov: 30 }}>
+      <Lights />
+      <Character who="falcon" position={[-1.8, 0, 0]} extra={{ open: 1 }} />
+      <Character who="falcon" position={[1.9, 0, 0]} extra={{ open: 0.5 }} />
+    </Panel>
+    <Panel x={960} y={0} w={960} h={540} background={SKY} title="DBG falcon back open 1 / 0" cam={{ position: [0, 2.2, -12], target: [0, 1.3, 0], fov: 30 }}>
+      <Lights />
+      <Character who="falcon" position={[1.8, 0, 0]} extra={{ open: 1 }} />
+      <Character who="falcon" position={[-1.9, 0, 0]} extra={{ open: 0 }} />
+    </Panel>
+    <Panel x={0} y={540} w={960} h={540} background={SKY} title="DBG capes side wind 0.15 / 1" cam={{ position: [16, 2.4, 2], target: [0, 1.2, 0], fov: 30 }}>
+      <Lights />
+      <Character who="thor" position={[0, 0, 3]} yaw={0} extra={{ wind: 0.15 }} />
+      <Character who="thor" position={[0, 0, -3]} yaw={0} extra={{ wind: 1 }} />
+    </Panel>
+    <Panel x={960} y={540} w={960} h={540} background={STAGE} title="DBG thanos / panther / witch" cam={{ position: [0, 2.2, 12], target: [0, 1.6, 0], fov: 30 }}>
+      <Lights />
+      <Character who="thanos" position={[-2.0, 0, -1]} yaw={0.3} />
+      <Character who="panther" position={[1.0, 0, 1]} yaw={-0.2} />
+      <Character who="witch" position={[3.2, 0, 0]} yaw={-0.3} extra={{ hex: 1 }} pose={{ finR: 0.8, finL: 0.3 }} />
+    </Panel>
+  </>
+);
+
 export const ThanosCastSheet: React.FC = () => {
   const frame = useCurrentFrame();
   return (
     <AbsoluteFill style={{ background: "linear-gradient(135deg, #1B1240 0%, #3B2A72 50%, #6B3FA0 100%)" }}>
-      {frame === 0 ? <Lineup /> : frame === 1 ? <Backs /> : frame === 2 ? <Faces /> : <ScaleAndArmy />}
+      {frame === 0 ? <Lineup /> : frame === 1 ? <Lineup34 /> : frame === 2 ? <Backs /> : frame === 3 ? <BacksB /> : frame === 4 ? <Faces /> : frame === 5 ? <ScaleAndArmy /> : <Debug />}
     </AbsoluteFill>
   );
 };

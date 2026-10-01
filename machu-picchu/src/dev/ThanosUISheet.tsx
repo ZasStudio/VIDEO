@@ -185,6 +185,8 @@ export const ThanosUISheet: React.FC = () => {
       <PowerChips frame={frame} times={[794, 802, 810, 818, 832]} out={890} x={500} y={430} layout="grid" />
       <HeroLabel frame={frame} at={806} out={890} text="MODO TRUENO" x={640} y={760} color="#2F8CFF" icon="bolt" side="bottom" />
       <HeroLabel frame={frame} at={820} out={890} text="NUBI" x={250} y={940} color="#2FBF71" icon="star" side="bottom" rotate={3} />
+      <HeroLabel frame={frame} at={834} out={890} text="MODO FURIA" x={560} y={1060} color="#9B3DFF" side="right" />
+      <HeroLabel frame={frame} at={840} out={890} text="¡HOLA!" x={430} y={1130} color="#FF7A1F" side="left" size={40} />
 
       {/* 7. The stones charge up. */}
       <StonesHUD frame={frame} at={904} out={1020} x={500} y={450} />

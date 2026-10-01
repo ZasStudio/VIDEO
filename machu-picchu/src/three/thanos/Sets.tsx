@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { fbm, mulberry, smoothstep } from "../noise";
-import { V3, canvasTexture, noise3, paintGeo, shadeHex, toy, useRounded, vertexMat } from "../inca/kit";
+import { V3, canvasTexture, noise3, paintGeo, shadeHex, toy, vertexMat } from "../inca/kit";
 import { Flame, FlamePalette, Smoke } from "../oxigeno/Props";
 import { Glow, Sparks, additive } from "./FX";
 
@@ -106,7 +106,7 @@ export const battleGroundY = (x: number, z: number) => {
   h += smoothstep(45, 140, r) * (5 + 7 * (0.5 + 0.5 * fbm(x * 0.011 + 7, z * 0.011)));
   for (const [cx, cz, cr, depth] of CRATERS) {
     const d = Math.hypot(x - cx, z - cz) / cr;
-    if (d < 1.6) h += depth * (d < 1 ? -(1 - d * d) : 0) + depth * 0.45 * Math.exp(-((d - 1) / 0.22) ** 2);
+    if (d < 1.6) h += depth * (d < 1 ? -(1 - d * d) : 0) + depth * 0.45 * Math.exp(-(((d - 1) / 0.22) ** 2));
   }
   return Math.max(-2.5, h) * k;
 };
@@ -557,6 +557,7 @@ export const Battlefield: React.FC<{ t?: number; frozen?: number; freezeT?: numb
       rubble: rubbleGeometry(),
       ruins: ruinsGeometry(),
       building: ruinBuilding(0.42),
+      decal: new THREE.PlaneGeometry(64, 52).rotateX(-Math.PI / 2),
       mesas: mergeAll(
         MESAS.map(([x, z, r, h, sx], i) => {
           const g = mesaGeometry(i * 3.7, 0.5 + 0.25 * smoothstep(110, 175, Math.hypot(x, z)));
@@ -580,7 +581,7 @@ export const Battlefield: React.FC<{ t?: number; frozen?: number; freezeT?: numb
   return (
     <group>
       <mesh geometry={geos.terrain} material={vertexMat(0.95, true, 0.13)} receiveShadow />
-      <mesh geometry={useMemo(() => new THREE.PlaneGeometry(64, 52).rotateX(-Math.PI / 2), [])} material={decal} position={[0, 0.005, -3]} renderOrder={0} />
+      <mesh geometry={geos.decal} material={decal} position={[0, 0.005, -3]} renderOrder={0} />
       <mesh geometry={geos.rubble} material={vertexMat(0.9, true, 0.12)} castShadow receiveShadow />
       <mesh geometry={geos.ruins} material={vertexMat(0.85, true, 0.13)} castShadow receiveShadow />
       <group position={[-2, 0, -58]}>
@@ -890,7 +891,7 @@ const fogTexture = () =>
   );
 
 /** Pointed (gothic) arch outline: width w, springing at height hs, apex at height h. */
-const archPath = (path: THREE.Path | THREE.Shape, cx: number, y0: number, w: number, hs: number, h: number, reverse = false) => {
+const archPath = <P extends THREE.Path>(path: P, cx: number, y0: number, w: number, hs: number, h: number, reverse = false): P => {
   const hw = w / 2;
   // Each side is a circular arc centred on the opposite springing line, passing the apex.
   const apexH = h - hs;
@@ -1122,20 +1123,20 @@ const altarGeometry = () => {
   geos.push(place(new THREE.CylinderGeometry(2.8, 2.9, 0.2, 40), shadeHex(s, -0.04), [0, 0.3, 0]));
   const y0 = DAIS_H;
   geos.push(place(rbox(2.5, 0.2, 1.6, 0.06), d, [0, y0 + 0.1, 0]));
-  geos.push(place(rbox(2.1, 0.88, 1.24, 0.06), s, [0, y0 + 0.2 + 0.44, 0]));
-  geos.push(place(rbox(2.56, 0.12, 1.66, 0.05), d, [0, y0 + 1.08 + 0.02, 0]));
-  geos.push(place(rbox(2.62, 0.2, 1.72, 0.06), l, [0, ALTAR_TOP[1] - 0.1, 0]));
+  geos.push(place(rbox(2.1, 0.7, 1.24, 0.06), s, [0, 0.95, 0]));
+  geos.push(place(rbox(2.4, 0.08, 1.5, 0.03), d, [0, 1.34, 0]));
+  geos.push(place(rbox(2.62, 0.17, 1.72, 0.05), l, [0, ALTAR_TOP[1] - 0.085, 0]));
   // Corner colonnettes.
   for (const sx of [-1, 1]) {
     for (const sz of [-1, 1]) {
-      geos.push(place(new THREE.CylinderGeometry(0.11, 0.11, 0.86, 10), l, [sx * 1.08, y0 + 0.63, sz * 0.64]));
+      geos.push(place(new THREE.CylinderGeometry(0.11, 0.11, 0.7, 10), l, [sx * 1.08, 0.95, sz * 0.64]));
     }
   }
   // Recessed pointed-arch panels on the front and back.
   for (const sz of [-1, 1]) {
     for (const px of [-0.5, 0.5]) {
-      const panel = archShapeGeometry({ cx: 0, y0: 0, w: 0.62, hs: 0.42, h: 0.7 });
-      geos.push(place(panel, shadeHex(s, -0.14), [px, y0 + 0.28, sz * 0.625], [0, sz > 0 ? 0 : Math.PI, 0]));
+      const panel = archShapeGeometry({ cx: 0, y0: 0, w: 0.6, hs: 0.3, h: 0.52 });
+      geos.push(place(panel, shadeHex(s, -0.16), [px, 0.68, sz * 0.632], [0, sz > 0 ? 0 : Math.PI, 0]));
     }
   }
   return mergeAll(geos);
@@ -1150,13 +1151,16 @@ const altarGeometry = () => {
  * ALTAR_TOP, flanked by two green braziers) where the dead gauntlet lies. Interior x −11..11,
  * z −18..10, 14 high (CASTLE). `t` = seconds (flames, light flicker, fog drift, banner sway).
  * `fog` 0..1 scales the floor fog; `lights` false drops the point lights (cheaper; the flames
- * still glow).
+ * still glow); `roof` false hides the vault (for overhead shots).
  */
-export const DoomCastle: React.FC<{ t?: number; fog?: number; lights?: boolean }> = ({ t = 0, fog = 1, lights = true }) => {
+export const DoomCastle: React.FC<{ t?: number; fog?: number; lights?: boolean; roof?: boolean }> = ({ t = 0, fog = 1, lights = true, roof = true }) => {
   const geos = useMemo(() => {
     const sideLen = CASTLE.zFront - CASTLE.zBack;
     const backWall = wallGeometry(CASTLE.x * 2 + 2, CASTLE.h, 1.2, [BACK_WIN]);
-    const sideWall = wallGeometry(sideLen, CASTLE.h, 1.2, SIDE_WINS.map((w) => ({ ...w, cx: w.cx - (CASTLE.zFront + CASTLE.zBack) / 2 })));
+    // Wall-local x runs along +z on the right wall and along −z on the left one.
+    const mid = (CASTLE.zFront + CASTLE.zBack) / 2;
+    const sideWallR = wallGeometry(sideLen, CASTLE.h, 1.2, SIDE_WINS.map((w) => ({ ...w, cx: w.cx - mid })));
+    const sideWallL = wallGeometry(sideLen, CASTLE.h, 1.2, SIDE_WINS.map((w) => ({ ...w, cx: mid - w.cx })));
     const frontWall = (() => {
       const s = new THREE.Shape();
       const L = CASTLE.x * 2 + 2;
@@ -1221,7 +1225,8 @@ export const DoomCastle: React.FC<{ t?: number; fog?: number; lights?: boolean }
     }
     return {
       backWall,
-      sideWall,
+      sideWallR,
+      sideWallL,
       frontWall,
       pillars: mergeAll(pil),
       ribs: mergeAll(ribs),
@@ -1293,7 +1298,7 @@ export const DoomCastle: React.FC<{ t?: number; fog?: number; lights?: boolean }
         new THREE.Vector3(bw.cx, bw.y0 + bw.h - 1.2, z),
         new THREE.Vector3(bw.cx - bw.w / 2 + 0.4, bw.y0 + bw.hs, z),
       ],
-      new THREE.Vector3(0.12, -0.78, 1),
+      new THREE.Vector3(0.1, -0.62, 1),
     );
     return { side, back };
   }, []);
@@ -1309,13 +1314,17 @@ export const DoomCastle: React.FC<{ t?: number; fog?: number; lights?: boolean }
       {/* Floor, runner, ceiling. */}
       <mesh geometry={geos.floor} material={mats.floor} position={[0, 0, midZ]} receiveShadow />
       <mesh geometry={geos.carpet} material={mats.carpet} position={[0, 0.012, (CASTLE.zFront + ALTAR_AT[2] + 3.4) / 2]} />
-      <mesh geometry={geos.ceiling} material={mats.ceiling} position={[0, 15, midZ]} />
-      <mesh geometry={geos.ribs} material={vertexMat(0.85, false, 0.12)} />
+      {roof ? (
+        <>
+          <mesh geometry={geos.ceiling} material={mats.ceiling} position={[0, 15, midZ]} />
+          <mesh geometry={geos.ribs} material={vertexMat(0.85, false, 0.12)} />
+        </>
+      ) : null}
       {/* Walls. */}
       <mesh geometry={geos.backWall} material={mats.wall} position={[0, 0, CASTLE.zBack]} receiveShadow />
       {[-1, 1].map((s) => (
         <group key={s} position={[s * CASTLE.x, 0, midZ]} rotation={[0, (-s * Math.PI) / 2, 0]}>
-          <mesh geometry={geos.sideWall} material={mats.wall} position={[0, 0, s > 0 ? 1.2 : 0]} scale={[1, 1, 1]} receiveShadow />
+          <mesh geometry={s > 0 ? geos.sideWallR : geos.sideWallL} material={mats.wall} receiveShadow />
         </group>
       ))}
       <mesh geometry={geos.frontWall} material={mats.wall} position={[0, 0, CASTLE.zFront]} />
@@ -1343,9 +1352,8 @@ export const DoomCastle: React.FC<{ t?: number; fog?: number; lights?: boolean }
       ))}
       <mesh geometry={beams.back} material={mats.beamBack} renderOrder={4} />
       {SIDE_WINS.map((w, i) => (
-        <mesh key={i} geometry={poolGeo} material={mats.pool} position={[-CASTLE.x + 5.4, 0.02, w.cx + 1.9]} scale={[2.2, 1, 1.3]} renderOrder={3} />
+        <mesh key={i} geometry={poolGeo} material={mats.pool} position={[-3.6, 0.02, w.cx + 2.5]} scale={[3.2, 1, 1.5]} renderOrder={3} />
       ))}
-      <mesh geometry={poolGeo} material={mats.pool} position={[0.9, 0.03, -3.3]} scale={[3.4, 1, 2.6]} renderOrder={3} />
       {/* Banners on the pillars and either side of the big window. */}
       {[-1, 1].flatMap((s) =>
         PILLAR_Z.slice(1, 3).map((z, i) => (
@@ -1399,5 +1407,3 @@ export const CastleLights: React.FC<{ k?: number }> = ({ k = 1 }) => (
   </>
 );
 
-/** Small helper for scenes: rounded slab geometry hook re-exported for set dressing. */
-export const useSlab = useRounded;

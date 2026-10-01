@@ -308,6 +308,8 @@ type PlateSpec = {
   th: number;
   /** Extra outward lean by height (e.g. a flap flaring out above the head). */
   flare?: (y: number) => number;
+  /** Backward (−z) sweep by height. */
+  sweep?: (y: number) => number;
   cols?: number;
   rows?: number;
 };
@@ -316,13 +318,14 @@ const wrapPlate = (o: PlateSpec) => {
   const cols = o.cols ?? 18;
   const rows = o.rows ?? 10;
   const flare = o.flare ?? (() => 0);
+  const sweep = o.sweep ?? (() => 0);
   const ring = Array.from({ length: cols + 1 }, (_, i) => ringAt(o.s0 + ((o.s1 - o.s0) * i) / cols));
   const at = (i: number, j: number, off: number): V3 => {
     const f = i / cols;
     const p = ring[i];
     const y = o.bottom(f) + (o.top(f) - o.bottom(f)) * (j / rows);
     const d = o.t + flare(y) + off;
-    return [p.x + p.nx * d, y, p.z + p.nz * d];
+    return [p.x + p.nx * d, y, p.z + p.nz * d - sweep(y)];
   };
   const pos: number[] = [];
   const idx: number[] = [];
@@ -586,21 +589,23 @@ const capePoint = (s: CapeSpec, u: number, v: number, t: number, wind: number, o
   const y0 = s.top + (yBot - s.top) * v;
   const [x0, z0] = squircle(phi, s.A + s.grow * v, s.B + s.grow * v, s.e0 + (s.e1 - s.e0) * v);
   const fold = 1 + 0.05 * v * Math.sin(u * Math.PI * s.folds);
-  let x = x0 * fold;
-  let z = z0 * fold - 0.05;
-  // Ripples travelling down the cape (bigger with wind), along the outward direction.
+  const x = x0 * fold;
+  const z = z0 * fold - 0.05;
   const w = clamp01(wind);
   const len = Math.hypot(x, z) || 1;
-  const ph = t * (2.3 + 3.4 * w);
-  const amp = (0.13 + 0.5 * w) * v;
+  const ox = x / len;
+  const oz = z / len;
+  // Ripples travelling down the cape (bigger and faster with wind).
+  const ph = t * (2.3 + 4.4 * w);
+  const amp = (0.13 + 0.75 * w) * v;
   const r = amp * (0.7 * Math.sin(ph - v * 5.2 + u * 2.7) + 0.3 * Math.sin(ph * 0.61 + u * 8.3 - v * 1.6 + 1.1));
-  x += (x / len) * r;
-  z += (z / len) * r;
-  // Wind swings the cape back (−z) round its top edge; at rest it just sways.
+  // Wind swings the cape back (−z) round its top edge (at rest it just sways); the ripples
+  // follow the swung sheet's normal so a streaming cape still waves up and down.
   const drop = s.top - y0;
-  const beta = w * (0.62 + 0.62 * v) + 0.05 * Math.sin(t * 1.3 + u * 1.5);
-  const lift = w * 0.3 * v * Math.sin(ph * 1.2 + u * 6.1);
-  out.set(x, s.top - drop * Math.cos(beta) + lift, z - drop * Math.sin(beta));
+  const beta = w * (0.5 + 0.62 * v) + 0.05 * Math.sin(t * 1.3 + u * 1.5);
+  const cb = Math.cos(beta);
+  const sb = Math.sin(beta);
+  out.set(x + ox * r, s.top - drop * cb - oz * sb * r, z - drop * sb + oz * cb * r);
 };
 
 const useCape = (s: CapeSpec, t: number, wind: number) => {
@@ -808,13 +813,14 @@ const thanosGeos = once(() => {
   crest.translate(0.45, 0, 0);
   // Cheek flaps wrap the front corners from the jaw up past the top, flaring out into horns.
   const flap = wrapPlate({
-    s0: 3.5,
-    s1: sRight(1.95),
-    bottom: (f) => 3.35 + 0.7 * f,
-    top: (f) => 9.25 + 2.25 * Math.exp(-(((f - 0.42) / 0.2) ** 2)) + 0.3 * f,
+    s0: 3.8,
+    s1: sRight(2.4),
+    bottom: (f) => 3.75 + 1.1 * f,
+    top: (f) => 9.3 + 1.9 * Math.exp(-(((f - 0.6) / 0.26) ** 2)),
     t: 0.36,
     th: 0.3,
-    flare: (y) => Math.max(0, y - 9.4) * 0.55,
+    flare: (y) => Math.max(0, y - 9.5) * 0.4,
+    sweep: (y) => Math.max(0, y - 9.5) * 0.85,
     cols: 22,
     rows: 16,
   });
@@ -915,12 +921,12 @@ const THOR_BAND: BandSpec = { y0: 2.0, y1: 4.3, t0: 0.5, t1: 0.12, bulge: 0.07, 
 /** Cape shared by Thor (red), measured round the back: hem 0.55 at the back, 2.6 at the edges. */
 export const CAPE_THOR: CapeSpec = {
   top: 7.3,
-  phi0: 0.32,
+  phi0: 0.22,
   hemBack: 0.55,
-  hemSide: 2.5,
+  hemSide: 2.2,
   A: 5.5,
   B: 5.05,
-  grow: 1.3,
+  grow: 1.8,
   e0: 0.34,
   e1: 0.55,
   folds: 8,
@@ -1113,7 +1119,7 @@ export const CapOutfit: React.FC = () => {
       {g.helmet.rim ? <mesh geometry={g.helmet.rim} material={toy("#1C47B8", { rough: 0.35 })} /> : null}
       {[1, -1].map((s) => (
         <group key={s} scale={[s, 1, 1]}>
-          <mesh geometry={g.wing} material={toy("#FFFFFF", { rough: 0.35, glow: 0.22 })} position={[5.24, 8.35, 1.9]} rotation={[0.18, 0, 0]} />
+          <mesh geometry={g.wing} material={toy("#FFFFFF", { rough: 0.35, glow: 0.22 })} position={[5.2, 8.4, 2.0]} rotation={[0.2, -0.5, 0]} scale={1.3} />
         </group>
       ))}
     </group>
@@ -1272,12 +1278,12 @@ export const IronOutfit: React.FC<{ charge?: number; pose?: NubiPose }> = ({ cha
 const STRANGE_TUNIC: BandSpec = { y0: 2.0, y1: 4.3, t0: 0.5, t1: 0.12, bulge: 0.07, rows: 8 };
 export const CAPE_STRANGE: CapeSpec = {
   top: 7.55,
-  phi0: 0.26,
+  phi0: 0.2,
   hemBack: 0.35,
-  hemSide: 1.3,
+  hemSide: 1.2,
   A: 5.5,
   B: 5.05,
-  grow: 1.7,
+  grow: 2.0,
   e0: 0.34,
   e1: 0.58,
   folds: 9,
@@ -1548,7 +1554,9 @@ export const SpiderSuit: React.FC<{ pose?: NubiPose }> = ({ pose }) => {
 const PANTHER_BLACK = CAST.panther.body;
 const PANTHER_SILVER = "#C9D0DA";
 const PANTHER_PURPLE = "#A66BFF";
-const NECK_Y = 4.25;
+/** The necklace runs round the body at y 3.95 and dips into a V on the chest (to 3.35). */
+const NECK_Y = 3.95;
+const neckY = (x: number, front: number) => NECK_Y - 0.6 * front * Math.max(0, 1 - Math.abs(x) / 4.6);
 
 const paintPanther: SkinPainter = (ctx, region, w, h) => {
   rect(ctx, -1, -1, w + 2, h + 2, PANTHER_BLACK);
@@ -1574,6 +1582,7 @@ const paintPanther: SkinPainter = (ctx, region, w, h) => {
   }
   const neck = 9.9 - NECK_Y;
   if (region === "front") {
+    const v = (x: number) => 9.9 - neckY(x - 5, 1);
     // Mask: a ridge down the forehead and brows sweeping over the lenses.
     line([[5, 0.3], [5, 3.0]], PANTHER_SILVER, 0.06);
     for (const s of [-1, 1]) {
@@ -1581,10 +1590,10 @@ const paintPanther: SkinPainter = (ctx, region, w, h) => {
       line([[5 + s * 0.6, 2.2], [5 + s * 2.4, 1.6], [5 + s * 4.6, 1.9]], PANTHER_PURPLE, 0.05);
       line([[5 + s * 3.7, 4.0], [5 + s * 3.9, 5.3]], PANTHER_SILVER, 0.05);
     }
-    // Chest: nested chevrons under the necklace.
-    for (let k = 0; k < 3; k++) {
-      const y = neck + 0.55 + k * 0.42;
-      line([[0.6 + k * 0.5, y], [5, y + 1.05], [9.4 - k * 0.5, y]], k === 1 ? PANTHER_PURPLE : PANTHER_SILVER, 0.055);
+    // Chest: chevrons following the necklace's V.
+    for (let k = 0; k < 2; k++) {
+      const d = 0.42 + k * 0.36;
+      line([[0.2, v(0.2) + d], [5, v(5) + d], [9.8, v(9.8) + d]], k ? PANTHER_PURPLE : PANTHER_SILVER, 0.055);
     }
   } else if (region === "side" || region === "back") {
     line([[-0.5, neck + 0.6], [w / 2, neck + 1.2], [w + 0.5, neck + 0.6]], PANTHER_SILVER, 0.05);
@@ -1606,26 +1615,35 @@ const pantherLensShape = () => {
 };
 
 const pantherGeos = once(() => {
-  const claw = roundShape(
-    [
-      [-0.22, 0],
-      [0.22, 0],
-      [0.05, -0.62],
-      [0.0, -0.66],
-    ],
-    [0.06, 0.06, 0.12, 0.02],
-  );
-  const clawGeo = plate(claw, 0.06, 0.04, 6);
+  const claw = (w: number, l: number) =>
+    plate(
+      roundShape(
+        [
+          [-w / 2, 0],
+          [w / 2, 0],
+          [0.04, -l],
+          [-0.02, -l],
+        ],
+        [0.05, 0.05, 0.1, 0.02],
+      ),
+      0.05,
+      0.035,
+      6,
+    );
+  const small = claw(0.3, 0.46);
   const claws: THREE.BufferGeometry[] = [];
-  const n = 26;
+  const n = 30;
   for (let i = 0; i < n; i++) {
-    const p = ringAt((i / n) * PERIMETER + PERIMETER / n / 2);
-    const g = clawGeo.clone();
-    g.rotateX(-0.22);
+    const p = ringAt((i / n) * PERIMETER);
+    const g = (i === 0 ? claw(0.46, 0.78) : small).clone();
+    g.rotateX(-0.15);
     g.rotateY(Math.atan2(p.nx, p.nz));
-    g.translate(p.x + p.nx * 0.1, NECK_Y - 0.05, p.z + p.nz * 0.1);
+    g.translate(p.x + p.nx * 0.12, neckY(p.x, frontness(p)) - 0.04, p.z + p.nz * 0.12);
     claws.push(g);
   }
+  const chainPts = RING_BACK.slice(0, -1)
+    .filter((_, i) => i % 2 === 0)
+    .map((p) => new THREE.Vector3(p.x + p.nx * 0.12, neckY(p.x, frontness(p)), p.z + p.nz * 0.12));
   const outline = plate(pantherLensShape(), 0.08, 0.04, 20);
   outline.scale(1.16, 1.3, 1);
   const ear = roundShape(
@@ -1646,7 +1664,7 @@ const pantherGeos = once(() => {
   );
   return {
     claws: merge(claws),
-    chain: new THREE.TubeGeometry(ringCurve(NECK_Y, 0.12), 180, 0.085, 6, true),
+    chain: new THREE.TubeGeometry(new THREE.CatmullRomCurve3(chainPts, true), 200, 0.09, 6, true),
     outline,
     lens: plate(pantherLensShape(), 0.1, 0.05, 20),
     ear: plate(ear, 0.4, 0.1),
@@ -1657,7 +1675,8 @@ const pantherGeos = once(() => {
 /**
  * Panther suit (use with palette CAST.panther and hideEyes): fine silver and purple lines printed
  * over the near-black body (mask ridges on the face, chevrons on the chest), a silver necklace of
- * claws round the neck line (y ≈ 4.25, hanging to 3.6), two small pointed ears on top (x ±3.3) and
+ * small claws round the body (y 3.95, dipping into a V on the chest to 3.35 with a bigger claw in
+ * the middle), two small pointed ears on top (x ±3.3) and
  * white cat-eye lenses outlined in silver (centres x ±2.2, y 5.85). `pose` blinks / widens them.
  */
 export const PantherSuit: React.FC<{ pose?: NubiPose }> = ({ pose }) => {
@@ -1668,14 +1687,14 @@ export const PantherSuit: React.FC<{ pose?: NubiPose }> = ({ pose }) => {
     <group>
       <Skin name="panther" paint={paintPanther} />
       <mesh geometry={g.chain} material={silver} />
-      <mesh geometry={g.claws} material={toy("#E3E8EE", { metal: 0.6, rough: 0.25, glow: 0.22 })} />
+      <mesh geometry={g.claws} material={toy("#C3CAD3", { metal: 0.65, rough: 0.28, glow: 0.18 })} />
       {[1, -1].map((s) => (
         <group key={s}>
           <group position={[s * 2.2, 5.85, 4.44]} scale={[s * sx, sy, 1]}>
             <mesh geometry={g.outline} material={silver} />
             <mesh geometry={g.lens} material={toy("#F6F8FB", { rough: 0.15, glow: 0.4 })} position={[0, 0, 0.05]} />
           </group>
-          <group position={[s * 3.25, 9.55, 1.2]} rotation={[-0.1, 0, -s * 0.2]}>
+          <group position={[s * 3.25, 9.55, 1.2]} rotation={[-0.1, 0, -s * 0.2]} scale={1.15}>
             <mesh geometry={g.ear} material={toy(PANTHER_BLACK, { rough: 0.42, glow: 0.14 })} position={[0, 0, -0.3]} castShadow />
             <mesh geometry={g.earIn} material={toy(PANTHER_PURPLE, { rough: 0.4, glow: 0.35 })} position={[0, 0, 0.29]} />
           </group>
@@ -1690,12 +1709,12 @@ export const PantherSuit: React.FC<{ pose?: NubiPose }> = ({ pose }) => {
 
 export const CAPE_WITCH: CapeSpec = {
   top: 7.7,
-  phi0: 0.2,
+  phi0: 0.08,
   hemBack: 0.12,
-  hemSide: 0.55,
+  hemSide: 0.5,
   A: 5.5,
   B: 5.1,
-  grow: 1.9,
+  grow: 2.1,
   e0: 0.34,
   e1: 0.6,
   folds: 11,
@@ -1704,27 +1723,34 @@ export const CAPE_WITCH: CapeSpec = {
 };
 
 const witchGeos = once(() => {
+  // Centre piece: a point down onto the forehead and a tall point up over the head.
   const centre = roundShape(
     [
-      [-0.95, 0],
-      [0.95, 0],
-      [0.5, 1.15],
-      [0.08, 3.3],
-      [-0.08, 3.3],
-      [-0.5, 1.15],
+      [0, -0.82],
+      [0.72, 0],
+      [0.95, 0.38],
+      [0.42, 1.2],
+      [0.1, 3.0],
+      [-0.1, 3.0],
+      [-0.42, 1.2],
+      [-0.95, 0.38],
+      [-0.72, 0],
     ],
-    [0.15, 0.15, 0.35, 0.06, 0.06, 0.35],
+    [0.08, 0.15, 0.15, 0.35, 0.06, 0.06, 0.35, 0.15, 0.15],
   );
+  // Side prongs sweeping up and out like horns.
   const horn = roundShape(
     [
       [-0.5, 0],
-      [0.5, 0],
-      [0.68, 0.9],
-      [1.35, 2.1],
-      [1.15, 2.15],
-      [0.1, 1.15],
+      [0.55, 0],
+      [0.95, 0.85],
+      [1.6, 1.75],
+      [2.0, 2.7],
+      [1.5, 2.2],
+      [0.7, 1.55],
+      [0.0, 1.05],
     ],
-    [0.12, 0.12, 0.3, 0.05, 0.05, 0.3],
+    [0.12, 0.12, 0.35, 0.3, 0.04, 0.3, 0.3, 0.2],
   );
   return {
     circlet: bandGeometry({ y0: 8.25, y1: 8.8, t0: 0.14, t1: 0.14, bulge: 0.04, rows: 3 }),
@@ -1738,8 +1764,8 @@ const witchGeos = once(() => {
 export const HexGlow: React.FC<{ hex: number; t: number; color?: string }> = ({ hex, t, color = "#FF2D55" }) => {
   const geos = useMemo(
     () => ({
-      wisp: new THREE.TorusGeometry(1, 0.07, 6, 40, Math.PI * 1.3),
-      spark: new THREE.SphereGeometry(0.12, 8, 6),
+      wisp: new THREE.TorusGeometry(1, 0.09, 6, 40, Math.PI * 1.3),
+      spark: new THREE.SphereGeometry(0.16, 8, 6),
     }),
     [],
   );
@@ -1751,21 +1777,22 @@ export const HexGlow: React.FC<{ hex: number; t: number; color?: string }> = ({ 
   mat.opacity = 0.9 * k;
   if (k <= 0.001) return null;
   return (
-    <group scale={0.55 + 0.45 * k}>
-      <Halo color={color} size={3.4} opacity={0.85 * k} />
-      <Halo color="#FFC8D4" size={1.4} opacity={0.9 * k} />
-      {[0, 1, 2].map((i) => (
+    <group scale={0.5 + 0.5 * k}>
+      <Halo color={color} size={8} opacity={0.75 * k} />
+      <Halo color={color} size={4} opacity={0.9 * k} />
+      <Halo color="#FFD6DE" size={1.8} opacity={k} />
+      {[0, 1, 2, 3].map((i) => (
         <mesh
           key={i}
           geometry={geos.wisp}
           material={mat}
           rotation={[t * (1.7 + i * 0.6) + i * 2.1, t * (1.1 + i * 0.4) + i, t * 2.3 + i * 1.7]}
-          scale={0.75 + i * 0.22}
+          scale={1.1 + i * 0.3}
         />
       ))}
-      {[0, 1, 2, 3, 4, 5].map((i) => {
-        const a = t * (2.6 + (i % 3) * 0.7) + i * 1.05;
-        const r = 1.0 + 0.35 * Math.sin(t * 3.1 + i * 2.3);
+      {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
+        const a = t * (2.6 + (i % 3) * 0.7) + i * 0.8;
+        const r = 1.6 + 0.5 * Math.sin(t * 3.1 + i * 2.3);
         return <mesh key={i} geometry={geos.spark} material={mat} position={[Math.cos(a) * r, Math.sin(a * 1.3) * r * 0.7, Math.sin(a) * r * 0.6]} />;
       })}
     </group>
@@ -1791,11 +1818,11 @@ export const WitchOutfit: React.FC<{ t: number; wind?: number; hex?: number; fin
   return (
     <group>
       <mesh geometry={g.circlet} material={tiara} />
-      <mesh geometry={g.centre} material={tiara} position={[0, 8.28, 4.5]} castShadow />
-      <mesh geometry={g.gem} material={toy("#FF4D6D", { rough: 0.12, glow: 0.5 })} position={[0, 8.62, 4.78]} scale={[1, 1.2, 0.5]} />
+      <mesh geometry={g.centre} material={tiara} position={[0, 8.35, 4.5]} castShadow />
+      <mesh geometry={g.gem} material={toy("#FF4D6D", { rough: 0.12, glow: 0.5 })} position={[0, 8.55, 4.8]} scale={[0.8, 1.0, 0.45]} />
       {[1, -1].map((s) => (
         <group key={s} scale={[s, 1, 1]}>
-          <mesh geometry={g.horn} material={tiara} position={[2.35, 8.3, 4.47]} rotation={[0, 0, -0.05]} castShadow />
+          <mesh geometry={g.horn} material={tiara} position={[2.2, 8.32, 4.47]} castShadow />
         </group>
       ))}
       <Cape spec={CAPE_WITCH} t={t} wind={wind} outer="#7A0E2B" inner="#C2203F" rough={0.6} />
@@ -2106,9 +2133,9 @@ const VISOR: P2[] = mirrorHalf([
   [0, 6.98],
 ]);
 /** Wing feathers: length of each, from the leading (top) feather down. */
-const FEATHERS = [6.4, 5.8, 5.2, 4.6, 4.0, 3.4];
+const FEATHERS = [7.4, 6.9, 6.3, 5.7, 5.0, 4.3, 3.6];
 /** Shoulder pivot of the screen-right wing (mirror x for the other). */
-export const FALCON_WING_PIVOT: V3 = [2.5, 8.25, -5.35];
+export const FALCON_WING_PIVOT: V3 = [2.2, 8.5, -5.45];
 
 const falconGeos = once(() => {
   const outer = roundShape(VISOR, 0.35);
@@ -2126,16 +2153,25 @@ const falconGeos = once(() => {
       0.08,
     ),
   );
-  const feathers = FEATHERS.map((L) => {
-    const g = new RoundedBoxGeometry(L, 0.95, 0.18, 2, 0.08);
-    const p = g.attributes.position;
-    for (let i = 0; i < p.count; i++) {
-      const f = (p.getX(i) + L / 2) / L;
-      p.setY(i, p.getY(i) * (1 - 0.38 * f * f));
-    }
-    g.computeVertexNormals();
-    g.translate(L / 2, 0, 0);
-    return g;
+  // Broad metal feathers (base at the origin, pointing +x) that overlap into a solid fan.
+  const feathers = FEATHERS.map((L, k) => {
+    const w0 = 1.55 - k * 0.04;
+    const w1 = 1.35 - k * 0.05;
+    return plate(
+      roundShape(
+        [
+          [0, -w0 / 2],
+          [L * 0.8, -w1 / 2],
+          [L, -0.05],
+          [L * 0.86, w1 / 2],
+          [0, w0 / 2],
+        ],
+        [0.3, 0.35, 0.25, 0.35, 0.3],
+      ),
+      0.08,
+      0.05,
+      6,
+    );
   });
   const chevron = roundShape(
     [
@@ -2158,7 +2194,21 @@ const falconGeos = once(() => {
     pack: new RoundedBoxGeometry(6.0, 4.8, 1.3, 3, 0.45),
     joint: new THREE.CylinderGeometry(0.55, 0.55, 0.9, 20),
     feathers,
-    stripe: new RoundedBoxGeometry(2.4, 0.28, 0.06, 1, 0.03),
+    stripe: plate(
+      roundShape(
+        [
+          [0, -0.2],
+          [2.6, -0.14],
+          [3.0, 0.05],
+          [2.6, 0.2],
+          [0, 0.2],
+        ],
+        0.08,
+      ),
+      0.03,
+      0.02,
+      6,
+    ),
   };
 });
 
@@ -2173,8 +2223,9 @@ const paintFalconSuit: Painter = (ctx, W, H) => {
  * Falcon (use with palette CAST.falcon, own eyes): red goggles over the eyes (a translucent red
  * visor in a dark frame, |x| ≤ 4.3, y 4.2..7.0, so Nubi's eyes show through and still blink) with
  * a strap round the head (y 6.3..7.05), a dark flight-suit band (y 2..3.55) with a red stripe and
- * a red chevron on the chest, and a backpack with two metal wings (six feathers each, the top one
- * with a red stripe). `open` 0..1: 0 = folded down the back, 1 = spread wide (≈ 17 units across);
+ * a red chevron on the chest, and a backpack with two metal wings (seven broad feathers each, the
+ * top one with a red stripe). `open` 0..1: 0 = folded down the back, 1 = spread wide (≈ 19 units
+ * across, tips up to y ≈ 12);
  * `flap` -1..1 adds a wing beat.
  */
 export const FalconOutfit: React.FC<{ open?: number; flap?: number }> = ({ open = 0, flap = 0 }) => {
@@ -2211,14 +2262,16 @@ export const FalconOutfit: React.FC<{ open?: number; flap?: number }> = ({ open 
         <group key={s} scale={[s, 1, 1]}>
           <group position={FALCON_WING_PIVOT}>
             <mesh geometry={g.joint} material={steelDark} rotation={[Math.PI / 2, 0, 0]} />
-            {FEATHERS.map((_, k) => {
-              const closed = -1.42 - 0.05 * k;
-              const spread = 0.34 - 0.24 * k;
-              const a = closed + (spread - closed) * o + flap * 0.25 * o * (1 + 0.15 * k);
+            {FEATHERS.map((L, k) => {
+              // Folded: stacked almost straight down the back. Open: fanned out sideways.
+              const closed = -1.5 + 0.035 * k;
+              const spread = 0.5 - 0.21 * k;
+              const a = closed + (spread - closed) * o + flap * 0.3 * o * (1 + 0.12 * k);
               return (
-                <group key={k} rotation={[0, 0, a]} position={[0, 0, -0.12 - k * 0.07]}>
+                <group key={k} rotation={[0, 0, a]} position={[0, 0, -0.2 - k * 0.1]}>
                   <mesh geometry={g.feathers[k]} material={k % 2 ? steelDark : steel} castShadow />
-                  {k === 0 ? <mesh geometry={g.stripe} material={toy("#E0262F", { rough: 0.35, glow: 0.2 })} position={[FEATHERS[0] - 1.6, 0.05, 0.12]} /> : null}
+                  {k === 0 ? <mesh geometry={g.stripe} material={toy("#E0262F", { rough: 0.35, glow: 0.2 })} position={[L - 3.3, 0.12, 0.17]} /> : null}
+                  {k === 0 ? <mesh geometry={g.stripe} material={toy("#E0262F", { rough: 0.35, glow: 0.2 })} position={[L - 3.3, 0.12, -0.03]} rotation={[Math.PI, 0, 0]} /> : null}
                 </group>
               );
             })}

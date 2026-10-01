@@ -366,16 +366,16 @@ export const TimeFrozenHUD: React.FC<{
             {glitch ? <div style={{ position: "absolute", left: 0, right: 0, top: `${sliceY}%`, height: 5, background: "rgba(255,255,255,0.85)" }} /> : null}
             {flash > 0 ? <div style={{ position: "absolute", inset: 0, background: "#FFFFFF", opacity: flash * 0.9 }} /> : null}
           </div>
-          <div style={{ position: "relative", width: 70, height: 56 }}>
-            <div style={{ position: "absolute", left: -10, top: -26 }}>
-              <FrozenWatch size={88} frame={frame} uid={uid} />
+          <div style={{ position: "relative", width: 76, height: 60 }}>
+            <div style={{ position: "absolute", left: -12, top: -30 }}>
+              <FrozenWatch size={96} frame={frame} uid={uid} />
             </div>
           </div>
-          <div style={{ position: "relative", paddingTop: 10 }}>
-            <HeavyText text={label} size={42} colors={["#FFFFFF", "#F4FCFF", "#C4ECFF"]} />
+          <div style={{ position: "relative", paddingTop: 11 }}>
+            <HeavyText text={label} size={46} colors={["#FFFFFF", "#F4FCFF", "#C4ECFF"]} />
           </div>
           <div style={{ position: "relative", transform: `rotate(${t * 1.6}deg) scale(${0.4 + 0.6 * frost})` }}>
-            <Snowflake size={38} />
+            <Snowflake size={42} />
           </div>
         </div>
       </div>
@@ -452,7 +452,7 @@ export const SlowMoBars: React.FC<{
       const sp = 2 + rand(i * 2.9) * 3.5;
       const span = 1080 + len + 200;
       const xx = ((((rand(i * 9.1) * span - sp * t) % span) + span) % span) - len - 100;
-      lines.push(<rect key={i} x={xx} y={yy} width={len} height={th} rx={th / 2} fill={`url(#sms${uid})`} opacity={0.35 + 0.45 * rand(i * 4.4)} />);
+      lines.push(<rect key={i} x={xx} y={yy} width={len} height={th} rx={th / 2} fill={`url(#sms${uid})`} opacity={0.45 + 0.45 * rand(i * 4.4)} />);
     }
   }
   return (
@@ -468,8 +468,8 @@ export const SlowMoBars: React.FC<{
             </linearGradient>
             <radialGradient id={`smg${uid}`} cx="0.5" cy="0.46" r="0.62">
               <stop offset="0" stopColor="#000000" />
-              <stop offset="0.52" stopColor="#000000" />
-              <stop offset="0.95" stopColor="#FFFFFF" />
+              <stop offset="0.42" stopColor="#000000" />
+              <stop offset="0.86" stopColor="#FFFFFF" />
             </radialGradient>
             <mask id={`smm${uid}`} maskUnits="userSpaceOnUse" x={0} y={0} width={1080} height={1920}>
               <rect width={1080} height={1920} fill={`url(#smg${uid})`} />
@@ -499,18 +499,18 @@ export const SlowMoBars: React.FC<{
             whiteSpace: "nowrap",
           }}
         >
-          <SnailIcon size={56} frame={frame} />
-          <div style={{ paddingTop: 9 }}>
-            <HeavyText text={label} size={36} colors={["#FFFFFF", "#F3EEFF", "#CFC2FF"]} />
+          <SnailIcon size={64} frame={frame} />
+          <div style={{ paddingTop: 10 }}>
+            <HeavyText text={label} size={42} colors={["#FFFFFF", "#F3EEFF", "#CFC2FF"]} />
           </div>
           <div
             style={{
-              padding: "7px 14px 1px",
+              padding: "8px 16px 1px",
               borderRadius: 999,
               background: "linear-gradient(180deg, #FFE45C 0%, #FFB703 100%)",
               border: `4px solid ${INK}`,
               fontFamily: FONT.title,
-              fontSize: 38,
+              fontSize: 44,
               lineHeight: 1,
               color: INK,
             }}
@@ -557,7 +557,7 @@ export const ImpactText: React.FC<{
   const tw = lgWidth(text) * size;
   const rx = tw / 2 + size * 0.78;
   const ry = size * 1.02;
-  const p = pop(frame, at, { damping: 8, stiffness: 300, mass: 0.6 });
+  const p = pop(frame, at, { damping: 9, stiffness: 300, mass: 0.6 });
   const k = ramp(frame, outAt, outAt + 8, [0, 1], EASE_IN);
   const sh = Math.exp(-d / 6);
   const sx = jit(frame, (seed % 97) + 1, 1) * 13 * sh;
@@ -615,14 +615,14 @@ export const ImpactText: React.FC<{
         }}
       >
         {letters.map((ch, i) => {
-          const pi = pop(frame, at + 1 + i * 1.2, { damping: 7, stiffness: 320, mass: 0.5 });
+          const pi = pop(frame, at + i * 0.9, { damping: 7, stiffness: 320, mass: 0.5 });
           const c = i - (letters.length - 1) / 2;
           return (
             <div
               key={i}
               style={{
                 transform: `translateY(${c * c * 2.4 * (size / 120)}px) rotate(${c * 3 + (1 - pi) * (i % 2 ? 30 : -30)}deg) scale(${pi})`,
-                opacity: pi > 0.02 ? 1 : 0,
+                opacity: pi > 0.12 ? 1 : 0,
               }}
             >
               <HeavyText text={ch} size={i % 2 ? size * 0.92 : size} colors={tc} />
@@ -1538,8 +1538,8 @@ export const PowerChips: React.FC<{
                   <div
                     style={{
                       position: "absolute",
-                      right: -26,
-                      top: -40,
+                      right: -54,
+                      top: 12,
                       width: 64,
                       height: 64,
                       borderRadius: "50%",
@@ -1562,10 +1562,10 @@ export const PowerChips: React.FC<{
                   </div>
                   {t >= 12 ? (
                     <svg
-                      width={26}
-                      height={34}
+                      width={34}
+                      height={44}
                       viewBox="0 0 26 34"
-                      style={{ position: "absolute", left: 70, top: -26 + dropT * 1.4, opacity: 1 - dropT / 26, overflow: "visible" }}
+                      style={{ position: "absolute", left: 72, top: -36 + dropT * 1.6, opacity: Math.min(1, 2 * (1 - dropT / 26)), overflow: "visible" }}
                     >
                       <path d="M13 2 C17 10 23 16 23 23 C23 29 18 32 13 32 C8 32 3 29 3 23 C3 16 9 10 13 2 Z" fill="#7FD0FF" stroke={INK} strokeWidth={3} />
                       <path d="M9 22 C9 19 10 17 12 15" stroke="#FFFFFF" strokeWidth={2.5} strokeLinecap="round" fill="none" />
@@ -1661,7 +1661,14 @@ export const StonesHUD: React.FC<{
   const tagP = pop(frame, maxAt, { damping: 8, stiffness: 240 });
   const shx = kick(frame, maxAt, 9, 14, 31);
   const scallops = SOCKET_X.map((cx) => `Q${cx} 28 ${cx + 43} 64`).join(" ");
-  const plate = `M118 64 L162 64 ${scallops} C722 66 752 92 752 116 C752 142 722 166 678 168 L118 168 Z`;
+  const plate = `M118 64 L162 64 ${scallops} L700 66 L700 166 L118 168 Z`;
+  // Curled fingers of the fist (side view) at the right end.
+  const FINGERS = [
+    { x: 668, y: 56, w: 84 },
+    { x: 664, y: 84, w: 94 },
+    { x: 664, y: 112, w: 92 },
+    { x: 668, y: 140, w: 80 },
+  ];
   return (
     <>
       {vignette && danger ? (
@@ -1708,6 +1715,11 @@ export const StonesHUD: React.FC<{
                   <stop offset="0.5" stopColor="#D99A1C" />
                   <stop offset="1" stopColor="#8E5A08" />
                 </linearGradient>
+                <linearGradient id={`sgf${uid}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stopColor="#FFF3BF" />
+                  <stop offset="0.45" stopColor="#F2C14E" />
+                  <stop offset="1" stopColor="#B57610" />
+                </linearGradient>
                 {STONES.map((c, i) => (
                   <radialGradient key={i} id={`sgl${uid}${i}`}>
                     <stop offset="0" stopColor={c} stopOpacity={0.9} />
@@ -1724,8 +1736,18 @@ export const StonesHUD: React.FC<{
                 <path d="M22 48 L134 60 L134 172 L22 184 C13 150 13 82 22 48 Z" fill={`url(#sgc${uid})`} />
                 <path d={plate} fill={`url(#sgg${uid})`} />
               </Outlined>
+              {FINGERS.map((fg, j) => (
+                <rect key={`o${j}`} x={fg.x} y={fg.y} width={fg.w} height={32} rx={16} fill={INK} stroke={INK} strokeWidth={13} />
+              ))}
+              {FINGERS.map((fg, j) => (
+                <g key={`f${j}`}>
+                  <rect x={fg.x} y={fg.y} width={fg.w} height={32} rx={16} fill={`url(#sgf${uid})`} stroke={INK} strokeWidth={4} />
+                  <path d={`M${fg.x + fg.w - 34} ${fg.y + 7} Q${fg.x + fg.w - 29} ${fg.y + 16} ${fg.x + fg.w - 34} ${fg.y + 25}`} stroke="#A86A0C" strokeWidth={3.5} fill="none" strokeLinecap="round" />
+                  <path d={`M${fg.x + 14} ${fg.y + 8} L${fg.x + fg.w - 42} ${fg.y + 8}`} stroke="#FFF8DA" strokeWidth={3.5} strokeLinecap="round" opacity={0.7} />
+                </g>
+              ))}
               <path d="M48 56 C42 90 42 140 48 178 M76 58 C71 92 71 140 76 175 M104 60 C100 94 100 138 104 172" stroke="#8E5A08" strokeWidth={5} fill="none" strokeLinecap="round" opacity={0.7} />
-              <path d="M124 150 L676 150 C700 150 726 140 742 126" stroke="#A86A0C" strokeWidth={5} fill="none" strokeLinecap="round" opacity={0.55} />
+              <path d="M124 150 L656 150" stroke="#A86A0C" strokeWidth={5} fill="none" strokeLinecap="round" opacity={0.55} />
               <path d={`M170 74 ${SOCKET_X.map((cx) => `L${cx - 20} 72 Q${cx} 52 ${cx + 20} 72`).join(" ")}`} stroke="#FFF8DA" strokeWidth={4} fill="none" strokeLinecap="round" opacity={0.65} />
               {SOCKET_X.slice(0, 5).map((cx) => (
                 <g key={cx}>
@@ -1829,7 +1851,7 @@ const HOLO_CYAN: Holo = {
   strong: "#5CF2FF",
   fill: "rgba(90,230,255,0.32)",
   glow: "rgba(80,230,255,0.65)",
-  dark: "rgba(4,46,70,0.55)",
+  dark: "rgba(4,46,70,0.66)",
   btn: ["#C8FDFF", "#3FD8F5"],
 };
 const HOLO_RED: Holo = {
@@ -1837,7 +1859,7 @@ const HOLO_RED: Holo = {
   strong: "#FF5C8A",
   fill: "rgba(255,92,138,0.32)",
   glow: "rgba(255,80,120,0.65)",
-  dark: "rgba(70,6,30,0.55)",
+  dark: "rgba(70,6,30,0.66)",
   btn: ["#FFD3DE", "#FF6F98"],
 };
 
@@ -1899,8 +1921,8 @@ const Spinner: React.FC<{ size?: number; frame: number; color: string }> = ({ si
   );
 };
 
-const PIZZA_W = 480;
-const PIZZA_H = 520;
+const PIZZA_W = 540;
+const PIZZA_H = 580;
 
 /**
  * Holographic mini app projected from the gauntlet ("¿esto sirve para pedir pizza?"): a cyan,
@@ -2014,30 +2036,30 @@ export const PizzaApp: React.FC<{
             }}
           />
           {glitch ? <div style={{ position: "absolute", left: 0, right: 0, top: `${rand(g * 1.9) * 90}%`, height: 8, background: h.line, opacity: 0.5 }} /> : null}
-          <div style={{ position: "absolute", left: 0, right: 0, top: 22, display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-            <svg width={34} height={34} viewBox="0 0 100 100" style={{ display: "block" }}>
+          <div style={{ position: "absolute", left: 0, right: 0, top: 24, display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
+            <svg width={40} height={40} viewBox="0 0 100 100" style={{ display: "block" }}>
               <path d="M50 8 L92 86 L8 86 Z" fill={h.fill} stroke={h.line} strokeWidth={8} strokeLinejoin="round" />
               <circle cx={42} cy={58} r={9} fill={h.strong} />
               <circle cx={60} cy={70} r={7} fill={h.strong} />
               <circle cx={52} cy={38} r={6} fill={h.strong} />
             </svg>
-            <span style={{ fontFamily: FONT.heavy, fontWeight: 900, fontSize: 34, letterSpacing: 3, ...textGlow }}>PIZZA CÓSMICA</span>
+            <span style={{ fontFamily: FONT.heavy, fontWeight: 900, fontSize: 40, letterSpacing: 3, ...textGlow }}>PIZZA CÓSMICA</span>
           </div>
-          <div style={{ position: "absolute", left: 40, right: 40, top: 76, height: 3, background: h.line, opacity: 0.45 }} />
-          <div style={{ position: "absolute", left: PIZZA_W / 2 - 104, top: 92, transform: `scale(${pop(frame, at + 8, { damping: 12, stiffness: 180 })})` }}>
-            <HoloPizza size={208} frame={frame} h={h} />
+          <div style={{ position: "absolute", left: 40, right: 40, top: 86, height: 3, background: h.line, opacity: 0.45 }} />
+          <div style={{ position: "absolute", left: PIZZA_W / 2 - 118, top: 100, transform: `scale(${pop(frame, at + 8, { damping: 12, stiffness: 180 })})` }}>
+            <HoloPizza size={236} frame={frame} h={h} />
           </div>
-          <div style={{ position: "absolute", left: 0, right: 0, top: 318, height: 180, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ position: "absolute", left: 0, right: 0, top: 352, height: 206, display: "flex", alignItems: "center", justifyContent: "center" }}>
             {btnOut < 1 ? (
               <div style={{ position: "absolute", left: "50%", top: "50%", width: 0, height: 0 }}>
                 {rip >= 0 ? (
                   <div
                     style={{
                       position: "absolute",
-                      left: -170,
-                      top: -48,
-                      width: 340,
-                      height: 96,
+                      left: -190,
+                      top: -52,
+                      width: 380,
+                      height: 104,
                       borderRadius: 999,
                       border: `${8 * (1 - rip)}px solid ${h.line}`,
                       transform: `scale(${1 + rip * 0.5})`,
@@ -2048,10 +2070,10 @@ export const PizzaApp: React.FC<{
                 <div
                   style={{
                     position: "absolute",
-                    left: -170,
-                    top: -48,
-                    width: 340,
-                    height: 96,
+                    left: -190,
+                    top: -52,
+                    width: 380,
+                    height: 104,
                     borderRadius: 999,
                     background: `linear-gradient(180deg, ${h.btn[0]} 0%, ${h.btn[1]} 100%)`,
                     boxShadow: `0 0 0 3px ${h.line}, 0 0 30px ${h.glow}, inset 0 -7px 0 rgba(0,0,0,0.16)`,
@@ -2062,7 +2084,7 @@ export const PizzaApp: React.FC<{
                     opacity: 1 - btnOut,
                     fontFamily: FONT.heavy,
                     fontWeight: 900,
-                    fontSize: 38,
+                    fontSize: 44,
                     letterSpacing: 1.5,
                     color: "#03314A",
                     whiteSpace: "nowrap",
@@ -2075,10 +2097,10 @@ export const PizzaApp: React.FC<{
                   <div
                     style={{
                       position: "absolute",
-                      left: 40,
-                      top: 6,
-                      width: 46,
-                      height: 46,
+                      left: 46,
+                      top: 8,
+                      width: 50,
+                      height: 50,
                       borderRadius: "50%",
                       background: "rgba(255,255,255,0.85)",
                       boxShadow: "0 0 18px rgba(255,255,255,0.9)",
@@ -2092,21 +2114,21 @@ export const PizzaApp: React.FC<{
             {frame >= press + 9 ? (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, transform: `scale(${statusIn})` }}>
                 {failed ? (
-                  <svg width={72} height={72} viewBox="-50 -50 100 100" style={{ display: "block", transform: `scale(${failIn})` }}>
+                  <svg width={84} height={84} viewBox="-50 -50 100 100" style={{ display: "block", transform: `scale(${failIn})` }}>
                     <circle r={40} fill={h.fill} stroke={h.line} strokeWidth={6} />
                     <path d="M-18 -18 L18 18 M18 -18 L-18 18" stroke={h.line} strokeWidth={10} strokeLinecap="round" />
                   </svg>
                 ) : (
-                  <Spinner size={72} frame={frame} color={h.line} />
+                  <Spinner size={84} frame={frame} color={h.line} />
                 )}
                 {failed ? (
-                  <div style={{ textAlign: "center", fontFamily: FONT.heavy, fontWeight: 900, fontSize: 30, lineHeight: 1.15, letterSpacing: 1, ...textGlow }}>
+                  <div style={{ textAlign: "center", fontFamily: FONT.heavy, fontWeight: 900, fontSize: 34, lineHeight: 1.15, letterSpacing: 1, ...textGlow }}>
                     SIN REPARTIDORES
                     <br />
                     EN ESTE UNIVERSO
                   </div>
                 ) : (
-                  <div style={{ fontFamily: FONT.heavy, fontWeight: 900, fontSize: 28, letterSpacing: 1, whiteSpace: "nowrap", ...textGlow }}>
+                  <div style={{ fontFamily: FONT.heavy, fontWeight: 900, fontSize: 32, letterSpacing: 1, whiteSpace: "nowrap", ...textGlow }}>
                     BUSCANDO REPARTIDOR
                     {[0, 1, 2].map((i) => (
                       <span key={i} style={{ opacity: dots > i ? 1 : 0.2 }}>
@@ -2132,13 +2154,14 @@ export const PizzaApp: React.FC<{
  * at + 10; first word on line 1, the rest on line 2) with a mint block cursor that blinks
  * once it is done, over flickering film grain, dust, the odd vertical scratch and a vignette.
  * Black fades in over 3 frames from `at`; at `out` everything fades away in 8 frames (cut to
- * the next shot under it). `y` = text centre (720).
+ * the next shot under it). `x`, `y` = text centre (500, 720); the text block is ~760 x 260.
  */
-export const PostCreditsCard: React.FC<{ frame: number; at: number; out: number; text?: string; y?: number; perChar?: number }> = ({
+export const PostCreditsCard: React.FC<{ frame: number; at: number; out: number; text?: string; x?: number; y?: number; perChar?: number }> = ({
   frame,
   at,
   out,
   text = "ESCENA POSCRÉDITOS…",
+  x = 500,
   y = 720,
   perChar = 2,
 }) => {
@@ -2173,8 +2196,8 @@ export const PostCreditsCard: React.FC<{ frame: number; at: number; out: number;
       <div
         style={{
           position: "absolute",
-          left: 0,
-          right: 0,
+          left: x - 500,
+          width: 1000,
           top: y,
           transform: "translateY(-50%)",
           display: "flex",
@@ -2191,8 +2214,8 @@ export const PostCreditsCard: React.FC<{ frame: number; at: number; out: number;
             style={{
               fontFamily: FONT.heavy,
               fontWeight: 900,
-              fontSize: li === 0 ? 70 : 84,
-              letterSpacing: li === 0 ? 14 : 6,
+              fontSize: li === 0 ? 66 : 76,
+              letterSpacing: li === 0 ? 14 : 5,
               lineHeight: 1.1,
               color: "#F4F1E8",
               textShadow: "0 0 18px rgba(255,255,255,0.25)",
@@ -2228,7 +2251,7 @@ export const PostCreditsCard: React.FC<{ frame: number; at: number; out: number;
         <div style={{ width: 120, height: 4, borderRadius: 2, background: "#8EDCA2", opacity: 0.9 * ramp(frame, at + 4, at + 12) }} />
       </div>
       {typed === 0 && blink(frame, at, 8, 7) ? (
-        <div style={{ position: "absolute", left: 540 - 22, top: y - 30, width: 42, height: 66, background: "#8EDCA2", opacity: 0.9 }} />
+        <div style={{ position: "absolute", left: x - 20, top: y - 30, width: 40, height: 60, background: "#8EDCA2", opacity: 0.9 }} />
       ) : null}
       <svg width={1080} height={1920} style={{ position: "absolute", inset: 0 }}>
         {specks}
@@ -2298,8 +2321,8 @@ const AnswerBubble: React.FC<{ text: string; bg: string; tail: "left" | "right" 
  * Closing card on black (full frame): "¿NUBI DEBERÍA / ENFRENTAR A / DOCTOR DOOM?" in big
  * heavy letters (NUBI mint green, DOCTOR DOOM gold with a gold underline swoosh) over soft
  * green/gold glows and rising sparkles; then two answer bubbles "SÍ" (green) and "NO" (red)
- * pop in and bob, and a green comment button is tapped by a hand (ripples) while the count
- * next to it ticks up to `countTo` with "COMENTA" under it. Black fades in over 5 frames from
+ * pop in and bob, and a green comment button (right) is tapped by a hand (ripples) while the
+ * count on its left ticks up to `countTo` with "COMENTA" under it. Black fades in over 5 frames from
  * `at`; with `out` it fades out over 10. Layout (fixed, inside the safe area): title y
  * 270-620, bubbles at y ≈ 790, button and count at y ≈ 1010.
  */
@@ -2335,7 +2358,7 @@ export const FinalQuestion: React.FC<{ frame: number; at: number; out?: number; 
   const countIn = pop(frame, at + 42, { damping: 11, stiffness: 200 });
   const swoosh = ramp(frame, at + 20, at + 32, [0, 1], EASE_IN_OUT);
   const R = 96;
-  const BTN = { x: 380, y: 1010 };
+  const BTN = { x: 640, y: 1010 };
   return (
     <AbsoluteFill style={{ pointerEvents: "none", opacity: 1 - k }}>
       <AbsoluteFill style={{ background: "#000", opacity: bgK }} />
@@ -2450,7 +2473,7 @@ export const FinalQuestion: React.FC<{ frame: number; at: number; out?: number; 
       <div
         style={{
           position: "absolute",
-          left: 660,
+          left: 340,
           top: 1004,
           transform: `translate(-50%, -50%) scale(${countIn * (1 + 0.16 * countBump)})`,
           display: "flex",
