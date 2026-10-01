@@ -12,7 +12,9 @@ STATS=$(ffmpeg -hide_banner -i "$TMP/raw.mp4" -af loudnorm=I=-14:TP=-1.5:LRA=11:
 get() { echo "$STATS" | grep "\"$1\"" | sed -E 's/.*: "([^"]+)".*/\1/'; }
 
 # Pasada 2: normalizar con los valores medidos (lineal, sin bombeo).
-ffmpeg -v error -y -i "$TMP/raw.mp4" -c:v copy \
+# El video se recodifica a ~9 Mb/s (calidad de sobra para redes y < 100 MB para GitHub).
+ffmpeg -v error -y -i "$TMP/raw.mp4" \
+  -c:v libx264 -preset slow -crf 19 -maxrate 9M -bufsize 18M -pix_fmt yuv420p \
   -af "loudnorm=I=-14:TP=-1.5:LRA=11:measured_I=$(get input_i):measured_TP=$(get input_tp):measured_LRA=$(get input_lra):measured_thresh=$(get input_thresh):offset=$(get target_offset):linear=true,aresample=48000" \
   -c:a aac -b:a 320k -movflags +faststart "$OUT"
 echo "OK -> $OUT"
