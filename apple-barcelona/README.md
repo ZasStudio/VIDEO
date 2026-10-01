@@ -23,7 +23,9 @@ Edición profesional en [Remotion](https://www.remotion.dev) de un vlog vertical
    - 0:33–0:39 "llegar a España con una maleta llena de sueños": avión sobre un arco hasta el pin "España" y una maleta que se abre y suelta estrellas.
    - 0:56–1:02 "todo comienzo da miedo": MIEDO tiembla, se calma, se tacha y una flecha empuja hacia adelante.
    Entrada y salida con zoom y desenfoque de movimiento (`src/VlogEdit.tsx`).
-8. **Audio** (`src/Mix.tsx`): voz limpia, música de fondo movida e inspiradora generada por código (`scripts/generate-music.mjs`, ~114 BPM, re mayor, con los golpes alineados a la entrada de cada interludio) con ducking automático según la envolvente de la voz (`scripts/voice-envelope.mjs`), efectos sutiles en los títulos e interludios, y normalización final a -14 LUFS / -1,5 dBTP (`scripts/render.sh`).
+   - **3D con Three.js** (`src/three/`, vía `@remotion/three`): MacBook modelada en aluminio pulido que se abre sobre su bisagra con la pantalla encendida, y objetos de vidrio físico (transmisión, refracción, iridiscencia) flotando en los cuatro interludios. La iluminación es un entorno de estudio generado en memoria (`RoomEnvironment`), sin descargas.
+   - **Glassmorphism** (`src/mg/GlassCss.tsx`): tarjetas de vidrio esmerilado con desenfoque de fondo, borde con luz y un reflejo que las recorre; se usan en los íconos, la maleta, "España", el panel de "MIEDO", las etiquetas, la cita y la tarjeta final.
+8. **Audio** (`src/Mix.tsx`): voz limpia, música de fondo movida e inspiradora generada por código (`scripts/generate-music.mjs`, ~114 BPM, re mayor, con los golpes alineados a la entrada de cada interludio) con ducking automático según la envolvente de la voz (`scripts/voice-envelope.mjs`), efectos sutiles de aire y vidrio (`scripts/generate-sfx.mjs` → `public/sfx2/`, en re mayor como la música, con volúmenes bajos), y normalización final a -14 LUFS / -1,5 dBTP (`scripts/render.sh`).
 
 ## Uso
 
@@ -31,6 +33,7 @@ Edición profesional en [Remotion](https://www.remotion.dev) de un vlog vertical
 npm i
 ./scripts/stabilize.sh            # genera public/stabilized.mp4 (no se versiona, ~100 MB)
 node scripts/generate-music.mjs   # genera public/music.wav
+node scripts/generate-sfx.mjs     # genera public/sfx2/*.wav
 node scripts/voice-envelope.mjs   # genera src/voice-envelope.json
 npm run dev                       # Remotion Studio
 ./scripts/render.sh               # render final normalizado en ../renders/

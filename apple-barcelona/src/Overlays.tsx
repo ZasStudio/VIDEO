@@ -4,6 +4,7 @@ import {EASE_IN_OUT, EASE_OUT, appear, clamp01, ramp} from './anim';
 import {FPS} from './edit';
 import {C, FONT, TEXT_SHADOW} from './theme';
 import {findPhrase} from './words';
+import {glassStyle} from './mg/GlassCss';
 
 // Títulos y tarjetas: limpios, estilo Apple (vidrio esmerilado, serif cursiva para las citas),
 // con entradas que suben con desenfoque y frenan despacio.
@@ -42,11 +43,8 @@ const Chip: React.FC<{children: React.ReactNode; style?: React.CSSProperties}> =
       display: 'inline-flex',
       alignItems: 'center',
       gap: 14,
+      ...glassStyle('rgba(255,255,255,0.20)', 999),
       padding: '16px 30px',
-      borderRadius: 999,
-      background: C.glass,
-      backdropFilter: 'blur(18px) saturate(1.4)',
-      border: `1.5px solid ${C.line}`,
       color: C.white,
       fontFamily: FONT.sans,
       fontWeight: 700,
@@ -143,9 +141,18 @@ export const SpokenQuote: React.FC<{
   const words = lines.map((l) => findPhrase(l.join(' ')));
   return (
     <AbsoluteFill>
-      <AbsoluteFill style={{background: 'radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 60%, transparent 85%)', opacity: dim}} />
+      <AbsoluteFill style={{background: 'radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0.35) 0%, transparent 75%)', opacity: dim}} />
       <AbsoluteFill style={{justifyContent: 'center', alignItems: 'center', opacity: 1 - EASE_IN_OUT(clamp01((f - (to - 10)) / 10))}}>
-        <div style={{textAlign: 'center', padding: '0 70px'}}>
+        <div
+          style={{
+            ...glassStyle('rgba(255,255,255,0.14)', 48),
+            textAlign: 'center',
+            padding: '54px 56px',
+            margin: '0 50px',
+            opacity: dim,
+            scale: String(0.94 + 0.06 * dim),
+          }}
+        >
           {lines.map((line, li) => (
             <div
               key={li}
@@ -197,7 +204,16 @@ export const EndCard: React.FC<{from: number}> = ({from}) => {
   return (
     <AbsoluteFill style={{justifyContent: 'flex-end', alignItems: 'center'}}>
       <AbsoluteFill style={{background: 'linear-gradient(180deg, transparent 45%, rgba(0,0,0,0.6) 100%)', opacity: ramp(f, from, from + 12)}} />
-      <div style={{position: 'absolute', bottom: 330, textAlign: 'center', ...rise(f, from, durationInFrames + 20, 36)}}>
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 300,
+          textAlign: 'center',
+          ...glassStyle('rgba(255,255,255,0.14)', 40),
+          padding: '34px 50px 30px',
+          ...rise(f, from, durationInFrames + 20, 36),
+        }}
+      >
         <div style={{fontFamily: FONT.serif, fontStyle: 'italic', fontSize: 96, color: C.white, textShadow: TEXT_SHADOW}}>
           Cada esfuerzo es un logro.
         </div>

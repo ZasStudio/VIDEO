@@ -3,6 +3,9 @@ import React from 'react';
 import {EASE_IN_OUT, EASE_OUT, clamp01, rand} from '../anim';
 import {FONT} from '../theme';
 import {motionBlur} from './Blur';
+import {FPS} from '../edit';
+import {GlassField3D} from '../three/GlassField3D';
+import {Glass} from './GlassCss';
 import {BlackStage, PINK, SyncLine, Twinkle, YELLOW, revealAt, t0, useMs} from './Kit';
 
 // Interludio 3 — "Cuando uno llega aquí a España, lleva prácticamente con ganas,
@@ -32,8 +35,10 @@ const Suitcase: React.FC<{lid: number}> = ({lid}) => (
         width: 420,
         height: 180,
         borderRadius: '0 0 34px 34px',
-        background: 'linear-gradient(180deg, #FF9DAE, #E76F82)',
-        boxShadow: 'inset 0 -10px 0 rgba(0,0,0,0.12), 0 30px 60px rgba(0,0,0,0.45)',
+        background: 'linear-gradient(160deg, rgba(255,170,185,0.55), rgba(231,111,130,0.35))',
+        backdropFilter: 'blur(22px) saturate(1.8)',
+        border: '1.5px solid rgba(255,255,255,0.4)',
+        boxShadow: 'inset 0 1.5px 0 rgba(255,255,255,0.55), inset 0 -10px 30px rgba(120,20,40,0.25), 0 30px 60px rgba(0,0,0,0.45)',
       }}
     />
     {/* tapa (se abre hacia arriba, con la bisagra a la izquierda) */}
@@ -45,17 +50,19 @@ const Suitcase: React.FC<{lid: number}> = ({lid}) => (
         width: 420,
         height: 150,
         borderRadius: '34px 34px 0 0',
-        background: 'linear-gradient(180deg, #FFB3C0, #FF8FA3)',
+        background: 'linear-gradient(160deg, rgba(255,200,210,0.65), rgba(255,143,163,0.4))',
+        backdropFilter: 'blur(22px) saturate(1.8)',
+        border: '1.5px solid rgba(255,255,255,0.45)',
         transformOrigin: '6% 100%',
         rotate: `${-lid * 34}deg`,
-        boxShadow: 'inset 0 8px 0 rgba(255,255,255,0.25)',
+        boxShadow: 'inset 0 2px 0 rgba(255,255,255,0.6), 0 20px 40px rgba(0,0,0,0.3)',
       }}
     >
       <div style={{position: 'absolute', left: 160, top: -40, width: 100, height: 52, borderRadius: '30px 30px 0 0', border: '12px solid #C9646F', borderBottom: 'none'}} />
     </div>
     {/* correas */}
     {[110, 290].map((x) => (
-      <div key={x} style={{position: 'absolute', left: x, top: 150, width: 22, height: 180, background: 'rgba(120,30,45,0.35)'}} />
+      <div key={x} style={{position: 'absolute', left: x, top: 150, width: 22, height: 180, background: 'rgba(255,255,255,0.22)'}} />
     ))}
   </div>
 );
@@ -79,6 +86,15 @@ export const MGSpain: React.FC = () => {
 
   return (
     <BlackStage>
+      <GlassField3D
+        startFrame={Math.round((tArrive / 1000) * FPS)}
+        items={[
+          {shape: 'sphere', p: [-2.0, 3.3, -1], s: 0.8, tint: '#ffd0da'},
+          {shape: 'ring', p: [2.0, -1.0, -0.5], s: 0.9, spin: 0.6},
+          {shape: 'capsule', p: [-2.2, -3.5, 0.5], s: 0.7, tint: '#fff3c4', spin: -1},
+          {shape: 'torus', p: [2.2, -4.0, 0], s: 0.6, tint: '#ffffff'},
+        ]}
+      />
       {/* Parte 1: viaje a España */}
       <div style={{position: 'absolute', inset: 0, opacity: 1 - part1Out, translate: `0px ${-part1Out * 120}px`, filter: motionBlur(part1Out * 0.6, 'y')}}>
         <svg width={1080} height={1920} style={{position: 'absolute', inset: 0}}>
@@ -118,22 +134,11 @@ export const MGSpain: React.FC = () => {
           </svg>
         </div>
         <div
-          style={{
-            position: 'absolute',
-            left: 910,
-            top: 520,
-            translate: '-50% 0',
-            opacity: pin,
-            padding: '10px 26px',
-            borderRadius: 999,
-            background: PINK,
-            color: '#111',
-            fontFamily: FONT.sans,
-            fontWeight: 800,
-            fontSize: 38,
-          }}
+          style={{position: 'absolute', left: 910, top: 520, translate: '-50% 0', opacity: pin}}
         >
-          España
+          <Glass tint="rgba(255,143,163,0.35)" radius={999} style={{padding: '12px 30px', fontFamily: FONT.sans, fontWeight: 800, fontSize: 40, color: '#fff'}}>
+            España
+          </Glass>
         </div>
         <div style={{position: 'absolute', top: 900, left: 0, right: 0}}>
           <SyncLine phrase="cuando uno llega" display={['Cuando', 'uno', 'llega']} size={100} />

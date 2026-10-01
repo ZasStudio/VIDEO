@@ -3,6 +3,9 @@ import {useCurrentFrame} from 'remotion';
 import {EASE_OUT, clamp01} from '../anim';
 import {FONT} from '../theme';
 import {motionBlur} from './Blur';
+import {FPS} from '../edit';
+import {GlassField3D} from '../three/GlassField3D';
+import {Glass} from './GlassCss';
 import {BlackStage, SyncLine, YELLOW, revealAt, t0, useMs} from './Kit';
 
 // Interludio 4 — "Todo comienzo da miedo, es normal, pero no dejes que ese miedo te detenga."
@@ -28,6 +31,20 @@ export const MGFear: React.FC = () => {
 
   return (
     <BlackStage>
+      <GlassField3D
+        startFrame={Math.round((t0('todo comienzo') / 1000) * FPS)}
+        shake={shake}
+        items={[
+          {shape: 'cube', p: [-2.1, 1.9, 0], s: 0.55, spin: 1.4},
+          {shape: 'cube', p: [2.2, 2.6, -0.5], s: 0.42, tint: '#ffd0da', spin: -1.2},
+          {shape: 'capsule', p: [-2.0, -3.9, 0], s: 0.6, tint: '#fff3c4'},
+          {shape: 'sphere', p: [2.1, -3.4, -0.5], s: 0.6},
+        ]}
+      />
+      {/* panel de vidrio detrás de "MIEDO" */}
+      <div style={{position: 'absolute', left: 90, top: 680, opacity: fearIn, scale: String(0.94 + 0.06 * fearIn)}}>
+        <Glass tint="rgba(255,90,95,0.18)" radius={48} style={{width: 900, height: 300}} />
+      </div>
       <div style={{position: 'absolute', top: 430, left: 0, right: 0}}>
         <SyncLine phrase="todo comienzo" display={['Todo', 'comienzo']} size={108} />
         <SyncLine phrase="da miedo" display={['da', '']} size={70} weight={600} color="rgba(255,255,255,0.7)" style={{marginTop: 14}} />

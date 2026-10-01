@@ -5,6 +5,7 @@ import {FPS} from '../edit';
 import {C, FONT} from '../theme';
 import {findPhrase, type Word} from '../words';
 import {BlurDefs, motionBlur} from './Blur';
+import {Glass} from './GlassCss';
 
 // Kit para los interludios de motion graphics sobre negro.
 // Todo se sincroniza con las palabras de la voz (tiempos de la línea editada).
@@ -141,22 +142,19 @@ export const Highlight: React.FC<{p: number; color: string; children: React.Reac
   </span>
 );
 
-/** Tarjeta de vidrio para íconos. */
-export const IconTile: React.FC<{size: number; children: React.ReactNode; tint?: string}> = ({size, children, tint = 'rgba(255,255,255,0.08)'}) => (
-  <div
-    style={{
-      width: size,
-      height: size,
-      borderRadius: size * 0.26,
-      background: `linear-gradient(150deg, ${tint}, rgba(255,255,255,0.03))`,
-      border: '1.5px solid rgba(255,255,255,0.18)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      boxShadow: '0 18px 40px rgba(0,0,0,0.4)',
-    }}
-  >
-    {children}
+/** Tarjeta de vidrio esmerilado para íconos (con un brillo de color detrás para que el vidrio lo difumine). */
+export const IconTile: React.FC<{size: number; children: React.ReactNode; tint?: string; glow?: string; phase?: number}> = ({
+  size,
+  children,
+  tint,
+  glow = 'rgba(255,143,163,0.55)',
+  phase,
+}) => (
+  <div style={{position: 'relative', width: size, height: size}}>
+    <div style={{position: 'absolute', left: size * 0.15, top: size * 0.2, width: size * 0.7, height: size * 0.7, borderRadius: '50%', background: glow, filter: `blur(${size * 0.12}px)`}} />
+    <Glass tint={tint} radius={size * 0.28} phase={phase} style={{width: size, height: size}}>
+      <div style={{width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>{children}</div>
+    </Glass>
   </div>
 );
 

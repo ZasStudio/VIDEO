@@ -2,6 +2,8 @@ import React from 'react';
 import {EASE_OUT, clamp01} from '../anim';
 import {FONT} from '../theme';
 import {motionBlur} from './Blur';
+import {FPS} from '../edit';
+import {GlassField3D} from '../three/GlassField3D';
 import {BlackStage, IconTile, PINK, SyncLine, YELLOW, revealAt, t0, useMs} from './Kit';
 
 // Interludio 2 — "Y no ha sido fácil, me ha costado esfuerzo, sacrificio y mucha constancia."
@@ -43,7 +45,7 @@ const Calendar: React.FC<{p: number}> = ({p}) => (
   </svg>
 );
 
-const Row: React.FC<{at: number; y: number; word: string; color: string; icon: (p: number) => React.ReactNode}> = ({at, y, word, color, icon}) => {
+const Row: React.FC<{at: number; y: number; word: string; color: string; glow: string; phase: number; icon: (p: number) => React.ReactNode}> = ({at, y, word, color, glow, phase, icon}) => {
   const ms = useMs();
   const e = revealAt(ms, at, 380);
   const p = clamp01((ms - at) / 1400);
@@ -61,7 +63,9 @@ const Row: React.FC<{at: number; y: number; word: string; color: string; icon: (
         filter: motionBlur((1 - e) * 1.1, 'x'),
       }}
     >
-      <IconTile size={168}>{icon(p)}</IconTile>
+      <IconTile size={168} glow={glow} phase={phase}>
+        {icon(p)}
+      </IconTile>
       <div style={{fontFamily: FONT.sans, fontWeight: 800, fontSize: 104, letterSpacing: '-0.03em', color}}>{word}</div>
     </div>
   );
@@ -73,6 +77,15 @@ export const MGEffort: React.FC = () => {
   const strike = EASE_OUT(clamp01((ms - tEasy - 450) / 350));
   return (
     <BlackStage hue="yellow">
+      <GlassField3D
+        startFrame={Math.round((t0('no ha sido fácil') / 1000) * FPS)}
+        items={[
+          {shape: 'torus', p: [2.1, 3.9, -1], s: 0.8, tint: '#fff3c4'},
+          {shape: 'sphere', p: [-2.3, -3.9, 0], s: 0.7, tint: '#ffd0da', spin: -1},
+          {shape: 'cube', p: [2.2, -3.6, 0.5], s: 0.55},
+          {shape: 'ring', p: [-2.2, 4.1, -1.5], s: 0.9, spin: 0.7},
+        ]}
+      />
       <div style={{position: 'absolute', top: 300, left: 0, right: 0}}>
         <SyncLine phrase="no ha sido fácil" display={['No', 'ha', 'sido', 'fácil']} size={112} />
         {/* subrayado a mano bajo "fácil" */}
@@ -91,9 +104,9 @@ export const MGEffort: React.FC = () => {
       <div style={{position: 'absolute', top: 540, left: 0, right: 0}}>
         <SyncLine phrase="me ha costado" size={58} weight={600} color="rgba(255,255,255,0.7)" />
       </div>
-      <Row at={t0('esfuerzo')} y={700} word="Esfuerzo" color={YELLOW} icon={(p) => <Bars p={p} />} />
-      <Row at={t0('sacrificio')} y={940} word="Sacrificio" color={PINK} icon={(p) => <Clock p={p} />} />
-      <Row at={t0('constancia')} y={1180} word="Constancia" color="#FFFFFF" icon={(p) => <Calendar p={p} />} />
+      <Row at={t0('esfuerzo')} y={700} word="Esfuerzo" color={YELLOW} glow="rgba(255,212,59,0.6)" phase={0} icon={(p) => <Bars p={p} />} />
+      <Row at={t0('sacrificio')} y={940} word="Sacrificio" color={PINK} glow="rgba(255,143,163,0.6)" phase={1} icon={(p) => <Clock p={p} />} />
+      <Row at={t0('constancia')} y={1180} word="Constancia" color="#FFFFFF" glow="rgba(140,170,255,0.55)" phase={2} icon={(p) => <Calendar p={p} />} />
     </BlackStage>
   );
 };

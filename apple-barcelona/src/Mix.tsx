@@ -37,7 +37,7 @@ export const Mix: React.FC<{sfx: Sfx[]}> = ({sfx}) => (
     />
     {sfx.map((c, i) => (
       <Sequence key={i} from={c.at} durationInFrames={60} layout="none">
-        <Audio src={staticFile(`sfx/${c.file}.wav`)} volume={() => c.volume} />
+        <Audio src={staticFile(`sfx2/${c.file}.wav`)} volume={() => c.volume} />
       </Sequence>
     ))}
   </>

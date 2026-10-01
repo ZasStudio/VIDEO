@@ -90,23 +90,34 @@ const VideoWithCam: React.FC = () => {
   );
 };
 
+// Efectos sutiles (public/sfx2, generados con scripts/generate-sfx.mjs): aire, vidrio y un
+// golpe grave suave. Volúmenes bajos para que acompañen sin tapar la voz ni la música.
 const SFX: Sfx[] = [
-  {at: 2, file: 'whoosh-soft', volume: 0.35},
-  {at: 10, file: 'sparkle', volume: 0.18},
-  {at: PRODUCT.from, file: 'pop', volume: 0.35},
-  {at: QUOTE_START, file: 'whoosh-soft', volume: 0.3},
-  ...INTERLUDES.flatMap((it): Sfx[] => [
-    {at: Math.max(0, it.from - 4), file: 'whoosh', volume: 0.32},
-    {at: it.to - 3, file: 'whoosh-soft', volume: 0.28},
-  ]),
-  {at: fr(findPhrase('esfuerzo')[0].startMs), file: 'pop', volume: 0.3},
-  {at: fr(findPhrase('sacrificio')[0].startMs), file: 'pop', volume: 0.3},
-  {at: fr(findPhrase('constancia')[0].startMs), file: 'pop', volume: 0.3},
-  {at: fr(findPhrase('sueños')[0].startMs), file: 'sparkle', volume: 0.35},
-  {at: fr(findPhrase('de trabajo')[0].startMs), file: 'sparkle', volume: 0.25},
-  {at: fr(findPhrase('te detenga')[0].startMs), file: 'whoosh', volume: 0.3},
-  {at: FINAL_START, file: 'impact', volume: 0.3},
-  {at: END_CARD, file: 'chime', volume: 0.32},
+  {at: 2, file: 'air-in', volume: 0.35},
+  {at: 8, file: 'glass-tap', volume: 0.3},
+  {at: PRODUCT.from, file: 'tick', volume: 0.35},
+  ...INTERLUDES.flatMap((it): Sfx[] => {
+    const chainedIn = INTERLUDES.some((x) => x.to === it.from);
+    const chainedOut = INTERLUDES.some((x) => x.from === it.to);
+    return [
+      ...(chainedIn ? [] : [{at: Math.max(0, it.from - 5), file: 'air-in', volume: 0.42}, {at: it.from, file: 'thump', volume: 0.45}]),
+      ...(chainedIn ? [{at: it.from - 2, file: 'air-in', volume: 0.3}] : []),
+      ...(chainedOut ? [] : [{at: it.to - 4, file: 'air-out', volume: 0.38}]),
+    ];
+  }),
+  {at: fr(findPhrase('una herramienta')[0].startMs) - 6, file: 'glass-tap', volume: 0.32},
+  {at: fr(findPhrase('de trabajo')[0].startMs), file: 'tick', volume: 0.32},
+  {at: fr(findPhrase('esfuerzo')[0].startMs), file: 'glass-tap', volume: 0.4},
+  {at: fr(findPhrase('sacrificio')[0].startMs), file: 'glass-tap-2', volume: 0.4},
+  {at: fr(findPhrase('constancia')[0].startMs), file: 'glass-tap-3', volume: 0.4},
+  {at: fr(findPhrase('aquí a españa')[0].startMs) + 12, file: 'glass-tap-2', volume: 0.32},
+  {at: fr(findPhrase('sueños')[0].startMs) - 4, file: 'shimmer', volume: 0.4},
+  {at: fr(findPhrase('ese miedo te detenga')[0].startMs) + 5, file: 'tick', volume: 0.35},
+  {at: fr(findPhrase('te detenga')[0].startMs), file: 'air-in', volume: 0.3},
+  {at: QUOTE_START, file: 'glass-tap-3', volume: 0.25},
+  {at: FINAL_START - 30, file: 'rise-soft', volume: 0.35},
+  {at: FINAL_START, file: 'thump', volume: 0.4},
+  {at: END_CARD, file: 'resolve', volume: 0.5},
 ];
 
 /** Fundido a negro final. */
