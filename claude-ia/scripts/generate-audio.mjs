@@ -12,14 +12,14 @@
 // Writes public/audio/*.wav (48 kHz, stereo, 16-bit PCM) and prints a
 // verification report computed by re-reading the files from disk.
 //
-// Music: 100 BPM, 4/4, D major, 22 bars = 52.800 s (1 bar = 2.4 s = 72 frames @ 30 fps)
+// Music: 100 BPM, 4/4, D major, 24 bars = 57.600 s (1 bar = 2.4 s = 72 frames @ 30 fps)
 //   bars  0-1   intro      pad swell + sparse glass bells, riser into bar 2
 //   bars  2-4   build      soft quarter kicks, hats, bass from bar 3, filter opens, roll
 //   bars  5-6   drop       full groove, warm chord stabs, pluck arp
 //   bars  7-11  bright     airy half-time, bells + plucks, no kick on bar 7 beat 1
-//   bars 12-17  main       fullest groove, fills end of bars 15 and 17
-//   bars 18-19  breakdown  soft hats only + pad + plucks, swell into bar 20
-//   bars 20-21  resolve    final soft hit, tonic ring-out, silent last ~0.3 s
+//   bars 12-19  main       fullest groove, fills end of bars 15 and 19
+//   bars 20-21  breakdown  soft hats only + pad + plucks, swell into bar 22
+//   bars 22-23  resolve    final soft hit, tonic ring-out, silent last ~0.3 s
 // =============================================================================
 
 import { writeFileSync, readFileSync, mkdirSync } from 'node:fs';
@@ -918,17 +918,17 @@ function bassNote(midi, dur, vel = 1, { release = 0.06, drive = 1.35 } = {}) {
 }
 
 // ----------------------------------------------------------------------------
-// Song map: 100 BPM, 4/4, D major, 22 bars = 52.800 s
+// Song map: 100 BPM, 4/4, D major, 24 bars = 57.600 s
 // ----------------------------------------------------------------------------
 const BPM = 100;
 const BEAT = 60 / BPM; // 0.6 s
 const BAR = 4 * BEAT; // 2.4 s = 72 frames @ 30 fps
 const STEP = BEAT / 4; // 16th = 0.15 s
-const BARS = 22;
-const SONG_SEC = BARS * BAR; // 52.8 s
+const BARS = 24;
+const SONG_SEC = BARS * BAR; // 57.6 s
 const at = (bar, step) => bar * BAR + step * STEP;
-const T = { BUILD: at(2, 0), DROP: at(5, 0), BRIGHT: at(7, 0), MAIN: at(12, 0), BREAK: at(18, 0), END: at(20, 0) };
-const FADE = [50.2, 52.5]; // raised-cosine fade, digital silence from 52.5 s
+const T = { BUILD: at(2, 0), DROP: at(5, 0), BRIGHT: at(7, 0), MAIN: at(12, 0), BREAK: at(20, 0), END: at(22, 0) };
+const FADE = [55.0, 57.3]; // raised-cosine fade, digital silence from 57.3 s
 const GAP = 0.03; // swells stop just before their downbeat (a breath)
 
 const SECTIONS = [
@@ -936,9 +936,9 @@ const SECTIONS = [
   ['build', 2, 5],
   ['drop', 5, 7],
   ['bright', 7, 12],
-  ['main', 12, 18],
-  ['breakdown', 18, 20],
-  ['resolve', 20, 22],
+  ['main', 12, 20],
+  ['breakdown', 20, 22],
+  ['resolve', 22, 24],
 ];
 const sectionOf = (bar) => SECTIONS.find(([, a, b]) => bar >= a && bar < b)[0];
 
@@ -950,7 +950,7 @@ const CHORDS = {
   A: { name: 'A(add9)', root: 33, pad: [45, 52, 57, 59, 61], stab: [61, 64, 69, 71], arp: [69, 71, 73, 76, 81] },
 };
 // One chord per bar (I - vi - IV - V family).
-const SEQ = ['D', 'G', 'D', 'Bm', 'A', 'D', 'Bm', 'G', 'D', 'Bm', 'G', 'A', 'D', 'Bm', 'G', 'A', 'D', 'Bm', 'G', 'A', 'D', 'D'];
+const SEQ = ['D', 'G', 'D', 'Bm', 'A', 'D', 'Bm', 'G', 'D', 'Bm', 'G', 'A', 'D', 'Bm', 'G', 'A', 'D', 'Bm', 'G', 'A', 'G', 'A', 'D', 'D'];
 
 // Bass events: [step, semitones above root, length in steps, velocity]
 const BASS = {
@@ -1134,7 +1134,7 @@ function renderMusic() {
 
     if (sec === 'drop' || sec === 'main') {
       const gi = bar % 2;
-      const fill = bar === 15 || bar === 17;
+      const fill = bar === 15 || bar === 19;
       const fillFrom = 12;
       KICK_GROOVE[gi].forEach((s) => {
         if (!(fill && s >= fillFrom)) addKick(at(bar, s), s === 0 ? 1 : 0.85);
@@ -1151,7 +1151,7 @@ function renderMusic() {
         if (sec === 'main' || s % 2 === 0) addShaker(at(bar, s), s % 2 ? 0.5 : 0.8); // drop: 8th shaker only
       }
       if (fill) {
-        // small tom + rim fill over the last beat (bar 17: a little bigger)
+        // small tom + rim fill over the last beat (bar 19: a little bigger)
         const seq =
           bar === 15
             ? [
@@ -1205,14 +1205,14 @@ function renderMusic() {
       for (let s = 0; s < 16; s += 2) addHat(at(bar, s), s % 4 === 2 ? 0.45 : 0.3);
       for (let s = 0; s < 16; s += 2) playPluck(bar, s, ch.arp[ARP_SEQ[s]], ARP_ACCENTS.has(s) ? 0.7 : 0.45);
       playBell(bar, 0, bellTones[2], 0.5);
-      if (bar === 19) playBell(bar, 8, bellTones[4], 0.4);
+      if (bar === 21) playBell(bar, 8, bellTones[4], 0.4);
     }
 
-    if (sec === 'resolve' && bar === 20) {
+    if (sec === 'resolve' && bar === 22) {
       // final soft hit on the downbeat, then the tonic rings out
-      addKick(at(20, 0), 0.9);
-      addMono(bus.bass, bassNote(ch.root, 2.6, 1, { release: 0.8 }), at(20, 0), 0.55);
-      playStab(20, 0, 6, 0.85);
+      addKick(at(22, 0), 0.9);
+      addMono(bus.bass, bassNote(ch.root, 2.6, 1, { release: 0.8 }), at(22, 0), 0.55);
+      playStab(22, 0, 6, 0.85);
       [
         [0, 74, 0.8],
         [2, 78, 0.6],
@@ -1221,15 +1221,15 @@ function renderMusic() {
         [8, 86, 0.5],
         [11, 88, 0.4],
         [14, 81, 0.35],
-      ].forEach(([s, m, v]) => playPluck(20, s, m, v, { decay: 0.3, len: 1.0 }));
+      ].forEach(([s, m, v]) => playPluck(22, s, m, v, { decay: 0.3, len: 1.0 }));
       [
         [0, 86, 0.7],
         [3, 90, 0.5],
         [6, 93, 0.5],
         [10, 97, 0.4],
-      ].forEach(([s, m, v]) => playBell(20, s, m, v, null, { decay: 1.0, len: 2.5 }));
-      playBell(21, 0, 98, 0.32, 0.3, { decay: 1.0, len: 2.5 });
-      playBell(21, 6, 93, 0.22, -0.3, { decay: 0.9, len: 2.2 });
+      ].forEach(([s, m, v]) => playBell(22, s, m, v, null, { decay: 1.0, len: 2.5 }));
+      playBell(23, 0, 98, 0.32, 0.3, { decay: 1.0, len: 2.5 });
+      playBell(23, 6, 93, 0.22, -0.3, { decay: 0.9, len: 2.2 });
     }
   }
 
@@ -1263,10 +1263,10 @@ function renderMusic() {
   addStereo(bus.fx, riser({ dur: 1.6, fStart: 500, fEnd: 8000, toneAmt: 0.12, seed: 73 }), T.MAIN - GAP - 1.6, 0.1);
   addStereo(bus.fx, crash({ seed: 53, decay: 1.4 }), T.MAIN, 0.18);
   addStereo(bus.fx, softBoom({ seed: 82, decay: 0.5 }), T.MAIN, 0.38);
-  // into the breakdown (bar 18): soft cymbal wash only
+  // into the breakdown (bar 20): soft cymbal wash only
   addStereo(bus.fx, crash({ seed: 54, decay: 1.8, bright: 0.9 }), T.BREAK, 0.12);
-  // breakdown -> resolve: swell over bar 19
-  addStereo(bus.fx, riser({ dur: BAR - GAP, fStart: 300, fEnd: 7000, toneFrom: 293.7, toneTo: 1174.7, toneAmt: 0.18, seed: 74 }), at(19, 0), 0.14);
+  // breakdown -> resolve: swell over bar 21
+  addStereo(bus.fx, riser({ dur: BAR - GAP, fStart: 300, fEnd: 7000, toneFrom: 293.7, toneTo: 1174.7, toneAmt: 0.18, seed: 74 }), at(21, 0), 0.14);
   addStereo(bus.fx, reverseCymbal(2.0, 61), T.END - GAP - 2.0, 0.22);
   // resolve: final soft hit
   addStereo(bus.fx, crash({ seed: 55, decay: 1.6, len: 4 }), T.END, 0.16);
@@ -1770,11 +1770,11 @@ function verifyMusic(path) {
     console.log(`  ${pad(name, 10)} bars ${padL(a, 2)}-${pad(b - 1, 2)} ${padL(fmtDb(gainToDb(rmsOf(buf, [[a * BAR, b * BAR]]))), 6)}`);
   }
   const quarter = [];
-  for (let t = 48; t < 52.8 - 1e-9; t += 0.3) quarter.push(fmtDb(gainToDb(rmsOf(buf, [[t, t + 0.3]]))));
-  console.log(`  ring-out RMS every 0.3 s from 48.0 s: ${quarter.join(' ')}`);
+  for (let t = 52.8; t < 57.6 - 1e-9; t += 0.3) quarter.push(fmtDb(gainToDb(rmsOf(buf, [[t, t + 0.3]]))));
+  console.log(`  ring-out RMS every 0.3 s from 52.8 s: ${quarter.join(' ')}`);
   let tailPk = 0;
-  for (let i = Math.round(52.5 * SR); i < n; i++) tailPk = Math.max(tailPk, Math.abs(L[i]), Math.abs(R[i]));
-  console.log(`  last 0.3 s (52.5-52.8 s): ${tailPk === 0 ? 'digital silence (all samples 0)' : 'peak ' + fmtDb(gainToDb(tailPk)) + ' dBFS'}`);
+  for (let i = Math.round(57.3 * SR); i < n; i++) tailPk = Math.max(tailPk, Math.abs(L[i]), Math.abs(R[i]));
+  console.log(`  last 0.3 s (57.3-57.6 s): ${tailPk === 0 ? 'digital silence (all samples 0)' : 'peak ' + fmtDb(gainToDb(tailPk)) + ' dBFS'}`);
   let m2 = 0;
   let s2 = 0;
   for (let i = Math.round(T.MAIN * SR); i < Math.round(T.BREAK * SR); i++) {

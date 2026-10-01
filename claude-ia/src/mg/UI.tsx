@@ -48,6 +48,8 @@ export const ChatWindow: React.FC<{
   question = '¿Me ayudas a planear el lanzamiento de mi app?',
   answer = ['¡Claro! Lo dividimos en tres pasos:', '1. Define a quién le hablas', '2. Prepara un mensaje claro', '3. Elige la fecha y mide'],
 }) => {
+  // Base tipográfica: funciona tanto en ventanas apaisadas como en verticales.
+  const fb = Math.min(h, w * 0.58);
   const fg = dark ? C.white : C.cocoa;
   const sub = dark ? 'rgba(255,235,220,0.55)' : 'rgba(43,29,22,0.5)';
   const qP = clamp01(p / 0.25);
@@ -86,23 +88,23 @@ export const ChatWindow: React.FC<{
             borderRadius: 20,
             background: dark ? 'rgba(255,235,220,0.12)' : C.paper,
             color: fg,
-            fontSize: h * 0.042,
+            fontSize: fb * 0.042,
             fontWeight: 500,
             opacity: qP > 0 ? 1 : 0,
             transform: `translateY(${(1 - qP) * 20}px)`,
-            minHeight: h * 0.042 * 1.3,
+            minHeight: fb * 0.042 * 1.3,
           }}
         >
           {typed(question, qP)}
         </div>
         <div style={{display: 'flex', gap: 18, opacity: aP > 0 ? 1 : 0}}>
           <Spark size={40} color={C.coral} glow={dark ? C.coral : null} rotate={p * 200} />
-          <div style={{display: 'flex', flexDirection: 'column', gap: 12, color: fg, fontSize: h * 0.04}}>
+          <div style={{display: 'flex', flexDirection: 'column', gap: 12, color: fg, fontSize: fb * 0.04}}>
             {answer.map((l, i) => {
               const n = Math.max(0, Math.min(l.length, budget));
               budget -= l.length;
               return (
-                <div key={i} style={{fontWeight: i === 0 ? 700 : 500, minHeight: h * 0.05, opacity: n > 0 ? 1 : 0}}>
+                <div key={i} style={{fontWeight: i === 0 ? 700 : 500, minHeight: fb * 0.05, opacity: n > 0 ? 1 : 0}}>
                   {l.slice(0, n)}
                 </div>
               );
@@ -116,7 +118,7 @@ export const ChatWindow: React.FC<{
             left: 44,
             right: 44,
             bottom: 30,
-            height: h * 0.12,
+            height: fb * 0.12,
             borderRadius: 18,
             border: `1.5px solid ${dark ? 'rgba(255,190,150,0.35)' : C.line}`,
             display: 'flex',
@@ -124,11 +126,11 @@ export const ChatWindow: React.FC<{
             padding: '0 22px',
             justifyContent: 'space-between',
             color: sub,
-            fontSize: h * 0.034,
+            fontSize: fb * 0.034,
           }}
         >
           <span>Escribe a Claude…</span>
-          <div style={{width: h * 0.07, height: h * 0.07, borderRadius: 12, background: C.coral}} />
+          <div style={{width: fb * 0.07, height: fb * 0.07, borderRadius: 12, background: C.coral}} />
         </div>
       </div>
     </div>

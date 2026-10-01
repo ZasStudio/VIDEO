@@ -3,8 +3,9 @@
 // tipografía cinética con una palabra destacada) con colores cálidos tipo Claude.
 
 export const FPS = 30;
-export const WIDTH = 1920;
-export const HEIGHT = 1080;
+// Formato vertical (Reels / Shorts / TikTok).
+export const WIDTH = 1080;
+export const HEIGHT = 1920;
 
 // Música a 100 BPM: 1 tiempo = 18 frames, 1 compás = 72 frames (2,4 s).
 export const BEAT = 18;
@@ -30,6 +31,10 @@ export const C = {
   cocoa: '#2B1D16',
   clay: '#C2603A',
   line: 'rgba(43, 29, 22, 0.18)',
+  // Escena colaborativa (cursores tipo Figma)
+  you: '#E8562A',
+  claudeBlue: '#2F6BFF',
+  sky: '#8CCBF5',
 } as const;
 
 export const FONT = {

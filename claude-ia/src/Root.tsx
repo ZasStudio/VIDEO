@@ -5,7 +5,7 @@ import {DURATIONS, TOTAL} from './timeline';
 import {FPS, HEIGHT, WIDTH} from './theme';
 import './fonts';
 
-const NAMES = ['Chispa', 'Anillos', 'Pensar', 'Chat', 'Razona', 'Cinta', 'Tablero', 'Artefactos', 'Claras', 'Lejos', 'Entiende', 'Cierre'];
+const NAMES = ['Chispa', 'Anillos', 'Pensar', 'Chat', 'Razona', 'Cinta', 'Juntos', 'Tablero', 'Artefactos', 'Claras', 'Lejos', 'Entiende', 'Cierre'];
 
 export const RemotionRoot: React.FC = () => (
   <>

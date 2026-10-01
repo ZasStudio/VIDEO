@@ -5,8 +5,11 @@ export const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
 
 const CLAMP = {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'} as const;
 
-export const EASE_OUT = Easing.bezier(0.16, 1, 0.3, 1);
-export const EASE_IN_OUT = Easing.bezier(0.65, 0, 0.35, 1);
+// Curvas fuertes (filosofía de animación de Emil Kowalski):
+// ease-out para entradas/salidas, ease-in-out para movimiento en pantalla.
+// EASE_IN solo para aceleraciones de cámara hacia un corte, nunca para entradas.
+export const EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
+export const EASE_IN_OUT = Easing.bezier(0.77, 0, 0.175, 1);
 export const EASE_IN = Easing.bezier(0.7, 0, 0.84, 0);
 
 /** Clamped interpolation with an ease-out by default. */
@@ -56,3 +59,15 @@ export const keyframes = (
   values: number[],
   easing: (t: number) => number = EASE_IN_OUT,
 ) => interpolate(frame, frames, values, {...CLAMP, easing});
+
+/**
+ * Entrada con resorte que nunca parte de scale(0): escala 0.82 -> 1 (con un leve rebote)
+ * y opacidad 0 -> 1. Devuelve propiedades listas para `style`.
+ */
+export const appear = (frame: number, start: number, from = 0.82) => {
+  const s = pop(frame, start, {damping: 13, stiffness: 190, mass: 0.7});
+  return {
+    opacity: clamp01((frame - start) / 5),
+    scale: String(from + (1 - from) * s),
+  };
+};

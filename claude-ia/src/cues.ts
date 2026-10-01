@@ -22,8 +22,10 @@ const PER_SCENE: Cue[][] = [
   [[4, 'whoosh-soft', 0.5], [30, 'pop', 0.6], [42, 'sparkle', 0.4], [96, 'whoosh-soft', 0.6], [104, 'whoosh', 0.7], [120, 'pop', 0.5], [134, 'pop', 0.45], [142, 'pop', 0.4], [160, 'whoosh-soft', 0.5], [190, 'whoosh', 0.6]],
   // S6 — Cinta y chat
   [[0, 'whoosh', 0.6], [22, 'pop', 0.5], [30, 'pop', 0.5], [38, 'pop', 0.5], [46, 'pop', 0.4], ...typing(14, 40, 3, 0.25), ...typing(56, 120, 4, 0.2)],
+  // SJ — Crea juntos (cursores colaborativos)
+  [[6, 'pop', 0.5], [10, 'whoosh-soft', 0.45], [16, 'click', 0.7], [26, 'whoosh', 0.55], [30, 'whoosh-soft', 0.45], [74, 'click', 0.85], [78, 'pop', 0.45], ...typing(96, 124, 3, 0.25), [132, 'whoosh-soft', 0.4]],
   // S7 — Tablero
-  [[0, 'impact', 0.6], [2, 'whoosh-soft', 0.4], [12, 'whoosh-soft', 0.4], [22, 'whoosh-soft', 0.4], [32, 'whoosh-soft', 0.4], [40, 'pop', 0.5], [70, 'whoosh', 0.7], ...typing(80, 104, 3, 0.3), [108, 'glitch', 0.5], [120, 'sparkle', 0.45]],
+  [[0, 'impact', 0.35], [2, 'whoosh-soft', 0.4], [12, 'whoosh-soft', 0.4], [22, 'whoosh-soft', 0.4], [32, 'whoosh-soft', 0.4], [40, 'pop', 0.5], [70, 'whoosh', 0.7], ...typing(80, 104, 3, 0.3), [108, 'glitch', 0.5], [120, 'sparkle', 0.45]],
   // S8 — Artefactos
   [[0, 'click', 0.7], [2, 'whoosh', 0.6], [18, 'pop', 0.6], [22, 'sparkle', 0.5], [50, 'whoosh-soft', 0.6], [60, 'glitch', 0.55], ...typing(74, 90, 3, 0.3)],
   // S9 — Respuestas claras

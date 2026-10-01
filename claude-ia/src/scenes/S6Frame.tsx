@@ -1,6 +1,6 @@
 import React from 'react';
 import {AbsoluteFill, useCurrentFrame} from 'remotion';
-import {EASE_IN_OUT, EASE_OUT, keyframes, pop, ramp} from '../anim';
+import {EASE_IN_OUT, EASE_OUT, appear, keyframes, ramp} from '../anim';
 import {LightBackdrop} from '../mg/Backdrop';
 import {Ribbon, Sticker} from '../mg/Ribbon';
 import {Spark} from '../mg/Spark';
@@ -12,7 +12,7 @@ import {C} from '../theme';
 export const S6_DURATION = 144;
 
 const LOOP =
-  'M 380 -90 C 320 420, 420 970, 1000 955 C 1500 945, 1720 800, 1700 520 C 1690 300, 1500 190, 1410 320 C 1330 450, 1560 560, 1770 470 C 1900 410, 1960 320, 2060 290';
+  'M 30 -100 C -20 640, 40 1700, 560 1680 C 1020 1660, 1120 1340, 1070 1000 C 1040 760, 860 650, 800 800 C 740 960, 980 1060, 1200 960';
 
 export const S6Frame: React.FC = () => {
   const f = useCurrentFrame();
@@ -23,55 +23,62 @@ export const S6Frame: React.FC = () => {
   return (
     <LightBackdrop
       orbs={[
-        {x: 1700, y: 980, r: 520, color: 'rgba(251,227,184,0.95)', drift: 40},
-        {x: 160, y: 200, r: 460, color: 'rgba(246,205,178,0.8)', drift: 50},
+        {x: 900, y: 1800, r: 560, color: 'rgba(251,227,184,0.95)', drift: 40},
+        {x: 120, y: 260, r: 520, color: 'rgba(246,205,178,0.8)', drift: 50},
       ]}
     >
-      <AbsoluteFill style={{transform: `scale(${zoom})`}}>
+      <AbsoluteFill style={{scale: String(zoom)}}>
         <div
           style={{
             position: 'absolute',
-            left: 470,
-            top: 250,
+            left: 110,
+            top: 380,
             opacity: cardIn,
-            transform: `translateY(${(1 - cardIn) * 60}px) scale(${0.92 + 0.08 * cardIn})`,
+            translate: `0px ${(1 - cardIn) * 80}px`,
+            scale: String(0.94 + 0.06 * cardIn),
           }}
         >
-          <ChatWindow w={1080} h={620} dark={false} p={ramp(f, 14, 128, [0, 1], (t) => t)} />
+          <ChatWindow w={860} h={1120} dark={false} p={ramp(f, 14, 128, [0, 1], (t) => t)} />
         </div>
 
         <Ribbon
           id="loop"
           d={LOOP}
-          width={78}
+          width={96}
           head={head}
-          from={[380, 0]}
-          to={[1900, 700]}
-          text="Sin ruido  ·  Sin esperas  ·  Solo respuestas útiles  ·  Sin ruido  ·  Sin esperas"
-          textSize={30}
-          textOffset={keyframes(f, [10, 144], [80, -420], (t) => t)}
+          from={[0, 0]}
+          to={[1080, 1700]}
+          text="Sin ruido  ·  Sin esperas  ·  Solo respuestas útiles  ·  Sin ruido  ·  Sin esperas  ·  Solo respuestas útiles"
+          textSize={38}
+          textOffset={keyframes(f, [10, 144], [80, -520], (t) => t)}
           textOpacity={ramp(f, 20, 34)}
         />
 
         {[
-          {x: 1240, y: 160, icon: 'bulb' as const, at: 22},
-          {x: 250, y: 560, icon: 'chat' as const, at: 30},
-          {x: 1820, y: 700, icon: 'code' as const, at: 38},
-        ].map((s, i) => (
-          <div
-            key={i}
-            style={{
-              position: 'absolute',
-              left: s.x,
-              top: s.y + Math.sin((f + i * 17) / 15) * 12,
-              transform: `translate(-50%,-50%) scale(${pop(f, s.at)}) rotate(${Math.sin((f + i * 9) / 20) * 8}deg)`,
-            }}
-          >
-            <Sticker size={104} icon={s.icon} />
-          </div>
-        ))}
-        <div style={{position: 'absolute', left: 1800, top: 900, transform: `translate(-50%,-50%) scale(${pop(f, 46)})`}}>
-          <Spark size={70} color={C.clay} glow={null} rotate={f * 3} />
+          {x: 840, y: 270, icon: 'bulb' as const, at: 22},
+          {x: 250, y: 1780, icon: 'chat' as const, at: 30},
+          {x: 960, y: 1560, icon: 'code' as const, at: 38},
+        ].map((s, i) => {
+          const a = appear(f, s.at);
+          return (
+            <div
+              key={i}
+              style={{
+                position: 'absolute',
+                left: s.x,
+                top: s.y + Math.sin((f + i * 17) / 15) * 14,
+                translate: '-50% -50%',
+                opacity: a.opacity,
+                scale: a.scale,
+                rotate: `${Math.sin((f + i * 9) / 20) * 8}deg`,
+              }}
+            >
+              <Sticker size={128} icon={s.icon} />
+            </div>
+          );
+        })}
+        <div style={{position: 'absolute', left: 140, top: 250, translate: '-50% -50%', ...appear(f, 46)}}>
+          <Spark size={84} color={C.clay} glow={null} rotate={f * 3} />
         </div>
       </AbsoluteFill>
     </LightBackdrop>

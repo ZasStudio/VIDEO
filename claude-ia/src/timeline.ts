@@ -4,6 +4,7 @@ import {S3_DURATION} from './scenes/S3Think';
 import {S4_DURATION} from './scenes/S4Chat';
 import {S5_DURATION} from './scenes/S5Reason';
 import {S6_DURATION} from './scenes/S6Frame';
+import {SJ_DURATION} from './scenes/SJTogether';
 import {S7_DURATION} from './scenes/S7Dashboard';
 import {S8_DURATION} from './scenes/S8Artifact';
 import {S9_DURATION} from './scenes/S9Clear';
@@ -20,6 +21,7 @@ export const DURATIONS = [
   S4_DURATION,
   S5_DURATION,
   S6_DURATION,
+  SJ_DURATION,
   S7_DURATION,
   S8_DURATION,
   S9_DURATION,

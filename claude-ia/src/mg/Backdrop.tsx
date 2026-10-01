@@ -1,6 +1,7 @@
 import React from 'react';
 import {AbsoluteFill, useCurrentFrame} from 'remotion';
 import {C} from '../theme';
+import {BlurDefs} from './Blur';
 
 export type Orb = {
   x: number; // centro en px
@@ -61,6 +62,7 @@ export const DarkBackdrop: React.FC<{orbs: Orb[]; offsetX?: number; offsetY?: nu
   children,
 }) => (
   <AbsoluteFill style={{background: `linear-gradient(180deg, ${C.ink} 0%, ${C.night} 55%, #24140E 100%)`}}>
+    <BlurDefs />
     <Orbs orbs={orbs} offsetX={offsetX} offsetY={offsetY} />
     <AbsoluteFill
       style={{background: 'radial-gradient(ellipse at 50% 45%, transparent 45%, rgba(6,3,2,0.65) 100%)'}}
@@ -78,6 +80,7 @@ export const LightBackdrop: React.FC<{orbs: Orb[]; offsetX?: number; offsetY?: n
   children,
 }) => (
   <AbsoluteFill style={{background: `linear-gradient(160deg, #FFFBF4 0%, ${C.cream} 50%, ${C.paper} 100%)`}}>
+    <BlurDefs />
     <Orbs orbs={orbs} offsetX={offsetX} offsetY={offsetY} />
     {children}
     <Grain opacity={0.035} />

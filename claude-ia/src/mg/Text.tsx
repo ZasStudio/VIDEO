@@ -2,6 +2,7 @@ import React from 'react';
 import {useCurrentFrame} from 'remotion';
 import {EASE_OUT, clamp01, rand, ramp} from '../anim';
 import {C, FONT} from '../theme';
+import {motionBlur} from './Blur';
 
 // Tipografía cinética: cada segmento se revela letra por letra con su propio estilo.
 // Imita los recursos de la referencia: tecleo con desenfoque, decodificado
@@ -13,15 +14,15 @@ export type Seg = {
   at: number;
   /** frames entre letra y letra */
   speed?: number;
-  mode?: 'type' | 'scramble' | 'rise' | 'spread';
+  mode?: 'type' | 'scramble' | 'rise' | 'spread' | 'slide';
   weight?: number;
   color?: string;
   serif?: boolean;
   italic?: boolean;
   /** barra de resaltado detrás de la palabra */
   highlight?: {at: number; color?: string; textColor?: string};
-  /** caja de selección con esquinas (como "grow" en la referencia) */
-  select?: {at: number; color?: string};
+  /** caja de selección con esquinas (como "grow" en la referencia); 'figma' = tiradores blancos */
+  select?: {at: number; color?: string; out?: number; variant?: 'glow' | 'figma'};
   /** frame en que el segmento desaparece (letra por letra) */
   out?: number;
 };
@@ -50,14 +51,23 @@ const Char: React.FC<{
   if (mode === 'scramble' && ch !== ' ' && frame < t0 + 9) {
     shown = GLYPHS[Math.floor(rand(seed * 31 + i * 7 + Math.floor(frame / 2)) * GLYPHS.length)];
   }
+  // El desenfoque sigue la dirección del movimiento (motion blur), no es un blur uniforme.
   let transform = '';
-  let blur = (1 - vis) * 10;
-  if (mode === 'rise') transform = `translateY(${(1 - e) * 0.6}em)`;
-  else if (mode === 'type') transform = `translateX(${(1 - e) * 0.25}em)`;
-  else if (mode === 'spread') {
+  let filter: string | undefined;
+  if (mode === 'rise') {
+    transform = `translateY(${(1 - e) * 0.6}em)`;
+    filter = motionBlur((1 - vis) * 0.9, 'y');
+  } else if (mode === 'type' || mode === 'scramble') {
+    transform = `translateX(${(1 - e) * 0.3}em)`;
+    filter = motionBlur((1 - vis) * 0.8, 'x');
+  } else if (mode === 'spread') {
     const sp = 1 - EASE_OUT(clamp01((frame - seg.at - 6) / 22));
     transform = `translateX(${sp * (i - seg.text.length / 2) * 0.35}em)`;
-    blur = (1 - vis) * 6;
+    filter = motionBlur(Math.max(1 - vis, sp * 0.5), 'x');
+  } else if (mode === 'slide') {
+    // entra desde la derecha con estela, como "together" en la referencia
+    transform = `translateX(${(1 - e) * 2.2}em)`;
+    filter = motionBlur((1 - e) * 1.4, 'x');
   }
   return (
     <span
@@ -66,7 +76,7 @@ const Char: React.FC<{
         whiteSpace: 'pre',
         opacity: vis,
         transform,
-        filter: blur > 0.3 ? `blur(${blur}px)` : undefined,
+        filter,
       }}
     >
       {shown}
@@ -81,7 +91,8 @@ export const Segment: React.FC<{seg: Seg; seed: number; dark: boolean}> = ({seg,
   const hlP = hl ? ramp(frame, hl.at, hl.at + 10) : 0;
   const hlOut = hl && seg.out !== undefined ? 1 - ramp(frame, seg.out, seg.out + 8) : 1;
   const sel = seg.select;
-  const selP = sel ? ramp(frame, sel.at, sel.at + 10) : 0;
+  const selOut = sel?.out ?? seg.out;
+  const selP = sel ? ramp(frame, sel.at, sel.at + 10) * (selOut !== undefined ? 1 - ramp(frame, selOut, selOut + 6) : 1) : 0;
   const baseColor = seg.color ?? (dark ? C.white : C.cocoa);
   const color = hl && hlP > 0.5 ? hl.textColor ?? baseColor : baseColor;
   return (
@@ -111,7 +122,7 @@ export const Segment: React.FC<{seg: Seg; seed: number; dark: boolean}> = ({seg,
           }}
         />
       ) : null}
-      {sel ? <SelectBox p={selP * (seg.out !== undefined ? 1 - ramp(frame, seg.out, seg.out + 6) : 1)} color={sel.color ?? C.glow} /> : null}
+      {sel ? <SelectBox p={selP} color={sel.color ?? C.glow} figma={sel.variant === 'figma'} /> : null}
       <span style={{position: 'relative'}}>
         {chars.map((ch, i) => (
           <Char key={i} ch={ch} i={i} seg={seg} frame={frame} seed={seed} />
@@ -121,10 +132,20 @@ export const Segment: React.FC<{seg: Seg; seed: number; dark: boolean}> = ({seg,
   );
 };
 
-const SelectBox: React.FC<{p: number; color: string}> = ({p, color}) => {
+const SelectBox: React.FC<{p: number; color: string; figma?: boolean}> = ({p, color, figma}) => {
   if (p <= 0) return null;
   const dot = (s: React.CSSProperties) => (
-    <span style={{position: 'absolute', width: 9, height: 9, borderRadius: 2, background: color, ...s}} />
+    <span
+      style={{
+        position: 'absolute',
+        width: figma ? 14 : 9,
+        height: figma ? 14 : 9,
+        borderRadius: figma ? 1 : 2,
+        background: figma ? '#FFFFFF' : color,
+        border: figma ? `2px solid ${color}` : undefined,
+        ...s,
+      }}
+    />
   );
   return (
     <span
@@ -134,16 +155,16 @@ const SelectBox: React.FC<{p: number; color: string}> = ({p, color}) => {
         right: '-0.18em',
         top: '0.05em',
         bottom: '-0.02em',
-        border: `2px solid ${color}`,
+        border: `${figma ? 2.5 : 2}px solid ${color}`,
         opacity: p,
-        transform: `scale(${1.25 - 0.25 * p})`,
-        borderRadius: 4,
+        transform: `scale(${1.12 - 0.12 * EASE_OUT(p)})`,
+        borderRadius: figma ? 0 : 4,
       }}
     >
-      {dot({left: -6, top: -6})}
-      {dot({right: -6, top: -6})}
-      {dot({left: -6, bottom: -6})}
-      {dot({right: -6, bottom: -6})}
+      {dot({left: figma ? -9 : -6, top: figma ? -9 : -6})}
+      {dot({right: figma ? -9 : -6, top: figma ? -9 : -6})}
+      {dot({left: figma ? -9 : -6, bottom: figma ? -9 : -6})}
+      {dot({right: figma ? -9 : -6, bottom: figma ? -9 : -6})}
     </span>
   );
 };

@@ -1,6 +1,6 @@
 import {getLength} from '@remotion/paths';
 import React, {useMemo} from 'react';
-import {C, FONT} from '../theme';
+import {C, FONT, HEIGHT, WIDTH} from '../theme';
 
 // Cinta gruesa con degradado (como las cintas verdes de la referencia).
 // head/tail en 0..1 controlan qué tramo del trazo está visible.
@@ -26,7 +26,7 @@ export const Ribbon: React.FC<{
   head,
   tail = 0,
   from = [0, 0],
-  to = [1920, 1080],
+  to = [WIDTH, HEIGHT],
   stops = [C.cocoa, C.clay, C.amber],
   text,
   textSize = 30,
@@ -37,7 +37,7 @@ export const Ribbon: React.FC<{
   const L = useMemo(() => getLength(d), [d]);
   const vis = Math.max(0, head - tail) * L;
   return (
-    <svg width={1920} height={1080} style={{position: 'absolute', inset: 0, overflow: 'visible'}}>
+    <svg width={WIDTH} height={HEIGHT} style={{position: 'absolute', inset: 0, overflow: 'visible'}}>
       <defs>
         <linearGradient id={`g-${id}`} gradientUnits="userSpaceOnUse" x1={from[0]} y1={from[1]} x2={to[0]} y2={to[1]}>
           {stops.map((s, i) => (
