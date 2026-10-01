@@ -156,11 +156,11 @@ export const ThanosUISheet: React.FC = () => {
       <SlowMoBars frame={frame} from={72} to={166} />
 
       {/* 2. Onomatopoeias. */}
-      <ImpactText frame={frame} at={174} text="¡CLIC!" x={330} y={400} size={100} color="#C9B6FF" rotate={-10} />
-      <ImpactText frame={frame} at={196} text="¡KRAK!" x={640} y={590} color="#FF9A3D" rotate={6} />
-      <ImpactText frame={frame} at={218} text="¡BOOM!" x={380} y={790} size={130} />
-      <ImpactText frame={frame} at={240} text="¡ZAS!" x={640} y={960} size={110} color="#5CE1FF" rotate={8} />
-      <ImpactText frame={frame} at={258} text="¡PUM!" x={400} y={420} size={110} color="#FF6FA8" rotate={-5} />
+      <ImpactText frame={frame} at={174} text="¡CLIC!" x={380} y={400} size={100} color="#C9B6FF" rotate={-10} />
+      <ImpactText frame={frame} at={196} text="¡KRAK!" x={590} y={590} color="#FF9A3D" rotate={6} />
+      <ImpactText frame={frame} at={218} text="¡BOOM!" x={440} y={790} size={130} />
+      <ImpactText frame={frame} at={240} text="¡ZAS!" x={600} y={980} size={110} color="#5CE1FF" rotate={8} />
+      <ImpactText frame={frame} at={258} text="¡PUM!" x={430} y={420} size={110} color="#FF6FA8" rotate={-5} />
 
       {/* 3. The failed snap. */}
       <NoSignal frame={frame} at={304} xAt={328} out={390} x={500} y={420} />
@@ -181,7 +181,7 @@ export const ThanosUISheet: React.FC = () => {
       <TeamComplete frame={frame} at={534} out={640} x={500} y={520} />
 
       {/* 6. Costume powers, as a column on the left, then as a grid at the top. */}
-      <PowerChips frame={frame} times={[654, 668, 682, 696, 716]} out={780} x={250} y={640} />
+      <PowerChips frame={frame} times={[654, 668, 682, 696, 716]} out={780} x={260} y={640} />
       <PowerChips frame={frame} times={[794, 802, 810, 818, 832]} out={890} x={500} y={430} layout="grid" />
       <HeroLabel frame={frame} at={806} out={890} text="MODO TRUENO" x={640} y={760} color="#2F8CFF" icon="bolt" side="bottom" />
       <HeroLabel frame={frame} at={820} out={890} text="NUBI" x={250} y={940} color="#2FBF71" icon="star" side="bottom" rotate={3} />

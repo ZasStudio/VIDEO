@@ -334,12 +334,12 @@ const SPARK_POS: Record<SparkMode, string> = {
   vec2 rad = vec2(cos(th), sin(th));
   vec2 tng = vec2(-rad.y, rad.x) * sign(uSpin);
   float v = uSpeed * (0.45 + 0.9 * aSeed.y);
-  vec2 dir = normalize(tng + rad * uSpread * (aSeed.z - 0.3));
+  vec2 fdir = normalize(tng + rad * uSpread * (aSeed.z - 0.3));
   float zz = (aSeed.w - 0.5) * 0.08;
   float ta = max(0.0, age - uTail);
-  vec2 ph = rad * uOpen + dir * v * age;
+  vec2 ph = rad * uOpen + fdir * v * age;
   ph.y -= 0.5 * uGravity * age * age;
-  vec2 pt = rad * uOpen + dir * v * ta;
+  vec2 pt = rad * uOpen + fdir * v * ta;
   pt.y -= 0.5 * uGravity * ta * ta;
   head = vec3(ph, zz);
   tail = vec3(pt, zz);
@@ -347,8 +347,8 @@ const SPARK_POS: Record<SparkMode, string> = {
   `,
   // Short arcs whizzing round a unit ring.
   orbit: /* glsl */ `
-  float w = uSpin * (0.7 + 0.6 * aSeed.y);
-  float th = aSeed.x * 6.2831853 + w * uTime;
+  float wsp = uSpin * (0.7 + 0.6 * aSeed.y);
+  float th = aSeed.x * 6.2831853 + wsp * uTime;
   // Position in the ring's own spinning frame (the drawn arc lives there).
   float rel = fract((th - uSpin * uTime) / 6.2831853);
   float r = uOpen * (1.0 + (aSeed.z - 0.5) * uSpread);
@@ -366,13 +366,13 @@ const SPARK_POS: Record<SparkMode, string> = {
   float a = aSeed.x * 6.2831853;
   float yy = mix(uSpread, 1.0, aSeed.y);
   float rr = sqrt(max(0.0, 1.0 - yy * yy));
-  vec3 dir = vec3(cos(a) * rr, yy, sin(a) * rr);
+  vec3 bdir = vec3(cos(a) * rr, yy, sin(a) * rr);
   float v = uSpeed * (0.35 + 0.9 * aSeed.z);
   float ag = clamp(age, 0.0, life);
   float ta = max(0.0, ag - uTail);
-  head = dir * v * ag;
+  head = bdir * v * ag;
   head.y -= 0.5 * uGravity * ag * ag;
-  tail = dir * v * ta;
+  tail = bdir * v * ta;
   tail.y -= 0.5 * uGravity * ta * ta;
   fade = age < 0.0 ? 0.0 : 1.0 - ag / life;
   `,
@@ -852,7 +852,7 @@ export const StoneBlast: React.FC<{ t: number; from: V3; to?: V3; color?: string
         {pulses.map((p, i) =>
           p.alive ? (
             <group key={i} position={[0, p.age * 0.9, 0]} rotation={[Math.PI / 2, 0, 0]}>
-              <ShockRing t={p.age} radius={width * 3.2} duration={1.05} color={color} core={core} width={0.12} flat={false} />
+              <ShockRing t={p.age} radius={width * 1.9} duration={1.05} color={color} core={core} width={0.1} flat={false} />
             </group>
           ) : null,
         )}
@@ -1132,7 +1132,7 @@ const instMat = (rough: number, glow: number, flat: boolean) => {
 type Piece = { x: number; y: number; z: number; s: number; vx: number; vz: number; rx: number; ry: number; spin: number; delay: number; phase: number; kind: 0 | 1 | 2; color: THREE.Color };
 
 const ROCK_TONES = ["#8A5A3C", "#6E4A35", "#A0704A", "#5C4033", "#7B6250", "#94806C"];
-const DUST_TONE = "#C9A07A";
+const DUST_TONE = "#E6CDB2";
 const SPARK_TONES = ["#FFB02E", "#FF7A1A", "#FFE07A"];
 
 const tmpM = new THREE.Matrix4();
@@ -1165,7 +1165,7 @@ export const FrozenDebris: React.FC<{ t?: number; frozen?: number; area?: V3; co
     for (let i = 0; i < count; i++) {
       const r = rnd();
       const kind: 0 | 1 | 2 = r < 0.45 ? 0 : r < 0.7 ? 1 : 2;
-      const s = kind === 0 ? 0.04 + Math.pow(rnd(), 2.2) * 0.2 : kind === 1 ? 0.18 + rnd() * 0.35 : 0.025 + rnd() * 0.03;
+      const s = kind === 0 ? 0.09 + Math.pow(rnd(), 1.5) * 0.28 : kind === 1 ? 0.3 + rnd() * 0.45 : 0.05 + rnd() * 0.05;
       const tone = kind === 0 ? ROCK_TONES[Math.floor(rnd() * ROCK_TONES.length)] : kind === 1 ? DUST_TONE : SPARK_TONES[Math.floor(rnd() * 3)];
       out.push({
         x: (rnd() - 0.5) * area[0],
@@ -1204,7 +1204,7 @@ export const FrozenDebris: React.FC<{ t?: number; frozen?: number; area?: V3; co
   const refs = [useRef<THREE.InstancedMesh>(null), useRef<THREE.InstancedMesh>(null), useRef<THREE.InstancedMesh>(null)];
   const fall = clamp01(1 - frozen);
   const hold = clamp01(frozen);
-  mats.dust.opacity = 0.5 * (1 - easeOut(fall * 1.3));
+  mats.dust.opacity = 0.6 * (1 - easeOut(fall * 1.3));
   useLayoutEffect(() => {
     const idx = [0, 0, 0];
     for (const p of pieces) {
@@ -1280,7 +1280,7 @@ const groundStrip = (paths: { pts: THREE.Vector2[]; w: number[] }[], width: numb
       }
       if (i < n - 1) {
         const k = base + i * 2;
-        idx.push(k, k + 2, k + 1, k + 1, k + 2, k + 3);
+        idx.push(k, k + 1, k + 2, k + 1, k + 3, k + 2);
       }
     }
     base += n * 2;

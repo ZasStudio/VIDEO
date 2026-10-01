@@ -2,6 +2,10 @@ import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { FONT } from "../../theme";
 import { THANOS, ThanosScene } from "../timeline";
+import { ThanosCarrera } from "./ThanosCarrera";
+import { ThanosHeroes } from "./ThanosHeroes";
+import { ThanosPortal } from "./ThanosPortal";
+import { ThanosThor } from "./ThanosThor";
 
 // Scene registry of the Thanos short (placeholders are replaced scene by scene).
 
@@ -22,10 +26,10 @@ const make = (k: ThanosScene): React.FC => {
 };
 
 export const SCENE_COMPONENTS: Record<ThanosScene, React.FC> = {
-  portal: make("portal"),
-  carrera: make("carrera"),
-  thor: make("thor"),
-  heroes: make("heroes"),
+  portal: ThanosPortal,
+  carrera: ThanosCarrera,
+  thor: ThanosThor,
+  heroes: ThanosHeroes,
   trajes: make("trajes"),
   piedras: make("piedras"),
   portales: make("portales"),

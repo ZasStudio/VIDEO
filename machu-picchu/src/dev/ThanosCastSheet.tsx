@@ -23,14 +23,16 @@ import {
 } from "../three/thanos/Costumes";
 
 // Review sheet for the Thanos-short cast (1920 x 1080). Heroes at size 2, Thanos at size 3.
-//   Frame 0: the whole cast in a lineup, front and 3/4.
-//   Frame 1: backs (capes, wings) and capes fluttering at wind 0.15 and 1.
-//   Frame 2: face close-ups: Nubi's own eyes in Thor / Cap / Strange (big, looking round), the
+//   Frame 0: the whole cast from the front, in two rows (Thanos at size 3 next to a Nubi).
+//   Frame 1: the same rows in 3/4 (Falcon wings open, Witch hex, Iron charge).
+//   Frame 2: backs of row A, capes at wind 0.15 and 1 from behind, and a profile at 0.15/0.5/1.
+//   Frame 3: backs of row B (closed wings), Falcon from behind open 0 / 0.5 / 1, capes in 3/4.
+//   Frame 4: face close-ups: Nubi's own eyes in Thor / Cap / Strange (big, looking round), the
 //            drawn eyes of the masks (blink, charge), Doom eyeGlow 0 vs 1.
-//   Frame 3: Thanos (size 3) next to Nubi (size 2), the ArmyCrowd (150), Falcon wings open
-//            0 / 0.5 / 1, Witch hex 0 / 0.5 / 1, Iron charge and a phone-sized vertical crop.
+//   Frame 5: Thanos (size 3) next to Nubi (size 2), the ArmyCrowd (150 + 60), Falcon wings open
+//            0 / 0.5 / 1, Witch hex 0 / 0.5 / 1, and two phone-sized vertical crops.
 
-export const THANOS_CAST_SHEET_FRAMES = 7;
+export const THANOS_CAST_SHEET_FRAMES = 6;
 
 type Cam = { position: Vec3; target: Vec3; fov: number };
 
@@ -262,7 +264,7 @@ const Backs: React.FC = () => (
       <Lights />
       <Ground />
       {[0.15, 0.5, 1].map((w, i) => (
-        <Character key={w} who={i === 1 ? "strange" : "thor"} position={[0, 0, 3.3 - i * 3.3]} yaw={Math.PI / 2 - 0.15} extra={{ wind: w }} t={T + i * 0.4} />
+        <Character key={w} who={i === 1 ? "strange" : "thor"} position={[0, 0, 3.3 - i * 3.3]} yaw={-0.15} extra={{ wind: w }} t={T + i * 0.4} />
       ))}
     </Panel>
   </>
@@ -271,11 +273,11 @@ const Backs: React.FC = () => (
 const BacksB: React.FC = () => (
   <>
     <Row row={ROW_B} y={0} bg={WARM} view="back" title="DE ESPALDAS (alas cerradas)" />
-    <Panel x={0} y={540} w={960} h={540} background={SKY} title="FALCON espalda open 0 / 0.5 / 1" cam={{ position: [0, 2.6, -14], target: [0, 1.4, 0], fov: 32 }}>
+    <Panel x={0} y={540} w={960} h={540} background={SKY} title="FALCON espalda open 0 / 0.5 / 1" cam={{ position: [0, 2.6, -16], target: [0, 1.6, 0], fov: 32 }}>
       <Lights />
       <Ground />
       {[0, 0.5, 1].map((o, i) => (
-        <Character key={o} who="falcon" position={[(1 - i) * 3.6, 0, 0]} yaw={Math.PI} extra={{ open: o }} />
+        <Character key={o} who="falcon" position={[(1 - i) * 4.4, 0, 0]} yaw={0} extra={{ open: o }} />
       ))}
     </Panel>
     <Panel x={960} y={540} w={960} h={540} background={STAGE} title="CAPAS 3/4 frente wind 0.6" cam={{ position: [5.5, 3.2, 12], target: [0, 1.4, 0], fov: 32 }}>
@@ -457,37 +459,11 @@ const ScaleAndArmy: React.FC = () => (
 );
 
 
-const Debug: React.FC = () => (
-  <>
-    <Panel x={0} y={0} w={960} h={540} background={SKY} title="DBG falcon front open 1 / 0.5" cam={{ position: [0, 1.6, 12], target: [0, 1.3, 0], fov: 30 }}>
-      <Lights />
-      <Character who="falcon" position={[-1.8, 0, 0]} extra={{ open: 1 }} />
-      <Character who="falcon" position={[1.9, 0, 0]} extra={{ open: 0.5 }} />
-    </Panel>
-    <Panel x={960} y={0} w={960} h={540} background={SKY} title="DBG falcon back open 1 / 0" cam={{ position: [0, 2.2, -12], target: [0, 1.3, 0], fov: 30 }}>
-      <Lights />
-      <Character who="falcon" position={[1.8, 0, 0]} extra={{ open: 1 }} />
-      <Character who="falcon" position={[-1.9, 0, 0]} extra={{ open: 0 }} />
-    </Panel>
-    <Panel x={0} y={540} w={960} h={540} background={SKY} title="DBG capes side wind 0.15 / 1" cam={{ position: [16, 2.4, 2], target: [0, 1.2, 0], fov: 30 }}>
-      <Lights />
-      <Character who="thor" position={[0, 0, 3]} yaw={0} extra={{ wind: 0.15 }} />
-      <Character who="thor" position={[0, 0, -3]} yaw={0} extra={{ wind: 1 }} />
-    </Panel>
-    <Panel x={960} y={540} w={960} h={540} background={STAGE} title="DBG thanos / panther / witch" cam={{ position: [0, 2.2, 12], target: [0, 1.6, 0], fov: 30 }}>
-      <Lights />
-      <Character who="thanos" position={[-2.0, 0, -1]} yaw={0.3} />
-      <Character who="panther" position={[1.0, 0, 1]} yaw={-0.2} />
-      <Character who="witch" position={[3.2, 0, 0]} yaw={-0.3} extra={{ hex: 1 }} pose={{ finR: 0.8, finL: 0.3 }} />
-    </Panel>
-  </>
-);
-
 export const ThanosCastSheet: React.FC = () => {
   const frame = useCurrentFrame();
   return (
     <AbsoluteFill style={{ background: "linear-gradient(135deg, #1B1240 0%, #3B2A72 50%, #6B3FA0 100%)" }}>
-      {frame === 0 ? <Lineup /> : frame === 1 ? <Lineup34 /> : frame === 2 ? <Backs /> : frame === 3 ? <BacksB /> : frame === 4 ? <Faces /> : frame === 5 ? <ScaleAndArmy /> : <Debug />}
+      {frame === 0 ? <Lineup /> : frame === 1 ? <Lineup34 /> : frame === 2 ? <Backs /> : frame === 3 ? <BacksB /> : frame === 4 ? <Faces /> : <ScaleAndArmy />}
     </AbsoluteFill>
   );
 };

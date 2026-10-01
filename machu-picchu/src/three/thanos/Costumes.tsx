@@ -762,7 +762,7 @@ export const nubiFinTip = (raise: number, side: 1 | -1): V3 => {
 // Thanos: gold crown helmet with a crest and cheek flaps, grooved chin, navy suit with gold
 
 const THANOS_NAVY = "#2B3B8F";
-const THANOS_SKIN_DARK = shadeHex(CAST.thanos.body, -0.1, 0.02);
+const THANOS_SKIN_DARK = shadeHex(CAST.thanos.body, -0.17, 0.02);
 const THANOS_SUIT: BandSpec = { y0: 2.0, y1: 3.25, t0: 0.5, t1: 0.2, bulge: 0.05, rows: 5 };
 const THANOS_LOW = (p: RingPt) => {
   const f = frontness(p);
@@ -788,29 +788,29 @@ const thanosGeos = once(() => {
   });
   // Crest: a rounded fin over the middle of the helmet, drawn side-on (z, y) and extruded in x.
   const crestPts: P2[] = [
-    [4.5, 7.4],
-    [5.02, 7.65],
-    [5.1, 9.3],
-    [4.8, 10.6],
-    [3.7, 11.7],
-    [1.7, 12.35],
-    [-0.5, 12.3],
-    [-2.6, 11.8],
-    [-4.2, 10.9],
-    [-5.0, 9.6],
-    [-5.05, 8.3],
-    [-4.55, 8.0],
-    [-4.35, 9.6],
-    [-3.1, 10.6],
-    [-1.0, 11.0],
-    [1.2, 11.0],
-    [3.3, 10.6],
-    [4.4, 9.4],
-    [4.4, 7.7],
+    [4.5, 7.35],
+    [5.08, 7.65],
+    [5.15, 9.3],
+    [4.75, 10.55],
+    [3.55, 11.45],
+    [1.5, 11.95],
+    [-0.7, 11.9],
+    [-2.8, 11.45],
+    [-4.35, 10.6],
+    [-5.1, 9.4],
+    [-5.12, 8.2],
+    [-4.6, 7.95],
+    [-4.3, 9.6],
+    [-3.0, 10.45],
+    [-1.0, 10.85],
+    [1.2, 10.85],
+    [3.2, 10.45],
+    [4.35, 9.4],
+    [4.35, 7.7],
   ];
-  const crest = plate(roundShape(crestPts, 0.4), 0.62, 0.14);
+  const crest = plate(roundShape(crestPts, 0.5), 0.8, 0.2);
   crest.rotateY(-Math.PI / 2);
-  crest.translate(0.45, 0, 0);
+  crest.translate(0.6, 0, 0);
   // Cheek flaps wrap the front corners from the jaw up past the top, flaring out into horns.
   const flap = wrapPlate({
     s0: 3.8,
@@ -824,8 +824,8 @@ const thanosGeos = once(() => {
     cols: 22,
     rows: 16,
   });
-  const ridge = new THREE.CapsuleGeometry(0.15, 0.95, 4, 10);
-  const brow = new THREE.CapsuleGeometry(0.21, 1.25, 4, 10);
+  const ridge = new THREE.CapsuleGeometry(0.17, 0.95, 4, 10);
+  const brow = new THREE.CapsuleGeometry(0.27, 1.45, 4, 12);
   brow.rotateZ(Math.PI / 2);
   const chestShape = roundShape(
     [
@@ -865,8 +865,8 @@ const paintThanosSuit: Painter = (ctx, W, H) => {
 /**
  * Thanos (use with palette CAST.thanos, ideally at size 3 next to Nubi at size 2): a gold
  * crown-like helmet over the top of the head (front edge at y 7.8 with a small peak to 7.35,
- * above the eyes) with a crest on top (up to y 12.35) and cheek flaps down the front corners
- * (|x| > 3.5, y 3.35..9.3) that flare out into two horns past the top (≈ y 11.5), four chin
+ * above the eyes) with a chunky crest on top (up to y 12.15) and cheek flaps down the front corners
+ * (|x| > 3.8, from the jaw at y 3.75) that sweep back into two horns past the top (≈ y 11.2), four chin
  * ridges under the eyes (|x| ≤ 1.2, y 3.2..4.4), heavy brows above the eyes and a navy suit band
  * (y 2..3.25) with a gold trim, a gold chest plate with a little gem, and round gold pauldrons
  * over the fins. `brow` -1..1 tilts the brows (1 = angry, 0 = flat, -1 = worried).
@@ -898,7 +898,7 @@ export const ThanosArmor: React.FC<{ brow?: number }> = ({ brow = 0.6 }) => {
         <mesh key={x} geometry={g.ridge} material={skinDark} position={[x, 3.82, 4.4]} scale={[1, 1 - Math.abs(x) * 0.12, 1]} />
       ))}
       {[1, -1].map((s) => (
-        <mesh key={s} geometry={g.brow} material={skinDark} position={[s * 2.3, 7.18, 4.48]} rotation={[0, 0, s * tilt]} />
+        <mesh key={s} geometry={g.brow} material={skinDark} position={[s * 2.3, 7.2, 4.47]} rotation={[0, 0, s * tilt]} />
       ))}
       {/* Suit. */}
       <mesh geometry={g.suit} material={fabricMat(fabric("thanos-suit", TILE, THANOS_SUIT.y1 - THANOS_SUIT.y0, paintThanosSuit), 0.6)} castShadow />
@@ -912,7 +912,7 @@ export const ThanosArmor: React.FC<{ brow?: number }> = ({ brow = 0.6 }) => {
 };
 
 /** Top of Thanos' crest in model units (for effects above his head). */
-export const THANOS_CREST_TOP: V3 = [0, 12.35, 1.0];
+export const THANOS_CREST_TOP: V3 = [0, 12.15, 1.0];
 
 // =======================================================================================
 // Thor: red cape, dark armour with six silver discs, silver winged helmet
@@ -921,12 +921,12 @@ const THOR_BAND: BandSpec = { y0: 2.0, y1: 4.3, t0: 0.5, t1: 0.12, bulge: 0.07, 
 /** Cape shared by Thor (red), measured round the back: hem 0.55 at the back, 2.6 at the edges. */
 export const CAPE_THOR: CapeSpec = {
   top: 7.3,
-  phi0: 0.22,
+  phi0: 0.2,
   hemBack: 0.55,
-  hemSide: 2.2,
+  hemSide: 1.9,
   A: 5.5,
   B: 5.05,
-  grow: 1.8,
+  grow: 2.2,
   e0: 0.34,
   e1: 0.55,
   folds: 8,
@@ -961,6 +961,7 @@ const thorGeos = once(() => {
         [0, 0, 11.17],
       ],
     }),
+    strap: wrapPlate({ s0: 3.95, s1: sRight(-3.2), bottom: () => 6.7, top: () => 7.45, t: 0.03, th: 0.16, cols: 24, rows: 2 }),
     disc: new THREE.SphereGeometry(0.56, 24, 10, 0, Math.PI * 2, 0, Math.PI / 2.4),
     discRim: new THREE.TorusGeometry(0.52, 0.07, 8, 28),
     feather,
@@ -990,8 +991,10 @@ const THOR_SILVER = "#D3DAE2";
  * Thor's outfit for Nubi (mint, own eyes): a dark quilted armour band round the lower body
  * (y 2..4.3, top behind the eye bars) with six domed silver discs on the front (two rows of
  * three, all below y 4.2), a silver helmet over the top of the head (front edge at y 8.25, two
- * units above the eyes) with a small white wing on each side pointing up and back, and a red cape
- * hanging from under the helmet round the back (CAPE_THOR), fluttering with `t` and `wind`.
+ * units above the eyes) with a white wing on each side pointing up and back, and a red cape
+ * hanging from under the helmet round the back (CAPE_THOR), fluttering with `t` and `wind`, held
+ * by red straps round the sides (y 6.7..7.45, above the fins) fastened with silver discs at the
+ * front corners (x ±4.2, y 7.1, outside the eyes).
  */
 export const ThorOutfit: React.FC<{ t: number; wind?: number }> = ({ t, wind = 0.25 }) => {
   const g = thorGeos();
@@ -1010,20 +1013,30 @@ export const ThorOutfit: React.FC<{ t: number; wind?: number }> = ({ t, wind = 0
           </group>
         );
       })}
+      {/* Cape straps round the sides, fastened with silver discs at the front corners. */}
+      {[1, -1].map((s) => (
+        <group key={s} scale={[s, 1, 1]}>
+          <mesh geometry={g.strap} material={toy("#D0182F", { rough: 0.7, glow: 0.16, side: DS })} />
+          <group position={[4.2, 7.08, 4.62]}>
+            <mesh geometry={g.disc} material={silver} rotation={[Math.PI / 2, 0, 0]} scale={[1, 0.55, 1]} />
+            <mesh geometry={g.discRim} material={metal("#9AA5B1")} />
+          </group>
+        </group>
+      ))}
       <mesh geometry={g.helmet.shell} material={metal(THOR_SILVER, DS)} castShadow />
       {g.helmet.rim ? <mesh geometry={g.helmet.rim} material={metal("#A3AEBA")} /> : null}
       {[1, -1].map((s) => (
         <group key={s} scale={[s, 1, 1]} position={[0, 0, 0]}>
-          <group position={[5.35, 8.75, 0.7]}>
-            <mesh geometry={g.boss} material={silver} scale={[0.7, 1, 1]} />
+          <group position={[5.35, 8.9, 0.7]}>
+            <mesh geometry={g.boss} material={silver} scale={[0.75, 1.05, 1.05]} />
             {[0, 1, 2].map((k) => (
               <mesh
                 key={k}
                 geometry={g.feather}
                 material={feather}
-                rotation={[-0.5 - k * 0.42, 0, -0.42]}
-                scale={[0.3, 1.3 - k * 0.2, 0.11]}
-                position={[0.12, 0.05, -k * 0.12]}
+                rotation={[-0.32 - k * 0.45, 0, -0.38]}
+                scale={[0.46, 1.6 - k * 0.22, 0.15]}
+                position={[0.15, 0.05, -k * 0.14]}
               />
             ))}
           </group>
@@ -1730,8 +1743,8 @@ const witchGeos = once(() => {
       [0.72, 0],
       [0.95, 0.38],
       [0.42, 1.2],
-      [0.1, 3.0],
-      [-0.1, 3.0],
+      [0.1, 3.3],
+      [-0.1, 3.3],
       [-0.42, 1.2],
       [-0.95, 0.38],
       [-0.72, 0],
@@ -1743,12 +1756,12 @@ const witchGeos = once(() => {
     [
       [-0.5, 0],
       [0.55, 0],
-      [0.95, 0.85],
-      [1.6, 1.75],
-      [2.0, 2.7],
-      [1.5, 2.2],
-      [0.7, 1.55],
-      [0.0, 1.05],
+      [0.85, 0.9],
+      [1.0, 1.9],
+      [0.95, 2.75],
+      [0.62, 2.05],
+      [0.25, 1.4],
+      [-0.1, 1.0],
     ],
     [0.12, 0.12, 0.35, 0.3, 0.04, 0.3, 0.3, 0.2],
   );
@@ -1801,7 +1814,8 @@ export const HexGlow: React.FC<{ hex: number; t: number; color?: string }> = ({ 
 
 /**
  * Scarlet witch (use with palette CAST.witch, own eyes): a dark-red tiara above the eyes (circlet
- * y 8.25..8.8 round the head, a tall central point up to y 11.7 and two curved side points), a
+ * y 8.25..8.8 round the head, a point down onto the forehead to y 7.5, a tall central point up to
+ * y 11.65 and two side points up to y 11.05), a
  * long wine-red coat hanging round the back almost to the ground (CAPE_WITCH, fluttering with
  * `t` / `wind`) and `hex` 0..1 red energy glowing at both fin tips. Pass the pose's finL / finR so
  * the glow follows the fins (or put <HexGlow> in holdR / holdL instead and leave hex at 0).
@@ -2133,9 +2147,9 @@ const VISOR: P2[] = mirrorHalf([
   [0, 6.98],
 ]);
 /** Wing feathers: length of each, from the leading (top) feather down. */
-const FEATHERS = [7.4, 6.9, 6.3, 5.7, 5.0, 4.3, 3.6];
+const FEATHERS = [9.8, 9.1, 8.3, 7.5, 6.6, 5.7, 4.8];
 /** Shoulder pivot of the screen-right wing (mirror x for the other). */
-export const FALCON_WING_PIVOT: V3 = [2.2, 8.5, -5.45];
+export const FALCON_WING_PIVOT: V3 = [2.6, 8.6, -5.75];
 
 const falconGeos = once(() => {
   const outer = roundShape(VISOR, 0.35);
@@ -2155,8 +2169,8 @@ const falconGeos = once(() => {
   );
   // Broad metal feathers (base at the origin, pointing +x) that overlap into a solid fan.
   const feathers = FEATHERS.map((L, k) => {
-    const w0 = 1.55 - k * 0.04;
-    const w1 = 1.35 - k * 0.05;
+    const w0 = 1.9 - k * 0.05;
+    const w1 = 1.6 - k * 0.06;
     return plate(
       roundShape(
         [
@@ -2191,7 +2205,7 @@ const falconGeos = once(() => {
     strap: wrapPlate({ s0: 4.45, s1: PERIMETER - 4.45, bottom: () => 6.3, top: () => 7.05, t: 0.04, th: 0.12, cols: 90, rows: 1 }),
     band: bandGeometry(FALCON_BAND),
     chevron: plate(chevron, 0.06, 0.04),
-    pack: new RoundedBoxGeometry(6.0, 4.8, 1.3, 3, 0.45),
+    pack: new RoundedBoxGeometry(6.6, 5.4, 1.5, 3, 0.5),
     joint: new THREE.CylinderGeometry(0.55, 0.55, 0.9, 20),
     feathers,
     stripe: plate(
@@ -2224,8 +2238,8 @@ const paintFalconSuit: Painter = (ctx, W, H) => {
  * visor in a dark frame, |x| ≤ 4.3, y 4.2..7.0, so Nubi's eyes show through and still blink) with
  * a strap round the head (y 6.3..7.05), a dark flight-suit band (y 2..3.55) with a red stripe and
  * a red chevron on the chest, and a backpack with two metal wings (seven broad feathers each, the
- * top one with a red stripe). `open` 0..1: 0 = folded down the back, 1 = spread wide (≈ 19 units
- * across, tips up to y ≈ 12);
+ * top one with a red stripe). `open` 0..1: 0 = folded short on the backpack, 0.5 = slid out,
+ * 1 = fanned wide open (≈ 23 units across, tips up to y ≈ 12);
  * `flap` -1..1 adds a wing beat.
  */
 export const FalconOutfit: React.FC<{ open?: number; flap?: number }> = ({ open = 0, flap = 0 }) => {
@@ -2243,7 +2257,9 @@ export const FalconOutfit: React.FC<{ open?: number; flap?: number }> = ({ open 
       }),
     [],
   );
-  const o = smooth(0, 1, clamp01(open));
+  // The feathers slide out of the pack first, then fan open.
+  const ext = 0.42 + 0.58 * smooth(0, 0.6, clamp01(open));
+  const o = smooth(0.15, 1, clamp01(open));
   const steel = toy("#B5BFCA", { metal: 0.6, rough: 0.3, glow: 0.2 });
   const steelDark = toy("#8C97A3", { metal: 0.6, rough: 0.3, glow: 0.18 });
   const chest = onBand(FALCON_BAND, 2.95);
@@ -2257,18 +2273,18 @@ export const FalconOutfit: React.FC<{ open?: number; flap?: number }> = ({ open 
       <group position={chest.position} rotation={chest.rotation}>
         <mesh geometry={g.chevron} material={toy("#E0262F", { rough: 0.35, glow: 0.2 })} />
       </group>
-      <mesh geometry={g.pack} material={toy("#3A414B", { rough: 0.45, glow: 0.1 })} position={[0, 6.7, -4.95]} castShadow />
+      <mesh geometry={g.pack} material={toy("#3A414B", { rough: 0.45, glow: 0.1 })} position={[0, 6.9, -5.0]} castShadow />
       {[1, -1].map((s) => (
         <group key={s} scale={[s, 1, 1]}>
           <group position={FALCON_WING_PIVOT}>
             <mesh geometry={g.joint} material={steelDark} rotation={[Math.PI / 2, 0, 0]} />
             {FEATHERS.map((L, k) => {
               // Folded: stacked almost straight down the back. Open: fanned out sideways.
-              const closed = -1.5 + 0.035 * k;
-              const spread = 0.5 - 0.21 * k;
+              const closed = -1.52 + 0.03 * k;
+              const spread = 0.36 - 0.19 * k;
               const a = closed + (spread - closed) * o + flap * 0.3 * o * (1 + 0.12 * k);
               return (
-                <group key={k} rotation={[0, 0, a]} position={[0, 0, -0.2 - k * 0.1]}>
+                <group key={k} rotation={[0, 0, a]} position={[0, 0, -0.2 - k * 0.1]} scale={[ext, 1, 1]}>
                   <mesh geometry={g.feathers[k]} material={k % 2 ? steelDark : steel} castShadow />
                   {k === 0 ? <mesh geometry={g.stripe} material={toy("#E0262F", { rough: 0.35, glow: 0.2 })} position={[L - 3.3, 0.12, 0.17]} /> : null}
                   {k === 0 ? <mesh geometry={g.stripe} material={toy("#E0262F", { rough: 0.35, glow: 0.2 })} position={[L - 3.3, 0.12, -0.03]} rotation={[Math.PI, 0, 0]} /> : null}
@@ -2668,8 +2684,8 @@ export const ArmyCrowd: React.FC<{
  * placing effects or labels above the heads. Nubi's bare body top is 9.9.
  */
 export const COSTUME_TOP = {
-  thanos: 12.35,
-  thor: 11.4,
+  thanos: 12.15,
+  thor: 11.7,
   cap: 11.05,
   iron: 11.05,
   strange: 12.7,
@@ -2678,6 +2694,7 @@ export const COSTUME_TOP = {
   witch: 11.7,
   groot: 13.4,
   starlord: 11.05,
+  /** Wings closed; with open = 1 the wing tips reach y ≈ 12 and x ≈ ±11.5. */
   falcon: 9.95,
   doom: 11.8,
 };

@@ -286,8 +286,8 @@ const FrostCorner: React.FC<{ k: number; flip?: boolean }> = ({ k, flip = false 
  * snowflake. Frost creeps in from two corners behind a white "freeze" flash, an ice glint
  * sweeps across, a few flakes drift around it and every so often it glitches for two frames
  * (RGB split, a jump sideways, a bright scan line). Pops in at `at`, shrinks away at `out`.
- * `x`, `y` = pill centre; ~560 x 100 (x ± 280, y ± 50; the stopwatch and the flakes poke
- * ~30 px above and below). Suggested: x 500, y 300 (top of the safe area).
+ * `x`, `y` = pill centre; ~600 x 106 (x ± 300, y ± 53; the stopwatch, icicles and flakes poke
+ * ~35 px above and below). Suggested: x 500, y 300 (top of the safe area).
  */
 export const TimeFrozenHUD: React.FC<{
   frame: number;
@@ -421,8 +421,8 @@ const SnailIcon: React.FC<{ size?: number; frame: number }> = ({ size = 56, fram
  * letterbox bars (`barH`, 90 px, i.e. only the area the TikTok top bar / description cover
  * anyway) slide in from the edges, faint white speed streaks drift slowly across the left and
  * right sides (the middle stays clear), a soft dark vignette, and a "CÁMARA LENTA ×0.25" tag
- * with a crawling snail. The tag's left edge is at `tagX` (76) and its centre at `tagY` (272):
- * ~470 x 80, so it sits at the top-left of the safe area (x 76-550, y 232-312); move it with
+ * with a crawling snail. The tag's left edge is at `tagX` (76) and its centre at `tagY` (290):
+ * ~550 x 100, so it sits at the top-left of the safe area (x 70-625, y 232-332); move it with
  * tagX/tagY or hide it with showTag={false} (e.g. if TimeFrozenHUD shares the top).
  */
 export const SlowMoBars: React.FC<{
@@ -436,7 +436,7 @@ export const SlowMoBars: React.FC<{
   tagY?: number;
   showTag?: boolean;
   streaks?: boolean;
-}> = ({ frame, from, to, barH = 90, label = "CÁMARA LENTA", speed = "×0.25", tagX = 76, tagY = 272, showTag = true, streaks = true }) => {
+}> = ({ frame, from, to, barH = 90, label = "CÁMARA LENTA", speed = "×0.25", tagX = 76, tagY = 290, showTag = true, streaks = true }) => {
   const uid = useUid();
   if (frame < from || frame > to) return null;
   const t = frame - from;
@@ -532,8 +532,8 @@ export const SlowMoBars: React.FC<{
  * by one on a slight arc, speed lines, a hard pop and a decaying shake, then a gentle
  * "breathing". Lasts until `out` (default at + 40), then shrinks away in 8 frames. Letters are
  * red on light bursts and white/yellow on dark ones unless `textColors` is given. `x`, `y` =
- * centre; at size 120 (font size) a five-letter word is ~ 680 x 330 including the spikes (the
- * speed lines flash ~25 % further out for 12 frames). `rotate` = tilt in degrees (-8).
+ * centre; at size 120 (font size) "¡KRAK!" is ~650 x 320 including the spikes, "¡ZAS!" ~560 x
+ * 320 (the speed lines flash ~30 % further out for 12 frames). `rotate` = tilt in degrees (-8).
  */
 export const ImpactText: React.FC<{
   frame: number;
@@ -555,7 +555,7 @@ export const ImpactText: React.FC<{
   let seed = 7;
   for (const ch of Array.from(text)) seed = (seed * 31 + ch.charCodeAt(0)) % 9973;
   const tw = lgWidth(text) * size;
-  const rx = tw / 2 + size * 0.78;
+  const rx = tw / 2 + size * 0.64;
   const ry = size * 1.02;
   const p = pop(frame, at, { damping: 9, stiffness: 300, mass: 0.6 });
   const k = ramp(frame, outAt, outAt + 8, [0, 1], EASE_IN);
@@ -567,7 +567,7 @@ export const ImpactText: React.FC<{
   let burst = "";
   for (let j = 0; j < 2 * n; j++) {
     const a = (j / (2 * n)) * Math.PI * 2 + (rand(seed + j * 1.37) - 0.5) * 0.1;
-    const r = j % 2 === 0 ? 1.1 + rand(seed * 0.71 + j * 3.1) * 0.24 : 0.82 + rand(seed * 0.33 + j * 5.7) * 0.05;
+    const r = j % 2 === 0 ? 1.1 + rand(seed * 0.71 + j * 3.1) * 0.2 : 0.84 + rand(seed * 0.33 + j * 5.7) * 0.04;
     burst += `${j ? "L" : "M"}${(Math.cos(a) * rx * r).toFixed(1)} ${(Math.sin(a) * ry * r).toFixed(1)} `;
   }
   burst += "Z";
@@ -644,8 +644,8 @@ export const ImpactText: React.FC<{
  * at + 24) a red X badge slams onto the icon, the card glitches (RGB split, jump, scan
  * noise) and "SIN SEÑAL / CÓSMICA" pops in big gold letters. After that the dead icon keeps
  * crackling with static. At `out` it switches off like an old TV (10 frames). `x`, `y` = card
- * centre; ~600 x 250 (x ± 300, y ± 125; the X badge pokes ~25 px above). Suggested: next to
- * Thanos' raised hand, e.g. x 500, y 420.
+ * centre; ~580 x 258 (x ± 290, y ± 129). Suggested: next to Thanos' raised hand, e.g. x 500,
+ * y 420.
  */
 export const NoSignal: React.FC<{
   frame: number;
@@ -988,7 +988,7 @@ const RedX: React.FC<{ s1: number; s2: number }> = ({ s1, s2 }) => {
  * circular arrows, labelled "VIAJE EN EL TIEMPO". `items[i].at` pops card i in, at
  * `items[i].crossAt` its X is drawn (two strokes over 7 frames), the card jolts with impact
  * lines and turns grey. Only the first two items are used (one item = one centred card).
- * Leaves at `out` if given. `x`, `y` = centre of the pair; ~720 x 460 (x ± 360, y ± 230).
+ * Leaves at `out` if given. `x`, `y` = centre of the pair; ~750 x 470 (x ± 375, y ± 236).
  * Suggested: x 500, y 600.
  */
 export const CrossedList: React.FC<{
@@ -1188,7 +1188,7 @@ const HeroToken: React.FC<{ c: string; kind: HeroKind; size?: number; id: string
  * `fillTo` (fillFrom + 30), each with a sparkle. Then the counter turns green with a check
  * badge (fillTo + 4) and a green rubber stamp "¡EQUIPO COMPLETO!" slams onto the card's
  * bottom edge (fillTo + 10) with a jolt, impact lines and confetti. Leaves at `out` if given.
- * `x`, `y` = card centre; ~800 x 270 plus the stamp (~60 px below): x ± 400, y - 135 … y + 200.
+ * `x`, `y` = card centre; ~805 x 385 with the stamp below the card: x ± 403, y - 138 … y + 245.
  * Suggested: x 500, y 520.
  */
 export const TeamComplete: React.FC<{
@@ -1443,10 +1443,9 @@ const CHIP_W = 350;
  * piedra!": five pill chips that pop in one at a time (`times[i]`), each with a drawn icon in a
  * white disc: shield "ESCUDO", hammer "MARTILLO", lightning "RAYOS", magic circle "MAGIA" and,
  * last, a grey rock chip "PIEDRA" that wobbles comically with a "?" bubble and a sweat drop.
- * layout "column" (default): a left-aligned stack of 5, ~370 x 620 (x ± 185, y ± 310), meant
- * for one side of the frame, e.g. x 250, y 640 (left edge ~75). layout "grid": 2 x 2 plus the
- * rock centred below, ~750 x 380 (x ± 375, y - 190 … y + 190), e.g. x 500, y 430. All leave
- * together at `out` if given.
+ * layout "column" (default): a stack of 5, ~400 x 610 (x - 182 … x + 214, y ± 306), meant for
+ * one side of the frame, e.g. x 260, y 640. layout "grid": 2 x 2 plus the rock centred below,
+ * ~750 x 375 (x ± 375, y - 181 … y + 192), e.g. x 500, y 430. All leave together at `out`.
  */
 export const PowerChips: React.FC<{
   frame: number;
@@ -1628,7 +1627,7 @@ const WarnTri: React.FC<{ size?: number; on?: number }> = ({ size = 40, on = 1 }
  * meter below climbs in steps to `power` % (100). When it hits 100 % (≈ litFrom + 5·step + 6)
  * the danger kicks in: red flash, the rim blinks red/gold, a "¡PELIGRO!" tag pops on the top
  * right corner, the meter pulses red and (vignette) the edges of the whole frame pulse red.
- * Out at `out`. `x`, `y` = panel centre; ~800 x 300 (x ± 400, y ± 150; the tag pokes ~40 px
+ * Out at `out`. `x`, `y` = panel centre; ~800 x 300 (x ± 400, y ± 150; the tag pokes ~60 px
  * above the top-right). Suggested: x 500, y 450.
  */
 export const StonesHUD: React.FC<{
@@ -1933,8 +1932,8 @@ const PIZZA_H = 580;
  * ripple). Then a loading spinner with "BUSCANDO REPARTIDOR…". With `noDriverAt` the spinner
  * turns into an X, the hologram glitches and tints red with "SIN REPARTIDORES / EN ESTE
  * UNIVERSO". At `out` it collapses into a line and blinks off. `x`, `y` = card centre;
- * 480 x 520 (x ± 240, y ± 260) plus the beam. Suggested: x 500, y 640 with the gauntlet
- * below it (e.g. beamFrom {x: 520, y: 1060}).
+ * ~540 x 540 on screen (x ± 270, y - 250 … y + 290; the tilt shortens the top) plus the beam.
+ * Suggested: x 500, y 620 with the gauntlet below it (e.g. beamFrom {x: 520, y: 1070}).
  */
 export const PizzaApp: React.FC<{
   frame: number;

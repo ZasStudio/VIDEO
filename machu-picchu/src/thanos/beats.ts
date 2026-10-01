@@ -8,7 +8,7 @@ export const PORTAL = {
   START: SCENES.portal.from,
   END: end("portal"),
   /** First person through the portal until here; then Nubi drops into the frozen battle. */
-  POV_END: lineStart("L01") - 6,
+  POV_END: lineStart("L01") - 12,
   LAND: lineStart("L01"),
   ALTO: [wordAt("L01", 0), wordAt("L01", 1), wordAt("L01", 2)],
   ESTE: wordAt("L01", 3),

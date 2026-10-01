@@ -59,38 +59,40 @@ const DEAD_GOLD_DARK = "#6A5A3E";
 type FingerSpec = { x: number; w: number; d: number; lens: [number, number, number] };
 /** Index → pinky (the thumb is at +x: a left hand seen from its back, which faces +z). */
 const FINGERS: FingerSpec[] = [
-  { x: 0.205, w: 0.128, d: 0.15, lens: [0.17, 0.12, 0.105] },
-  { x: 0.068, w: 0.132, d: 0.152, lens: [0.19, 0.135, 0.112] },
-  { x: -0.068, w: 0.126, d: 0.148, lens: [0.175, 0.125, 0.105] },
-  { x: -0.2, w: 0.112, d: 0.138, lens: [0.135, 0.1, 0.092] },
+  { x: 0.226, w: 0.146, d: 0.16, lens: [0.2, 0.14, 0.12] },
+  { x: 0.076, w: 0.15, d: 0.162, lens: [0.22, 0.15, 0.13] },
+  { x: -0.074, w: 0.145, d: 0.158, lens: [0.2, 0.14, 0.12] },
+  { x: -0.222, w: 0.132, d: 0.148, lens: [0.16, 0.12, 0.105] },
 ];
-const KNUCKLE_Y = 0.6;
-const PALM = { w: 0.6, h: 0.48, d: 0.25, y: 0.36 };
+const PALM = { w: 0.64, h: 0.52, d: 0.27, y: 0.4 };
+const KNUCKLE_Y = 0.66;
+const THUMB_BASE: V3 = [0.29, 0.3, -0.11];
+const THUMB_LENS: [number, number] = [0.27, 0.22];
 
-type HandPose = { curls: [number, number, number][]; spread: number[]; thumb: [number, number, number]; thumbCurl: number };
-/** Ready to snap: thumb pressed to the middle finger, ring and pinky tucked. */
+type HandPose = { curls: [number, number, number][]; spread: number[]; thumb: V3; thumbCurl: number };
+/** Ready to snap: fingers up, the middle one bent onto the thumb, ring and pinky curled a bit. */
 const POSE_READY: HandPose = {
   curls: [
-    [0.12, 0.14, 0.1],
-    [0.5, 0.8, 0.45],
-    [1.15, 1.35, 0.95],
-    [1.2, 1.35, 0.95],
+    [0.1, 0.12, 0.08],
+    [0.45, 0.55, 0.35],
+    [0.55, 0.65, 0.45],
+    [0.62, 0.7, 0.5],
   ],
-  spread: [-0.07, 0.0, 0.03, 0.05],
-  thumb: [0.15, 1.05, -0.45],
-  thumbCurl: 0.35,
+  spread: [-0.08, -0.01, 0.04, 0.09],
+  thumb: [-0.326, 0.913, -0.245],
+  thumbCurl: 0.1,
 };
-/** After the snap: the middle finger slammed into the palm, the thumb flicked up. */
+/** After the snap: the middle finger slammed into the palm, the thumb flicked up and out. */
 const POSE_SNAP: HandPose = {
   curls: [
-    [0.22, 0.25, 0.14],
-    [1.45, 1.55, 1.0],
-    [1.2, 1.4, 0.95],
-    [1.25, 1.4, 0.95],
+    [0.18, 0.22, 0.14],
+    [1.5, 1.45, 0.9],
+    [0.75, 0.85, 0.6],
+    [0.8, 0.9, 0.6],
   ],
-  spread: [-0.12, 0.02, 0.03, 0.05],
-  thumb: [0.05, 0.7, -0.1],
-  thumbCurl: 0.05,
+  spread: [-0.12, 0.0, 0.05, 0.1],
+  thumb: [0.14, 0.97, -0.17],
+  thumbCurl: 0.02,
 };
 /** Relaxed, half open (lying on the altar, held limp). */
 const POSE_RELAX: HandPose = {
@@ -100,9 +102,9 @@ const POSE_RELAX: HandPose = {
     [0.35, 0.4, 0.25],
     [0.42, 0.45, 0.28],
   ],
-  spread: [-0.12, -0.03, 0.04, 0.12],
-  thumb: [0.1, 0.35, -0.75],
-  thumbCurl: 0.2,
+  spread: [-0.14, -0.04, 0.05, 0.14],
+  thumb: [0.62, 0.72, -0.3],
+  thumbCurl: 0.25,
 };
 
 const blendPose = (a: HandPose, b: HandPose, k: number): HandPose => ({
@@ -135,9 +137,10 @@ const getGemGeo = () => {
 
 type GauntletGeos = {
   palm: THREE.BufferGeometry;
-  backPlate: THREE.BufferGeometry;
+  dome: THREE.BufferGeometry;
   ridge: THREE.BufferGeometry;
   knuckle: THREE.BufferGeometry;
+  thumbKnuckle: THREE.BufferGeometry;
   seg: THREE.BufferGeometry[][];
   joint: THREE.BufferGeometry;
   thumbSeg: THREE.BufferGeometry[];
@@ -146,7 +149,6 @@ type GauntletGeos = {
   rivet: THREE.BufferGeometry;
   setting: THREE.BufferGeometry;
   bigSetting: THREE.BufferGeometry;
-  rim: THREE.BufferGeometry;
   stub: THREE.BufferGeometry;
   shard: THREE.BufferGeometry;
   crackBit: THREE.BufferGeometry;
@@ -155,38 +157,39 @@ type GauntletGeos = {
 let gauntletGeos: GauntletGeos | null = null;
 const getGauntletGeos = (): GauntletGeos => {
   if (gauntletGeos) return gauntletGeos;
-  const lathe = (pts: [number, number][], seg = 40) =>
-    new THREE.LatheGeometry(
-      pts.map(([r, h]) => new THREE.Vector2(r, h)),
-      seg,
-    );
   const stub = new THREE.IcosahedronGeometry(1, 0);
   const sp = stub.attributes.position;
   const rnd = mulberry(77);
   for (let i = 0; i < sp.count; i++) sp.setXYZ(i, sp.getX(i) * (0.75 + rnd() * 0.5), sp.getY(i) * (0.75 + rnd() * 0.5), sp.getZ(i) * (0.75 + rnd() * 0.5));
   stub.computeVertexNormals();
   gauntletGeos = {
-    palm: roundBox(PALM.w, PALM.h, PALM.d, 0.08, 4),
-    backPlate: roundBox(0.44, 0.34, 0.05, 0.022, 3),
-    ridge: roundBox(0.58, 0.07, 0.07, 0.03, 3),
-    knuckle: roundBox(0.122, 0.1, 0.1, 0.04, 3),
-    seg: FINGERS.map((f) => f.lens.map((l, i) => roundBox(f.w * (1 - 0.06 * i), l + 0.02, f.d * (1 - 0.06 * i), i === 2 ? 0.055 : 0.035, 3))),
+    palm: roundBox(PALM.w, PALM.h, PALM.d, 0.11, 4),
+    dome: new THREE.SphereGeometry(1, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(Math.PI / 2),
+    ridge: roundBox(0.62, 0.085, 0.085, 0.038, 3),
+    knuckle: roundBox(0.142, 0.115, 0.115, 0.048, 3),
+    thumbKnuckle: roundBox(0.15, 0.17, 0.17, 0.065, 3),
+    seg: FINGERS.map((f) => f.lens.map((l, i) => roundBox(f.w * (1 - 0.05 * i), l + 0.02, f.d * (1 - 0.05 * i), i === 2 ? 0.062 : 0.04, 3))),
     joint: new THREE.CylinderGeometry(1, 1, 1, 16).rotateZ(Math.PI / 2),
-    thumbSeg: [roundBox(0.15, 0.2, 0.14, 0.045, 3), roundBox(0.135, 0.17, 0.125, 0.055, 3)],
-    cuff: lathe([
-      [0.0, -0.2],
-      [0.25, -0.2],
-      [0.3, -0.17],
-      [0.315, -0.08],
-      [0.3, 0.06],
-      [0.27, 0.15],
-      [0.0, 0.15],
-    ]),
-    band: new THREE.TorusGeometry(1, 0.11, 8, 40).rotateX(Math.PI / 2),
+    thumbSeg: [roundBox(0.16, THUMB_LENS[0] + 0.02, 0.15, 0.05, 3), roundBox(0.145, THUMB_LENS[1] + 0.02, 0.135, 0.065, 3)],
+    cuff: new THREE.LatheGeometry(
+      (
+        [
+          [0.0, -0.22],
+          [0.2, -0.22],
+          [0.245, -0.2],
+          [0.262, -0.14],
+          [0.248, -0.02],
+          [0.232, 0.08],
+          [0.25, 0.15],
+          [0.0, 0.15],
+        ] as [number, number][]
+      ).map(([r, h]) => new THREE.Vector2(r, h)),
+      40,
+    ),
+    band: new THREE.TorusGeometry(1, 0.1, 8, 40).rotateX(Math.PI / 2),
     rivet: new THREE.SphereGeometry(1, 10, 8),
-    setting: new THREE.TorusGeometry(1, 0.22, 8, 24),
-    bigSetting: new THREE.TorusGeometry(1, 0.16, 8, 32),
-    rim: roundBox(0.48, 0.38, 0.03, 0.015, 2),
+    setting: new THREE.TorusGeometry(1, 0.2, 8, 24),
+    bigSetting: new THREE.TorusGeometry(1, 0.13, 8, 36),
     stub,
     shard: new THREE.TetrahedronGeometry(1, 0),
     crackBit: new THREE.BoxGeometry(1, 1, 1),
@@ -197,28 +200,29 @@ const getGauntletGeos = (): GauntletGeos => {
 /** Jagged crack polylines on the back plate (gauntlet space, z = front of the plate). */
 const CRACKS: [number, number][][] = [
   [
-    [0.15, 0.56],
-    [0.12, 0.5],
-    [0.14, 0.45],
-    [0.09, 0.4],
-    [0.1, 0.34],
-    [0.06, 0.3],
+    [0.17, 0.6],
+    [0.13, 0.54],
+    [0.15, 0.49],
+    [0.1, 0.44],
+    [0.11, 0.38],
+    [0.07, 0.34],
   ],
   [
-    [0.12, 0.5],
-    [0.18, 0.46],
-    [0.2, 0.4],
-    [0.26, 0.36],
+    [0.13, 0.54],
+    [0.2, 0.5],
+    [0.22, 0.44],
+    [0.28, 0.4],
   ],
   [
-    [0.06, 0.56],
-    [0.02, 0.52],
-    [-0.03, 0.53],
-    [-0.08, 0.48],
+    [0.07, 0.6],
+    [0.03, 0.56],
+    [-0.03, 0.57],
+    [-0.09, 0.52],
+    [-0.12, 0.54],
   ],
   [
-    [0.1, 0.4],
-    [0.04, 0.42],
+    [0.11, 0.44],
+    [0.04, 0.46],
   ],
 ];
 
@@ -231,14 +235,14 @@ const Finger: React.FC<{ spec: FingerSpec; segs: THREE.BufferGeometry[]; joint: 
   mats,
 }) => {
   const [l0, l1, l2] = spec.lens;
-  const jr = spec.w * 0.42;
+  const jr = spec.d * 0.44;
   return (
     <group position={[spec.x, KNUCKLE_Y - 0.02, 0]} rotation={[-curl[0], 0, spread]}>
       <mesh geometry={segs[0]} material={mats.gold} position={[0, l0 / 2, 0]} castShadow />
-      <mesh geometry={joint} material={mats.goldDark} position={[0, l0, 0]} scale={[spec.w * 0.52, jr * 1.02, jr * 1.02]} />
+      <mesh geometry={joint} material={mats.goldDark} position={[0, l0, 0]} scale={[spec.w * 0.5, jr, jr]} />
       <group position={[0, l0, 0]} rotation={[-curl[1], 0, 0]}>
         <mesh geometry={segs[1]} material={mats.gold} position={[0, l1 / 2, 0]} castShadow />
-        <mesh geometry={joint} material={mats.goldDark} position={[0, l1, 0]} scale={[spec.w * 0.5, jr * 0.96, jr * 0.96]} />
+        <mesh geometry={joint} material={mats.goldDark} position={[0, l1, 0]} scale={[spec.w * 0.48, jr * 0.94, jr * 0.94]} />
         <group position={[0, l1, 0]} rotation={[-curl[2], 0, 0]}>
           <mesh geometry={segs[2]} material={mats.gold} position={[0, l2 / 2, 0]} castShadow />
         </group>
@@ -248,7 +252,7 @@ const Finger: React.FC<{ spec: FingerSpec; segs: THREE.BufferGeometry[]; joint: 
 };
 
 /** Where the knocked-off knuckle chunk sits on the gauntlet (gauntlet space, scale 1). */
-export const GAUNTLET_CHUNK_AT: V3 = [0.17, 0.6, 0.1];
+export const GAUNTLET_CHUNK_AT: V3 = [0.2, KNUCKLE_Y, 0.1];
 
 const STONE_KEYS: (keyof typeof STONE_COLORS)[] = ["purple", "blue", "red", "orange"];
 
@@ -267,19 +271,24 @@ const deadStone = (c: string) => {
   return new THREE.Color().setHSL(hsl.h, hsl.s * 0.25, 0.2);
 };
 
+const KNUCKLE_STONE_R = 0.056;
+const BIG_STONE: V3 = [0.1, 0.125, 0.065];
+const YV = new THREE.Vector3(0, 1, 0);
+
 /**
  * The golden gauntlet: a chunky toy glove-hand (worn on a fin tip) with six stones — purple,
- * blue, red and orange on the index → pinky knuckles, green on the thumb and a big yellow one on
- * the back of the hand. A LEFT hand: its back (and the stones) faces +z, fingers point +y, the
- * thumb sticks out towards +x. Origin = middle of the wrist cuff (where the fin goes in). At scale
- * 1 it is ≈ 1.05 tall (cuff bottom −0.2 → fingertips ≈ 0.85-0.95) and 0.75 wide.
+ * blue, red and orange on the index → pinky knuckles, green on the thumb's knuckle and a big
+ * yellow one on the back of the hand. A LEFT hand: its back (and the stones) faces +z, fingers
+ * point +y, the thumb is on the +x side. Origin = middle of the wrist cuff (where the fin goes in).
+ * At scale 1 it is ≈ 1.3 tall (cuff bottom −0.22 → fingertips ≈ 1.1) and 0.75 wide (thumb incl.).
  *   stones 0..1  stone glow (0 = coloured but unlit)
  *   power  0..1  energy aura: halo, crackling arcs between the stones, rising sparkles
- *   broken 0..1  the knuckle chunk over the index/middle is gone (purple stone with it), cracks
+ *   broken 0..1  the knuckle chunk over the index finger is gone (purple stone with it), cracks
  *                grow across the back plate, the blue stone dims, a broken arc fizzles at the
  *                break and a wisp of smoke rises (> 0.15 = chunk missing)
- *   snap   0..1  fingers from ready-to-snap (thumb against the middle finger) to snapped
- *   relax  0..1  fingers fall half open (lying on the altar / held limp; overrides snap)
+ *   snap   0..1  ready-to-snap (fingers up, middle finger bent onto the thumb) → snapped
+ *                (middle finger slammed into the palm, thumb flicked up and out)
+ *   relax  0..1  fingers fall half open (lying on the altar / held limp; blends over snap)
  *   dead   0..1 (or boolean) stones dark, gold dull
  */
 export const InfinityGauntlet: React.FC<{
@@ -297,7 +306,7 @@ export const InfinityGauntlet: React.FC<{
       gold: metal(GOLD_C, 0.3, 0.24),
       goldDark: metal(GOLD_DARK_C, 0.34, 0.2),
       core: new THREE.MeshStandardMaterial({ color: "#3B2A22", roughness: 0.8, flatShading: true, emissive: new THREE.Color("#3B2A22"), emissiveIntensity: 0.1 }),
-      crack: new THREE.MeshStandardMaterial({ color: "#2A1A10", roughness: 0.9, emissive: new THREE.Color("#000000") }),
+      crack: new THREE.MeshStandardMaterial({ color: "#1A0E08", roughness: 0.9, emissive: new THREE.Color("#000000") }),
       stones: stoneMats(),
     }),
     [],
@@ -310,7 +319,7 @@ export const InfinityGauntlet: React.FC<{
   // Gold: bright toy gold → dull brass.
   mats.gold.color.set(GOLD_C).lerp(new THREE.Color(DEAD_GOLD), d);
   mats.gold.emissive.copy(mats.gold.color);
-  mats.gold.emissiveIntensity = lerp(0.24, 0.07, d) + 0.12 * pw;
+  mats.gold.emissiveIntensity = lerp(0.24, 0.07, d) + 0.1 * pw;
   mats.gold.roughness = lerp(0.3, 0.62, d);
   mats.goldDark.color.set(GOLD_DARK_C).lerp(new THREE.Color(DEAD_GOLD_DARK), d);
   mats.goldDark.emissive.copy(mats.goldDark.color);
@@ -319,29 +328,33 @@ export const InfinityGauntlet: React.FC<{
   const stoneGlow: Record<string, number> = {};
   (Object.keys(STONE_COLORS) as (keyof typeof STONE_COLORS)[]).forEach((k, i) => {
     const m = mats.stones[k];
-    let g = glow * (0.9 + 0.1 * Math.sin(t * 4 + i * 1.7)) * (1 + 0.6 * pw * pulse);
+    let g = glow * (0.9 + 0.1 * Math.sin(t * 4 + i * 1.7)) * (1 + 0.5 * pw * pulse);
     if (k === "blue") g *= 1 - 0.75 * br;
     stoneGlow[k] = g;
     const base = new THREE.Color(STONE_COLORS[k]);
     m.color.copy(base).lerp(deadStone(STONE_COLORS[k]), d);
     m.emissive.copy(base).lerp(new THREE.Color("#000000"), d);
-    m.emissiveIntensity = 0.2 + 1.3 * g;
+    m.emissiveIntensity = 0.15 + 0.85 * g;
   });
   const pose = blendPose(blendPose(POSE_READY, POSE_SNAP, smooth(snap)), POSE_RELAX, smooth(relax));
   if (br > 0) {
     // The index finger is knocked askew.
-    pose.curls[0] = [pose.curls[0][0] + 0.35 * br, pose.curls[0][1] + 0.2 * br, pose.curls[0][2]];
-    pose.spread[0] -= 0.12 * br;
+    pose.curls[0] = [pose.curls[0][0] + 0.3 * br, pose.curls[0][1] + 0.15 * br, pose.curls[0][2]];
+    pose.spread[0] -= 0.1 * br;
   }
+  const thumbQ = new THREE.Quaternion().setFromUnitVectors(YV, new THREE.Vector3(...pose.thumb).normalize());
+  const halo = (key: keyof typeof STONE_COLORS, size: number) => (
+    <Glow color={STONE_COLORS[key]} size={size * (0.7 + 0.4 * Math.min(1.5, stoneGlow[key]))} opacity={0.55 * Math.min(1, stoneGlow[key])} position={[0, 0, 0.05]} />
+  );
   const knuckleStone = (i: number) => {
     const key = STONE_KEYS[i];
     if (i === 0 && chunkGone) return null;
     const f = FINGERS[i];
     return (
-      <group key={key} position={[f.x, KNUCKLE_Y + 0.005, 0.135]}>
-        <mesh geometry={geos.setting} material={mats.goldDark} scale={0.054} />
-        <mesh geometry={getGemGeo()} material={mats.stones[key]} scale={[0.047, 0.047, 0.038]} />
-        <Glow color={STONE_COLORS[key]} size={0.32 * (0.6 + stoneGlow[key])} opacity={0.75 * stoneGlow[key]} position={[0, 0, 0.05]} />
+      <group key={key} position={[f.x, KNUCKLE_Y + 0.004, 0.142]}>
+        <mesh geometry={geos.setting} material={mats.goldDark} scale={KNUCKLE_STONE_R * 1.12} />
+        <mesh geometry={getGemGeo()} material={mats.stones[key]} scale={[KNUCKLE_STONE_R, KNUCKLE_STONE_R, KNUCKLE_STONE_R * 0.8]} />
+        {halo(key, 0.3)}
       </group>
     );
   };
@@ -350,45 +363,42 @@ export const InfinityGauntlet: React.FC<{
   return (
     <group>
       {/* Cuff with bands and rivets. */}
-      <mesh geometry={geos.cuff} material={mats.gold} scale={[1, 1, 0.86]} castShadow />
-      {[-0.15, 0.1].map((y) => (
-        <mesh key={y} geometry={geos.band} material={mats.goldDark} position={[0, y, 0]} scale={[y < 0 ? 0.305 : 0.29, 0.3, (y < 0 ? 0.305 : 0.29) * 0.86]} />
+      <mesh geometry={geos.cuff} material={mats.gold} scale={[1, 1, 0.82]} castShadow />
+      {[-0.16, 0.1].map((y) => (
+        <mesh key={y} geometry={geos.band} material={mats.goldDark} position={[0, y, 0]} scale={[y < 0 ? 0.262 : 0.24, 0.3, (y < 0 ? 0.262 : 0.24) * 0.82]} />
       ))}
       {Array.from({ length: 10 }).map((_, i) => {
         const a = (i / 10) * Math.PI * 2;
-        return <mesh key={i} geometry={geos.rivet} material={mats.goldDark} position={[Math.sin(a) * 0.312, -0.03, Math.cos(a) * 0.312 * 0.86]} scale={0.022} />;
+        return <mesh key={i} geometry={geos.rivet} material={mats.goldDark} position={[Math.sin(a) * 0.256, -0.07, Math.cos(a) * 0.256 * 0.82]} scale={0.02} />;
       })}
-      {/* Back of the hand. */}
+      {/* Back of the hand: domed plate and the big yellow stone. */}
       <mesh geometry={geos.palm} material={mats.gold} position={[0, PALM.y, 0]} castShadow />
-      <mesh geometry={geos.rim} material={mats.goldDark} position={[0, PALM.y - 0.02, PALM.d / 2 - 0.004]} />
-      <mesh geometry={geos.backPlate} material={mats.gold} position={[0, PALM.y - 0.02, PALM.d / 2 + 0.012]} />
-      {/* The big yellow stone. */}
-      <group position={[0, PALM.y - 0.03, PALM.d / 2 + 0.035]}>
-        <mesh geometry={geos.bigSetting} material={mats.goldDark} scale={[0.1, 0.122, 0.1]} />
-        <mesh geometry={getGemGeo()} material={mats.stones.yellow} scale={[0.088, 0.108, 0.06]} />
-        <Glow color={STONE_COLORS.yellow} size={0.55 * (0.6 + stoneGlow.yellow)} opacity={0.8 * stoneGlow.yellow} position={[0, 0, 0.06]} />
+      <mesh geometry={geos.dome} material={mats.gold} position={[0, PALM.y - 0.02, PALM.d / 2 - 0.02]} scale={[0.25, 0.21, 0.07]} />
+      <group position={[0, PALM.y - 0.02, PALM.d / 2 + 0.04]}>
+        <mesh geometry={geos.bigSetting} material={mats.goldDark} scale={[BIG_STONE[0] * 1.12, BIG_STONE[1] * 1.1, 0.1]} />
+        <mesh geometry={getGemGeo()} material={mats.stones.yellow} scale={BIG_STONE} />
+        {halo("yellow", 0.5)}
       </group>
-      {/* Knuckle ridge and knuckle plates (the index/middle one is the chunk that breaks off). */}
-      <mesh geometry={geos.ridge} material={mats.goldDark} position={[chunkGone ? -0.07 : 0, KNUCKLE_Y - 0.03, 0.07]} scale={[chunkGone ? 0.76 : 1, 1, 1]} />
-      {FINGERS.map((f, i) =>
-        i === 0 && chunkGone ? null : <mesh key={i} geometry={geos.knuckle} material={mats.gold} position={[f.x, KNUCKLE_Y, 0.075]} castShadow />,
-      )}
+      {/* Knuckle ridge and knuckle plates (the index one is the chunk that breaks off). */}
+      <mesh geometry={geos.ridge} material={mats.goldDark} position={[chunkGone ? -0.07 : 0, KNUCKLE_Y - 0.035, 0.07]} scale={[chunkGone ? 0.77 : 1, 1, 1]} />
+      {FINGERS.map((f, i) => (i === 0 && chunkGone ? null : <mesh key={i} geometry={geos.knuckle} material={mats.gold} position={[f.x, KNUCKLE_Y, 0.08]} castShadow />))}
       {[0, 1, 2, 3].map(knuckleStone)}
       {/* Fingers. */}
       {FINGERS.map((f, i) => (
         <Finger key={i} spec={f} segs={geos.seg[i]} joint={geos.joint} curl={pose.curls[i]} spread={pose.spread[i]} mats={mats} />
       ))}
-      {/* Thumb on the +x side, with the green stone. */}
-      <group position={[0.26, 0.3, -0.01]} rotation={pose.thumb}>
-        <mesh geometry={geos.thumbSeg[0]} material={mats.gold} position={[0, 0.1, 0]} castShadow />
-        <group position={[0.0, 0.13, 0.075]}>
-          <mesh geometry={geos.setting} material={mats.goldDark} scale={0.05} />
-          <mesh geometry={getGemGeo()} material={mats.stones.green} scale={[0.043, 0.043, 0.035]} />
-          <Glow color={STONE_COLORS.green} size={0.3 * (0.6 + stoneGlow.green)} opacity={0.75 * stoneGlow.green} position={[0, 0, 0.05]} />
-        </group>
-        <mesh geometry={geos.joint} material={mats.goldDark} position={[0, 0.2, 0]} scale={[0.08, 0.06, 0.06]} />
-        <group position={[0, 0.2, 0]} rotation={[-pose.thumbCurl, 0, 0]}>
-          <mesh geometry={geos.thumbSeg[1]} material={mats.gold} position={[0, 0.085, 0]} castShadow />
+      {/* Thumb on the +x side; its knuckle carries the green stone. */}
+      <mesh geometry={geos.thumbKnuckle} material={mats.gold} position={[0.28, 0.3, 0.0]} rotation={[0, 0, -0.35]} castShadow />
+      <group position={[0.335, 0.3, 0.075]} rotation={[0, 0.45, 0]}>
+        <mesh geometry={geos.setting} material={mats.goldDark} scale={0.05 * 1.12} />
+        <mesh geometry={getGemGeo()} material={mats.stones.green} scale={[0.05, 0.05, 0.04]} />
+        {halo("green", 0.28)}
+      </group>
+      <group position={THUMB_BASE} quaternion={thumbQ}>
+        <mesh geometry={geos.thumbSeg[0]} material={mats.gold} position={[0, THUMB_LENS[0] / 2, 0]} castShadow />
+        <mesh geometry={geos.joint} material={mats.goldDark} position={[0, THUMB_LENS[0], 0]} scale={[0.075, 0.066, 0.066]} />
+        <group position={[0, THUMB_LENS[0], 0]} rotation={[-pose.thumbCurl, 0, 0]}>
+          <mesh geometry={geos.thumbSeg[1]} material={mats.gold} position={[0, THUMB_LENS[1] / 2, 0]} castShadow />
         </group>
       </group>
       {/* Damage: the torn hole where the chunk was, shards, cracks, a fizzling arc and smoke. */}
@@ -396,12 +406,12 @@ export const InfinityGauntlet: React.FC<{
         <group>
           {chunkGone ? (
             <>
-              <mesh geometry={geos.stub} material={mats.core} position={[0.18, KNUCKLE_Y - 0.01, 0.06]} scale={[0.085, 0.06, 0.06]} rotation={[0.4, 0.3, 0.2]} />
+              <mesh geometry={geos.stub} material={mats.core} position={[0.2, KNUCKLE_Y - 0.01, 0.07]} scale={[0.09, 0.065, 0.065]} rotation={[0.4, 0.3, 0.2]} />
               {[
-                [0.25, 0.62, 0.07, 0.035, 0.3],
-                [0.12, 0.63, 0.08, 0.03, 1.2],
-                [0.2, 0.55, 0.11, 0.028, 2.1],
-                [0.27, 0.57, 0.04, 0.025, 2.9],
+                [0.28, 0.67, 0.08, 0.038, 0.3],
+                [0.14, 0.68, 0.09, 0.033, 1.2],
+                [0.22, 0.6, 0.12, 0.03, 2.1],
+                [0.3, 0.61, 0.05, 0.027, 2.9],
               ].map(([x, y, z, s, r], i) => (
                 <mesh key={i} geometry={geos.shard} material={mats.gold} position={[x, y, z]} scale={s} rotation={[r, r * 1.3, r * 0.7]} />
               ))}
@@ -414,23 +424,25 @@ export const InfinityGauntlet: React.FC<{
               const [x0, y0] = path[i];
               const [x1, y1] = path[i + 1];
               const len = Math.hypot(x1 - x0, y1 - y0);
+              // Ride on the dome where it bulges.
+              const z = PALM.d / 2 + 0.03 + 0.03 * Math.max(0, 1 - Math.hypot((x0 + x1) / 2 / 0.25, ((y0 + y1) / 2 - PALM.y + 0.02) / 0.21));
               return (
                 <mesh
                   key={`${ci}-${i}`}
                   geometry={geos.crackBit}
                   material={mats.crack}
-                  position={[(x0 + x1) / 2, (y0 + y1) / 2 - 0.02, PALM.d / 2 + 0.04]}
+                  position={[(x0 + x1) / 2, (y0 + y1) / 2, z]}
                   rotation={[0, 0, Math.atan2(y1 - y0, x1 - x0)]}
-                  scale={[len + 0.006, 0.011, 0.012]}
+                  scale={[len + 0.01, 0.017, 0.016]}
                 />
               );
             });
           })}
           {fizz ? (
-            <LightningBolt from={[0.16, 0.62, 0.12]} to={[0.24 + 0.05 * hash(step), 0.72 + 0.06 * hash(step + 3), 0.16]} t={t} seed={step % 5} width={0.05} forks={1} flares={false} color="#B9A6FF" />
+            <LightningBolt from={[0.2, 0.68, 0.13]} to={[0.28 + 0.05 * hash(step), 0.8 + 0.06 * hash(step + 3), 0.17]} t={t} seed={step % 5} width={0.05} forks={1} flares={false} color="#B9A6FF" />
           ) : null}
           {chunkGone ? (
-            <group position={[0.18, 0.63, 0.08]}>
+            <group position={[0.2, 0.69, 0.08]}>
               <Smoke t={t} amount={br * (1 - d * 0.5)} height={0.7} r0={0.025} r1={0.09} count={9} speed={0.35} wobble={0.06} drift={0.15} color="#6E6670" opacity={0.6} seed={4} />
             </group>
           ) : null}
@@ -444,12 +456,12 @@ export const InfinityGauntlet: React.FC<{
 
 /** Stone points for the aura's arcs (gauntlet space). */
 const AURA_POINTS: V3[] = [
-  [0.205, 0.6, 0.17],
-  [0.068, 0.6, 0.17],
-  [-0.068, 0.6, 0.17],
-  [-0.2, 0.6, 0.17],
-  [0.0, 0.33, 0.2],
-  [0.32, 0.38, 0.08],
+  [0.226, KNUCKLE_Y, 0.18],
+  [0.076, KNUCKLE_Y, 0.18],
+  [-0.074, KNUCKLE_Y, 0.18],
+  [-0.222, KNUCKLE_Y, 0.18],
+  [0.0, PALM.y - 0.02, 0.22],
+  [0.34, 0.3, 0.12],
 ];
 const AURA_COLORS = [STONE_COLORS.purple, STONE_COLORS.blue, STONE_COLORS.red, STONE_COLORS.orange, STONE_COLORS.yellow, STONE_COLORS.green];
 
@@ -462,13 +474,12 @@ const GauntletAura: React.FC<{ t: number; power: number }> = ({ t, power }) => {
   });
   return (
     <group>
-      <Glow color="#C77DFF" size={2.2 * (0.7 + 0.3 * power)} opacity={0.45 * power * (0.85 + 0.15 * Math.sin(t * 7))} position={[0, 0.45, 0]} />
-      <Glow color="#FFFFFF" size={0.9} opacity={0.25 * power} position={[0, 0.45, 0.15]} />
+      <Glow color="#B65CFF" size={1.9 * (0.75 + 0.25 * power)} opacity={0.32 * power * (0.85 + 0.15 * Math.sin(t * 7))} position={[0, 0.5, -0.05]} />
       {arcs.map((arc, i) => (
         <LightningBolt key={i} from={AURA_POINTS[arc.a]} to={AURA_POINTS[arc.b]} t={t + i * 0.37} seed={arc.seed} width={0.06} forks={1} jag={1.4} flares={false} color={AURA_COLORS[arc.a]} amount={power} />
       ))}
       <group position={[0, -0.1, 0]}>
-        <Sparks mode="rise" count={40} seed={21} time={t} width={0.025} tail={0.12} life={1.1} speed={0.9} spread={0.05} box={[0.9, 1.4, 0.5]} head="#FFFFFF" tailColor="#C77DFF" opacity={power} />
+        <Sparks mode="rise" count={40} seed={21} time={t} width={0.026} tail={0.12} life={1.1} speed={0.9} spread={0.05} box={[0.95, 1.5, 0.55]} head="#FFFFFF" tailColor="#C77DFF" opacity={power} />
       </group>
     </group>
   );
@@ -484,21 +495,23 @@ export const GauntletChunk: React.FC<{ stones?: number; t?: number }> = ({ stone
   const mats = useMemo(
     () => ({
       gold: metal(GOLD_C, 0.3, 0.24),
+      goldDark: metal(GOLD_DARK_C, 0.34, 0.2),
       core: new THREE.MeshStandardMaterial({ color: "#3B2A22", roughness: 0.8, flatShading: true, emissive: new THREE.Color("#3B2A22"), emissiveIntensity: 0.1 }),
       stone: new THREE.MeshStandardMaterial({ color: STONE_COLORS.purple, roughness: 0.12, flatShading: true, emissive: new THREE.Color(STONE_COLORS.purple), emissiveIntensity: 1 }),
     }),
     [],
   );
   const g = clamp01(stones) * (0.85 + 0.15 * Math.sin(t * 9));
-  mats.stone.emissiveIntensity = 0.2 + 1.2 * g;
+  mats.stone.emissiveIntensity = 0.15 + 0.85 * g;
   return (
     <group>
-      <mesh geometry={geos.knuckle} material={mats.gold} position={[0.035, 0, -0.025]} scale={[1.05, 1, 1]} castShadow />
-      <mesh geometry={geos.stub} material={mats.core} position={[0.0, -0.01, -0.07]} scale={[0.08, 0.055, 0.04]} rotation={[0.3, 0.6, 0.1]} />
-      <group position={[0.035, 0.005, 0.035]}>
-        <mesh geometry={geos.setting} material={mats.gold} scale={0.054} />
-        <mesh geometry={getGemGeo()} material={mats.stone} scale={[0.047, 0.047, 0.038]} />
-        <Glow color={STONE_COLORS.purple} size={0.3} opacity={0.8 * g} position={[0, 0, 0.05]} />
+      <mesh geometry={geos.knuckle} material={mats.gold} position={[0.026, 0, -0.02]} scale={[1.1, 1, 1]} castShadow />
+      <mesh geometry={geos.ridge} material={mats.goldDark} position={[0.02, -0.035, -0.03]} scale={[0.26, 1, 1]} />
+      <mesh geometry={geos.stub} material={mats.core} position={[0.0, -0.015, -0.075]} scale={[0.085, 0.06, 0.045]} rotation={[0.3, 0.6, 0.1]} />
+      <group position={[0.026, 0.004, 0.042]}>
+        <mesh geometry={geos.setting} material={mats.goldDark} scale={KNUCKLE_STONE_R * 1.12} />
+        <mesh geometry={getGemGeo()} material={mats.stone} scale={[KNUCKLE_STONE_R, KNUCKLE_STONE_R, KNUCKLE_STONE_R * 0.8]} />
+        <Glow color={STONE_COLORS.purple} size={0.3} opacity={0.6 * g} position={[0, 0, 0.05]} />
       </group>
     </group>
   );
@@ -507,12 +520,12 @@ export const GauntletChunk: React.FC<{ stones?: number; t?: number }> = ({ stone
 /**
  * Gauntlet on the right (screen-right) fin, in upright fin-tip space (inside <Upright>): the
  * cuff swallows the fin tip, the hand stands upright beside the head with its back (all six
- * stones) to the camera. Scale 6: ≈ 6.3 model units tall — on Thanos at size 3 that is ≈ 1.9
- * world units, about the size of a size-2 Nubi's body; on Nubi at size 2, ≈ 1.25.
+ * stones) to the camera. Scale 5.5: ≈ 7.2 model units tall — on Thanos at size 3 that is ≈ 2.2
+ * world units (about a size-2 Nubi's body); on Nubi at size 2, ≈ 1.45.
  */
-export const GAUNTLET_HOLD: Hold = { position: [0.9, 0.55, 0.5], rotation: [0.05, -0.18, -0.06], scale: 6 };
+export const GAUNTLET_HOLD: Hold = { position: [1.0, 0.7, 0.6], rotation: [0.04, -0.2, -0.05], scale: 5.5 };
 /** Left-fin twin: mirrored, so it becomes a right hand with the thumb still outwards. */
-export const GAUNTLET_HOLD_L: Hold = { position: [-0.9, 0.55, 0.5], rotation: [0.05, 0.18, 0.06], scale: [-6, 6, 6] };
+export const GAUNTLET_HOLD_L: Hold = { position: [-1.0, 0.7, 0.6], rotation: [0.04, 0.2, 0.05], scale: [-5.5, 5.5, 5.5] };
 /**
  * GAUNTLET_HOLD for use directly in holdR WITHOUT <Upright>: it undoes the fin turn for the given
  * raise itself (pass the same finR as the pose).
@@ -524,12 +537,24 @@ export const gauntletHold = (raise = 1): Hold => {
   return { position: [p.x, p.y, p.z], rotation: [e.x, e.y, e.z], scale: GAUNTLET_HOLD.scale };
 };
 
+/** Euler for a frame given where the gauntlet's thumb (+x), fingers (+y) and back (+z) should point. */
+const basisEuler = (x: V3, y: V3, z: V3): V3 => {
+  const m = new THREE.Matrix4().makeBasis(new THREE.Vector3(...x).normalize(), new THREE.Vector3(...y).normalize(), new THREE.Vector3(...z).normalize());
+  const e = new THREE.Euler().setFromRotationMatrix(m);
+  return [e.x, e.y, e.z];
+};
+
 /**
- * Gauntlet lying on its palm (stones up, fingers pointing back and to the left; use relax 1):
- * put it at ALTAR_TOP (Sets) — <group position={ALTAR_TOP}><group {...GAUNTLET_LYING}>. Scale
- * 1.8 (as worn by Thanos at size 3): ≈ 1.9 long, 1.35 wide, 0.9 high.
+ * Gauntlet lying palm-down on the altar: stones up, fingers pointing to the left (−x) and a
+ * little back, thumb towards the camera; use it with relax ≈ 1. Inside
+ * <group position={ALTAR_TOP}> (Sets): <group {...GAUNTLET_LYING}><InfinityGauntlet dead relax={1} />.
+ * Scale 1.7 (as worn by Thanos at size 3): ≈ 2.1 long, 1.3 wide, 0.75 high.
  */
-export const GAUNTLET_LYING: Hold = { position: [0.15, 0.47, 0.1], rotation: [-Math.PI / 2 + 0.3, 0, 0.75], scale: 1.8 };
+export const GAUNTLET_LYING: Hold = {
+  position: [0.55, 0.37, 0.05],
+  rotation: basisEuler([0.26, -0.1, 0.96], [-0.96, -0.12, 0.25], [-0.09, 0.99, 0.12]),
+  scale: 1.7,
+};
 
 // =======================================================================================
 // Hammer
@@ -675,9 +700,9 @@ export const Mjolnir: React.FC<{ crackle?: number; t?: number; strapSwing?: numb
 
 /**
  * Hammer in a fin (upright fin-tip space): gripped in front of the tip, head up, leaning a touch
- * outwards; scale 5 = 1 world unit per hammer unit for Nubi at size 2 (≈ 1.15 long).
+ * outwards; scale 6.5 (≈ 1.5 long for Nubi at size 2).
  */
-export const HAMMER_HOLD: Hold = { position: [0.25, 0.2, 1.0], rotation: [0.08, 0.15, -0.14], scale: 5 };
+export const HAMMER_HOLD: Hold = { position: [0.2, 0.1, 1.1], rotation: [0.08, 0.15, -0.12], scale: 6.5 };
 export const HAMMER_HOLD_L: Hold = mirrorHold(HAMMER_HOLD);
 
 // =======================================================================================
@@ -778,7 +803,7 @@ export const StarShield: React.FC = () => {
  * Shield on a fin (upright fin-tip space), shown face-on to the camera in front of the fin tip
  * and a little outwards; scale 5 (≈ 1.1 across for Nubi at size 2).
  */
-export const SHIELD_HOLD: Hold = { position: [0.9, 0.5, 3.4], rotation: [0, -0.15, 0.05], scale: 5 };
+export const SHIELD_HOLD: Hold = { position: [-0.4, 0.4, 3.9], rotation: [0, -0.2, 0.05], scale: 5 };
 export const SHIELD_HOLD_L: Hold = mirrorHold(SHIELD_HOLD);
 
 // =======================================================================================
@@ -853,8 +878,8 @@ export const Rock: React.FC<{ size?: number; seed?: number; tint?: string }> = (
   );
 };
 
-/** Rock held up proudly on a fin (upright fin-tip space), scale 5 (≈ 0.36 across at size 2). */
-export const ROCK_HOLD: Hold = { position: [0.7, 0.55, 0.9], rotation: [0.15, 0.3, 0], scale: 5 };
+/** Rock held up proudly on a fin (upright fin-tip space), scale 6.5 (≈ 0.47 across at size 2). */
+export const ROCK_HOLD: Hold = { position: [0.4, 0.75, 1.9], rotation: [0.15, 0.3, 0], scale: 6.5 };
 export const ROCK_HOLD_L: Hold = mirrorHold(ROCK_HOLD);
 
 // =======================================================================================
@@ -948,14 +973,14 @@ export const Portal: React.FC<{ radius?: number; open?: number; t?: number; inne
   const flick = 0.9 + 0.1 * Math.sin(t * 23) * Math.sin(t * 13.7);
   const bu = mats.band.uniforms;
   bu.uR.value = rr / 1.3;
-  bu.uW.value = 0.035;
+  bu.uW.value = 0.026;
   bu.uOpacity.value = (arc >= 1 ? 1 : 0.6) * flick * Math.min(1, o * 3);
   bu.uTime.value = t;
   bu.uWobble.value = 0.35;
   const hu = mats.haze.uniforms;
   hu.uR.value = rr / 1.3;
   hu.uW.value = 0.11;
-  hu.uOpacity.value = 0.35 * Math.min(1, o * 2);
+  hu.uOpacity.value = 0.22 * Math.min(1, o * 2);
   hu.uTime.value = t * 0.7;
   hu.uWobble.value = 0.2;
   if (inner) {
@@ -969,7 +994,7 @@ export const Portal: React.FC<{ radius?: number; open?: number; t?: number; inne
   const density = Math.max(0.2, sparks);
   const nOrbit = Math.round((big ? 520 : 300) * density);
   const nFly = Math.round((big ? 260 : 150) * density);
-  const sw = big ? 0.009 : 0.016;
+  const sw = big ? 0.016 : 0.03;
   // While the circle is being drawn the band only covers the drawn arc: mask it with sparks only.
   return (
     <group scale={radius}>

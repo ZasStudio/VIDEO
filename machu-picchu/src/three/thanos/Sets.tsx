@@ -524,9 +524,9 @@ export const FIELD_TRIP_ROCK: V3 = [-0.4, 0, 0.8];
 export const FIELD_CRACK: V3 = [-0.6, 0, 1.5];
 /** Giant portals (radius 12) standing on the ground round the back of the arena, facing +z. */
 export const FIELD_GIANT_PORTALS: V3[] = [
-  [-21, 11, -22],
-  [21, 11, -22],
-  [0, 11.5, -30],
+  [-26, 11, -24],
+  [26, 11, -24],
+  [0, 11.5, -36],
 ];
 /** A loose crescent of spots for the line of heroes (facing +z), clear of rubble. */
 export const FIELD_HEROES: V3[] = [
@@ -673,7 +673,7 @@ const wallStoneTexture = () =>
           for (const dx of [0, W, -W]) {
             const x0 = x + dx + 4;
             const y0 = r * rh + 4;
-            ctx.fillStyle = `hsl(${218 + rnd() * 8}, ${10 + rnd() * 6}%, ${l}%)`;
+            ctx.fillStyle = `hsl(${218 + rnd() * 8}, ${12 + rnd() * 6}%, ${l * 0.78}%)`;
             ctx.beginPath();
             ctx.roundRect(x0, y0, w - 8, rh - 8, 10);
             ctx.fill();
@@ -725,7 +725,7 @@ const floorStoneTexture = () =>
           for (const [rx, ry, rw, rhh] of rects) {
             const x0 = i * cell + rx * cell + 4;
             const y0 = j * cell + ry * cell + 4;
-            ctx.fillStyle = `hsl(${216 + rnd() * 10}, ${9 + rnd() * 5}%, ${24 + rnd() * 8}%)`;
+            ctx.fillStyle = `hsl(${216 + rnd() * 10}, ${10 + rnd() * 5}%, ${17 + rnd() * 7}%)`;
             ctx.beginPath();
             ctx.roundRect(x0, y0, rw * cell - 8, rhh * cell - 8, 12);
             ctx.fill();
@@ -1037,7 +1037,7 @@ const Torch: React.FC<{ t: number; seed: number; light: boolean }> = ({ t, seed,
         <Glow color="#3DFF6E" size={2.6 * f} opacity={0.55} position={[0, 0.4, 0]} />
         <Glow color="#B8FFC8" size={0.7} opacity={0.6} position={[0, 0.3, 0.05]} />
       </group>
-      {light ? <pointLight color="#3CFF6A" intensity={7 * f} distance={11} decay={1.6} position={[0, 0.8, 1.1]} /> : null}
+      {light ? <pointLight color="#3CFF6A" intensity={4 * f} distance={8} decay={1.8} position={[0, 0.8, 1.1]} /> : null}
     </group>
   );
 };
@@ -1108,7 +1108,7 @@ const Brazier: React.FC<{ t: number; seed: number }> = ({ t, seed }) => {
         <Flame height={1.7} width={1.05} t={t} seed={seed} palette={GREEN_FIRE} halo={0} />
         <Glow color="#3DFF6E" size={4 * f} opacity={0.6} position={[0, 0.7, 0]} />
       </group>
-      <pointLight color="#3CFF6A" intensity={9 * f} distance={12} decay={1.5} position={[0, 2.9, 0.3]} />
+      <pointLight color="#3CFF6A" intensity={3.5 * f} distance={8} decay={1.8} position={[0, 2.9, 0.3]} />
     </group>
   );
 };
@@ -1256,22 +1256,22 @@ export const DoomCastle: React.FC<{ t?: number; fog?: number; lights?: boolean; 
       const tex = glassTexture(moon);
       return new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, side: THREE.DoubleSide });
     };
-    const fogMats = [0.42, 0.3, 0.2].map((o) => {
+    const fogMats = [0.22, 0.15, 0.1].map((o) => {
       const tex = fogTexture().clone();
       tex.repeat.set(2.2, 2.6);
       tex.needsUpdate = true;
       return new THREE.MeshBasicMaterial({ map: tex, color: "#AFC3DE", transparent: true, opacity: o, depthWrite: false, toneMapped: false, fog: false });
     });
     return {
-      wall: mk(wallTex, 0.16),
-      floor: mk(floorTex, 0.14, 0.6),
+      wall: mk(wallTex, 0.12),
+      floor: mk(floorTex, 0.12, 0.6),
       ceiling: new THREE.MeshStandardMaterial({ color: "#1A1E28", roughness: 0.9, emissive: new THREE.Color("#1A1E28"), emissiveIntensity: 0.3 }),
       carpet: texMat(carpetTexture(), 0.9, 0.16),
       sideGlass: glass(false),
       backGlass: glass(true),
-      beam: beamMaterial("#9CC2FF", 0.16),
-      beamBack: beamMaterial("#A9CBFF", 0.2),
-      pool: additive(new THREE.MeshBasicMaterial({ color: "#8FB6FF", transparent: true, opacity: 0.18, toneMapped: false, fog: false })),
+      beam: beamMaterial("#9CC2FF", 0.06),
+      beamBack: beamMaterial("#A9CBFF", 0.07),
+      pool: additive(new THREE.MeshBasicMaterial({ color: "#8FB6FF", transparent: true, opacity: 0.1, toneMapped: false, fog: false })),
       fog: fogMats,
     };
   }, []);
@@ -1401,7 +1401,7 @@ export const DoomCastle: React.FC<{ t?: number; fog?: number; lights?: boolean; 
 /** Night lighting for the DoomCastle: cold moonlight from the back-left, dim blue fill (torches are in the set). */
 export const CastleLights: React.FC<{ k?: number }> = ({ k = 1 }) => (
   <>
-    <hemisphereLight args={["#8EA2D6", "#161A22", 0.9 * k]} />
+    <hemisphereLight args={["#8EA2D6", "#161A22", 0.75 * k]} />
     <directionalLight position={[-8, 12, -9]} intensity={1.5 * k} color="#A9C6FF" />
     <directionalLight position={[3, 5, 10]} intensity={0.45 * k} color="#7F96C8" />
   </>
