@@ -143,19 +143,23 @@ export const VlogEdit: React.FC<{withAudio: boolean}> = ({withAudio}) => {
       </Sequence>
       <ProductChip from={PRODUCT.from} to={PRODUCT.to} />
       <SpokenQuote
-        lines={[['El', 'que', 'busca,'], ['encuentra.'], ['Y', 'el', 'que', 'no', 'se', 'rinde,'], ['lo', 'logra.']]}
+        lines={[
+          {words: ['El', 'que', 'busca,'], tone: 'light', size: 66},
+          {words: ['encuentra.'], tone: 'serif', size: 168, grad: true},
+          {words: ['Y', 'el', 'que', 'no', 'se', 'rinde,'], tone: 'light', size: 60},
+          {words: ['lo', 'logra.'], tone: 'bold', size: 150, grad: true},
+        ]}
         from={QUOTE_START}
         to={QUOTE_END}
-        size={98}
-        accent={['encuentra.', 'logra.']}
       />
       <SpokenQuote
-        lines={[['Porque', 'si', 'yo', 'pude,'], ['tú', 'también'], ['puedes', 'lograrlo.']]}
+        lines={[
+          {words: ['Porque', 'si', 'yo', 'pude,'], tone: 'light', size: 70},
+          {words: ['tú', 'también'], tone: 'bold', size: 150, grad: true},
+          {words: ['puedes', 'lograrlo.'], tone: 'serif', size: 124, grad: true},
+        ]}
         from={FINAL_START}
         to={END_CARD + 2}
-        serif={false}
-        size={112}
-        accent={['tú', 'también', 'puedes', 'lograrlo.']}
       />
       <EndCard from={END_CARD} />
       <FadeOut />

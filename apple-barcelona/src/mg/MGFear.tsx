@@ -1,17 +1,15 @@
 import React from 'react';
 import {useCurrentFrame} from 'remotion';
 import {EASE_OUT, clamp01} from '../anim';
-import {FONT} from '../theme';
-import {motionBlur} from './Blur';
 import {FPS} from '../edit';
+import {FONT, TEXT_GRADIENT} from '../theme';
 import {GlassField3D} from '../three/GlassField3D';
-import {Glass} from './GlassCss';
-import {BlackStage, SyncLine, YELLOW, revealAt, t0, useMs} from './Kit';
+import {motionBlur} from './Blur';
+import {SKY, BlackStage, SyncLine, revealAt, t0, useMs} from './Kit';
 
 // Interludio 4 — "Todo comienzo da miedo, es normal, pero no dejes que ese miedo te detenga."
-// "MIEDO" tiembla, se calma con "es normal", se tacha con "ese miedo" y una flecha empuja hacia adelante.
-
-const RED = '#FF5A5F';
+// "MIEDO" enorme tiembla, se calma con "es normal" y una línea fina lo tacha; cierre con
+// "te detenga." grande y una flecha fina hacia adelante. Sin recuadros.
 
 export const MGFear: React.FC = () => {
   const f = useCurrentFrame();
@@ -26,8 +24,8 @@ export const MGFear: React.FC = () => {
   const shake = (1 - calm * 0.85) * fearIn;
   const jx = Math.sin(f * 2.7) * 9 * shake + Math.sin(f * 5.3) * 4 * shake;
   const jy = Math.cos(f * 3.1) * 6 * shake;
-  const strike = EASE_OUT(clamp01((ms - tStrike) / 380));
-  const go = EASE_OUT(clamp01((ms - tGo) / 450));
+  const strike = EASE_OUT(clamp01((ms - tStrike) / 420));
+  const go = EASE_OUT(clamp01((ms - tGo) / 500));
 
   return (
     <BlackStage>
@@ -35,68 +33,66 @@ export const MGFear: React.FC = () => {
         startFrame={Math.round((t0('todo comienzo') / 1000) * FPS)}
         shake={shake}
         items={[
-          {shape: 'cube', p: [-2.1, 1.9, 0], s: 0.55, spin: 1.4},
-          {shape: 'cube', p: [2.2, 2.6, -0.5], s: 0.42, tint: '#ffd0da', spin: -1.2},
-          {shape: 'capsule', p: [-2.0, -3.9, 0], s: 0.6, tint: '#fff3c4'},
-          {shape: 'sphere', p: [2.1, -3.4, -0.5], s: 0.6},
+          {shape: 'cube', p: [-2.15, 2.5, 0], s: 0.5, spin: 1.4},
+          {shape: 'cube', p: [2.2, 3.4, -0.5], s: 0.4, tint: '#a9d0ff', spin: -1.2},
+          {shape: 'sphere', p: [2.1, -4.0, -0.5], s: 0.55, tint: '#cfe6ff'},
         ]}
       />
-      {/* panel de vidrio detrás de "MIEDO" */}
-      <div style={{position: 'absolute', left: 90, top: 680, opacity: fearIn, scale: String(0.94 + 0.06 * fearIn)}}>
-        <Glass tint="rgba(255,90,95,0.18)" radius={48} style={{width: 900, height: 300}} />
+      <div style={{position: 'absolute', top: 400, left: 0, right: 0}}>
+        <SyncLine phrase="todo comienzo" tone="label" size={30} />
+        <SyncLine phrase="da" display={['da']} tone="light" size={78} style={{marginTop: 22}} />
       </div>
-      <div style={{position: 'absolute', top: 430, left: 0, right: 0}}>
-        <SyncLine phrase="todo comienzo" display={['Todo', 'comienzo']} size={108} />
-        <SyncLine phrase="da miedo" display={['da', '']} size={70} weight={600} color="rgba(255,255,255,0.7)" style={{marginTop: 14}} />
-      </div>
-      <div style={{position: 'absolute', top: 690, left: 0, right: 0, textAlign: 'center'}}>
+      <div style={{position: 'absolute', top: 560, left: 0, right: 0, textAlign: 'center'}}>
         <div
           style={{
             position: 'relative',
             display: 'inline-block',
             fontFamily: FONT.sans,
             fontWeight: 800,
-            fontSize: 250,
-            letterSpacing: '-0.04em',
-            color: strike > 0.5 ? 'rgba(255,255,255,0.28)' : RED,
-            opacity: fearIn,
-            scale: String((0.8 + 0.2 * fearIn) * (1 - 0.12 * strike)),
+            fontSize: 270,
+            letterSpacing: '-0.05em',
+            lineHeight: 1,
+            backgroundImage: TEXT_GRADIENT,
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            color: 'transparent',
+            opacity: fearIn * (1 - 0.6 * strike),
+            scale: String((0.82 + 0.18 * fearIn) * (1 - 0.08 * strike)),
             translate: `${jx}px ${jy + (1 - fearIn) * 60}px`,
-            textShadow: strike > 0.5 ? 'none' : `0 0 60px ${RED}66`,
-            filter: motionBlur((1 - fearIn) * 0.9 + shake * 0.12, 'x'),
+            filter: motionBlur((1 - fearIn) * 0.9 + shake * 0.15, 'x'),
           }}
         >
           MIEDO
-          <div
-            style={{
-              position: 'absolute',
-              left: '-4%',
-              top: '52%',
-              height: 22,
-              width: `${108 * strike}%`,
-              borderRadius: 11,
-              background: YELLOW,
-              rotate: '-4deg',
-              boxShadow: `0 0 30px ${YELLOW}88`,
-            }}
-          />
         </div>
+        <div
+          style={{
+            position: 'absolute',
+            left: 120,
+            top: 150,
+            height: 5,
+            width: 840 * strike,
+            borderRadius: 3,
+            background: SKY,
+            rotate: '-3deg',
+            boxShadow: `0 0 18px ${SKY}`,
+          }}
+        />
       </div>
-      <div style={{position: 'absolute', top: 1010, left: 0, right: 0}}>
-        <SyncLine phrase="es normal" display={['es', 'normal.']} size={64} weight={600} color="rgba(255,255,255,0.7)" />
+      <div style={{position: 'absolute', top: 870, left: 0, right: 0}}>
+        <SyncLine phrase="es normal" display={['es', 'normal.']} tone="serif" size={74} style={{color: 'rgba(255,255,255,0.8)'}} />
       </div>
-      <div style={{position: 'absolute', top: 1180, left: 0, right: 0}}>
-        <SyncLine phrase="pero no dejes que" size={74} weight={700} />
-        <SyncLine phrase="ese miedo te detenga" display={['ese', 'miedo', 'te', 'detenga.']} size={74} weight={700} colors={{3: YELLOW}} style={{marginTop: 8}} />
+      <div style={{position: 'absolute', top: 1110, left: 0, right: 0}}>
+        <SyncLine phrase="pero no dejes que ese miedo" tone="light" size={56} />
+        <SyncLine phrase="te detenga" display={['te', 'detenga.']} size={150} grad={[1]} style={{marginTop: 10}} />
       </div>
-      {/* Flecha hacia adelante */}
-      <svg width={1080} height={200} style={{position: 'absolute', left: 0, top: 1420, overflow: 'visible', filter: motionBlur(Math.sin(Math.PI * go) * 0.7, 'x')}}>
-        <line x1={180} y1={100} x2={180 + 640 * go} y2={100} stroke={YELLOW} strokeWidth={16} strokeLinecap="round" opacity={go > 0 ? 1 : 0} />
+      {/* Flecha fina hacia adelante */}
+      <svg width={1080} height={120} style={{position: 'absolute', left: 0, top: 1400, overflow: 'visible', filter: motionBlur(Math.sin(Math.PI * go) * 0.7, 'x')}}>
+        <line x1={240} y1={60} x2={240 + 600 * go} y2={60} stroke={SKY} strokeWidth={4} strokeLinecap="round" opacity={go > 0 ? 1 : 0} />
         <path
-          d={`M ${180 + 640 * go - 50} 55 L ${180 + 640 * go + 6} 100 L ${180 + 640 * go - 50} 145`}
+          d={`M ${240 + 600 * go - 26} 36 L ${240 + 600 * go + 2} 60 L ${240 + 600 * go - 26} 84`}
           fill="none"
-          stroke={YELLOW}
-          strokeWidth={16}
+          stroke={SKY}
+          strokeWidth={4}
           strokeLinecap="round"
           strokeLinejoin="round"
           opacity={go > 0.05 ? 1 : 0}

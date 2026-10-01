@@ -1,13 +1,12 @@
 import React from 'react';
 import {AbsoluteFill, useCurrentFrame, useVideoConfig} from 'remotion';
-import {EASE_IN_OUT, EASE_OUT, appear, clamp01, ramp} from './anim';
+import {EASE_IN_OUT, EASE_OUT, clamp01, ramp} from './anim';
 import {FPS} from './edit';
-import {C, FONT, TEXT_SHADOW} from './theme';
+import {C, FONT, TEXT_GRADIENT, TEXT_GRADIENT_BLUE, TEXT_SHADOW} from './theme';
 import {findPhrase} from './words';
-import {glassStyle} from './mg/GlassCss';
 
-// Títulos y tarjetas: limpios, estilo Apple (vidrio esmerilado, serif cursiva para las citas),
-// con entradas que suben con desenfoque y frenan despacio.
+// Textos sobre el video: sin cajas, con jerarquía tipográfica (etiqueta pequeña espaciada,
+// línea ligera, palabra grande o serif cursiva) y entradas que suben con desenfoque.
 
 const sec = (s: number) => Math.round(s * FPS);
 
@@ -23,71 +22,66 @@ const rise = (f: number, start: number, end: number, dist = 30) => {
   } as const;
 };
 
+const LABEL: React.CSSProperties = {
+  fontFamily: FONT.sans,
+  fontWeight: 600,
+  fontSize: 28,
+  letterSpacing: '0.34em',
+  textTransform: 'uppercase',
+  color: C.white,
+  textShadow: TEXT_SHADOW,
+};
+
+const gradText = (g = TEXT_GRADIENT): React.CSSProperties => ({
+  backgroundImage: g,
+  WebkitBackgroundClip: 'text',
+  backgroundClip: 'text',
+  color: 'transparent',
+  filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.55))',
+});
+
 const Pin: React.FC<{size: number}> = ({size}) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" fill="#FF5A5F" />
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{marginRight: 14, verticalAlign: '-0.12em'}}>
+    <path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" fill={C.blue} />
     <circle cx="12" cy="10" r="2.6" fill="#fff" />
   </svg>
 );
 
-const Laptop: React.FC<{size: number}> = ({size}) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-    <rect x="4" y="5" width="16" height="11" rx="1.5" />
-    <path d="M2 19h20" />
-  </svg>
-);
-
-const Chip: React.FC<{children: React.ReactNode; style?: React.CSSProperties}> = ({children, style}) => (
+const Line: React.FC<{p: number; width: number}> = ({p, width}) => (
   <div
     style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: 14,
-      ...glassStyle('rgba(255,255,255,0.20)', 999),
-      padding: '16px 30px',
-      color: C.white,
-      fontFamily: FONT.sans,
-      fontWeight: 700,
-      fontSize: 38,
-      letterSpacing: '0.01em',
-      boxShadow: '0 12px 40px rgba(0,0,0,0.25)',
-      ...style,
+      width,
+      height: 2,
+      margin: '18px auto 0',
+      background: `linear-gradient(90deg, transparent, ${C.sky}, transparent)`,
+      scale: `${p} 1`,
     }}
-  >
-    {children}
-  </div>
+  />
 );
 
-/** Gancho inicial: ubicación + título. */
+/** Gancho inicial: ubicación (etiqueta) + "Cumpliendo / un sueño". */
 export const Hook: React.FC = () => {
   const f = useCurrentFrame();
   const end = sec(3.7);
-  const title = ['Cumpliendo', 'un', 'sueño'];
+  const shade = EASE_OUT(clamp01(f / 10)) * (1 - EASE_IN_OUT(clamp01((f - end + 6) / 12)));
   return (
     <AbsoluteFill style={{alignItems: 'center'}}>
-      <div style={{position: 'absolute', top: 210, ...rise(f, 4, end, -24)}}>
-        <Chip>
-          <Pin size={40} />
+      {/* sombra azul suave arriba para que el título se lea sobre la fachada clara (sin recuadro) */}
+      <AbsoluteFill style={{background: 'linear-gradient(180deg, rgba(3,14,38,0.78) 0%, rgba(3,14,38,0.55) 22%, rgba(3,14,38,0.0) 40%)', opacity: shade}} />
+      <div style={{position: 'absolute', top: 210, textAlign: 'center', ...rise(f, 4, end, -20)}}>
+        <div style={LABEL}>
+          <Pin size={30} />
           Apple Store · Barcelona
-        </Chip>
+        </div>
+        <Line p={EASE_OUT(clamp01((f - 8) / 16))} width={260} />
       </div>
-      <div
-        style={{
-          position: 'absolute',
-          top: 320,
-          fontFamily: FONT.serif,
-          fontStyle: 'italic',
-          fontSize: 112,
-          color: C.white,
-          textShadow: TEXT_SHADOW,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {title.map((w, i) => (
-          <span key={i} style={{display: 'inline-block', marginRight: '0.22em', ...rise(f, 10 + i * 4, end + i * 2, 40)}}>
-            {w}
-          </span>
-        ))}
+      <div style={{position: 'absolute', top: 300, textAlign: 'center'}}>
+        <div style={{fontFamily: FONT.sans, fontWeight: 300, fontSize: 70, color: C.white, textShadow: TEXT_SHADOW, ...rise(f, 10, end, 30)}}>
+          Cumpliendo
+        </div>
+        <div style={{fontFamily: FONT.serif, fontStyle: 'italic', fontSize: 168, lineHeight: 1, ...gradText(), ...rise(f, 15, end + 2, 40)}}>
+          un sueño
+        </div>
       </div>
     </AbsoluteFill>
   );
@@ -99,88 +93,61 @@ export const ProductChip: React.FC<{from: number; to: number}> = ({from, to}) =>
   if (f < from || f > to) return null;
   return (
     <AbsoluteFill style={{alignItems: 'center'}}>
-      <div style={{position: 'absolute', top: 230, ...rise(f, from, to, -24)}}>
-        <Chip>
-          <Laptop size={42} />
-          MacBook Pro 16”
-        </Chip>
+      <div style={{position: 'absolute', top: 230, textAlign: 'center', ...rise(f, from, to, -20)}}>
+        <div style={LABEL}>MacBook Pro 16”</div>
+        <Line p={EASE_OUT(clamp01((f - from - 4) / 14))} width={220} />
       </div>
     </AbsoluteFill>
   );
 };
 
-/** Etiqueta de capítulo. */
-export const ChapterChip: React.FC<{from: number; to: number; text: string}> = ({from, to, text}) => {
-  const f = useCurrentFrame();
-  if (f < from || f > to) return null;
-  return (
-    <AbsoluteFill style={{alignItems: 'center'}}>
-      <div style={{position: 'absolute', top: 230, ...rise(f, from, to, -24)}}>
-        <Chip style={{fontWeight: 600}}>{text}</Chip>
-      </div>
-    </AbsoluteFill>
-  );
-};
+export type QuoteLine = {words: string[]; tone: 'light' | 'bold' | 'serif'; size: number; grad?: boolean};
 
 /**
- * Cita grande sincronizada con la voz: cada palabra aparece cuando la dice
- * (reemplaza a los subtítulos en ese tramo).
+ * Cita sincronizada con la voz, con jerarquía por línea (ligera / negrita / serif).
+ * Cada palabra aparece cuando la dice; reemplaza a los subtítulos en ese tramo.
  */
-export const SpokenQuote: React.FC<{
-  lines: string[][];
-  from: number;
-  to: number;
-  serif?: boolean;
-  accent?: string[];
-  size?: number;
-}> = ({lines, from, to, serif = true, accent = [], size = 104}) => {
+export const SpokenQuote: React.FC<{lines: QuoteLine[]; from: number; to: number}> = ({lines, from, to}) => {
   const f = useCurrentFrame();
   if (f < from - 2 || f > to) return null;
   const ms = (f / FPS) * 1000;
   const dim = EASE_OUT(clamp01((f - from) / 12)) * (1 - EASE_IN_OUT(clamp01((f - (to - 10)) / 10)));
-  const words = lines.map((l) => findPhrase(l.join(' ')));
+  const words = lines.map((l) => findPhrase(l.words.join(' ')));
   return (
     <AbsoluteFill>
-      <AbsoluteFill style={{background: 'radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0.35) 0%, transparent 75%)', opacity: dim}} />
+      {/* oscurece el video hacia el azul de la paleta, sin recuadro */}
+      <AbsoluteFill style={{background: 'linear-gradient(180deg, rgba(4,16,40,0.15) 0%, rgba(3,10,26,0.62) 40%, rgba(3,10,26,0.62) 65%, rgba(0,0,0,0.2) 100%)', opacity: dim}} />
       <AbsoluteFill style={{justifyContent: 'center', alignItems: 'center', opacity: 1 - EASE_IN_OUT(clamp01((f - (to - 10)) / 10))}}>
-        <div
-          style={{
-            ...glassStyle('rgba(255,255,255,0.14)', 48),
-            textAlign: 'center',
-            padding: '54px 56px',
-            margin: '0 50px',
-            opacity: dim,
-            scale: String(0.94 + 0.06 * dim),
-          }}
-        >
+        <div style={{textAlign: 'center', padding: '0 60px'}}>
           {lines.map((line, li) => (
             <div
               key={li}
               style={{
-                fontFamily: serif ? FONT.serif : FONT.sans,
-                fontStyle: serif ? 'italic' : 'normal',
-                fontWeight: serif ? 400 : 800,
-                fontSize: size,
-                lineHeight: 1.12,
+                fontFamily: line.tone === 'serif' ? FONT.serif : FONT.sans,
+                fontStyle: line.tone === 'serif' ? 'italic' : 'normal',
+                fontWeight: line.tone === 'bold' ? 800 : line.tone === 'light' ? 300 : 400,
+                letterSpacing: line.tone === 'bold' ? '-0.035em' : '-0.01em',
+                fontSize: line.size,
+                lineHeight: 1.04,
                 color: C.white,
-                textShadow: TEXT_SHADOW,
-                marginTop: li ? 18 : 0,
+                textShadow: line.grad ? undefined : TEXT_SHADOW,
+                marginTop: li ? 10 : 0,
+                whiteSpace: 'nowrap',
               }}
             >
-              {line.map((txt, wi) => {
+              {line.words.map((txt, wi) => {
                 const w = words[li][wi];
-                const t = clamp01((ms - w.startMs + 60) / 260);
-                const e = EASE_OUT(t);
+                const e = EASE_OUT(clamp01((ms - w.startMs + 60) / 280));
                 return (
                   <span
                     key={wi}
                     style={{
                       display: 'inline-block',
-                      marginRight: '0.24em',
-                      color: accent.includes(txt) ? C.key : C.white,
+                      marginRight: wi < line.words.length - 1 ? '0.24em' : 0,
                       opacity: e,
                       translate: `0px ${(1 - e) * 0.35}em`,
-                      filter: e < 0.98 ? `blur(${(1 - e) * 9}px)` : undefined,
+                      ...(line.grad ? gradText(line.tone === 'serif' ? TEXT_GRADIENT_BLUE : TEXT_GRADIENT) : {}),
+                      filter: e < 0.98 ? `blur(${(1 - e) * 9}px)` : line.grad ? 'drop-shadow(0 4px 14px rgba(0,0,0,0.55))' : undefined,
                     }}
                   >
                     {txt}
@@ -195,39 +162,20 @@ export const SpokenQuote: React.FC<{
   );
 };
 
-/** Cierre: frase final sobre la celebración. */
+/** Cierre: "Cada esfuerzo / es un logro." sobre la celebración. */
 export const EndCard: React.FC<{from: number}> = ({from}) => {
   const f = useCurrentFrame();
   const {durationInFrames} = useVideoConfig();
   if (f < from) return null;
-  const line = appear(f, from + 2, 0.94);
   return (
     <AbsoluteFill style={{justifyContent: 'flex-end', alignItems: 'center'}}>
-      <AbsoluteFill style={{background: 'linear-gradient(180deg, transparent 45%, rgba(0,0,0,0.6) 100%)', opacity: ramp(f, from, from + 12)}} />
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 300,
-          textAlign: 'center',
-          ...glassStyle('rgba(255,255,255,0.14)', 40),
-          padding: '34px 50px 30px',
-          ...rise(f, from, durationInFrames + 20, 36),
-        }}
-      >
-        <div style={{fontFamily: FONT.serif, fontStyle: 'italic', fontSize: 96, color: C.white, textShadow: TEXT_SHADOW}}>
-          Cada esfuerzo es un logro.
+      <AbsoluteFill style={{background: 'linear-gradient(180deg, transparent 40%, rgba(4,16,40,0.55) 75%, rgba(0,0,0,0.85) 100%)', opacity: ramp(f, from, from + 12)}} />
+      <div style={{position: 'absolute', bottom: 300, textAlign: 'center'}}>
+        <div style={{...LABEL, ...rise(f, from, durationInFrames + 20, 24)}}>Cada esfuerzo</div>
+        <div style={{fontFamily: FONT.serif, fontStyle: 'italic', fontSize: 150, lineHeight: 1.05, marginTop: 12, ...gradText(TEXT_GRADIENT_BLUE), ...rise(f, from + 4, durationInFrames + 20, 36)}}>
+          es un logro.
         </div>
-        <div
-          style={{
-            margin: '26px auto 0',
-            width: 220,
-            height: 3,
-            borderRadius: 2,
-            background: C.key,
-            opacity: line.opacity,
-            scale: `${Number(line.scale) * ramp(f, from + 4, from + 20)} 1`,
-          }}
-        />
+        <Line p={EASE_OUT(clamp01((f - from - 10) / 16))} width={240} />
       </div>
     </AbsoluteFill>
   );

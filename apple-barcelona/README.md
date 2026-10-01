@@ -24,7 +24,7 @@ Edición profesional en [Remotion](https://www.remotion.dev) de un vlog vertical
    - 0:56–1:02 "todo comienzo da miedo": MIEDO tiembla, se calma, se tacha y una flecha empuja hacia adelante.
    Entrada y salida con zoom y desenfoque de movimiento (`src/VlogEdit.tsx`).
    - **3D con Three.js** (`src/three/`, vía `@remotion/three`): MacBook modelada en aluminio pulido que se abre sobre su bisagra con la pantalla encendida, y objetos de vidrio físico (transmisión, refracción, iridiscencia) flotando en los cuatro interludios. La iluminación es un entorno de estudio generado en memoria (`RoomEnvironment`), sin descargas.
-   - **Glassmorphism** (`src/mg/GlassCss.tsx`): tarjetas de vidrio esmerilado con desenfoque de fondo, borde con luz y un reflejo que las recorre; se usan en los íconos, la maleta, "España", el panel de "MIEDO", las etiquetas, la cita y la tarjeta final.
+   - **Paleta y tipografía**: azul que se degrada a negro; sin recuadros. Jerarquía tipográfica en cada texto: etiqueta pequeña en mayúsculas espaciadas, línea ligera (Manrope 300), palabra clave enorme en negrita con degradado blanco→azul, y acentos en Instrument Serif cursiva. La maleta es de vidrio azul translúcido.
 8. **Audio** (`src/Mix.tsx`): voz limpia, música de fondo movida e inspiradora generada por código (`scripts/generate-music.mjs`, ~114 BPM, re mayor, con los golpes alineados a la entrada de cada interludio) con ducking automático según la envolvente de la voz (`scripts/voice-envelope.mjs`), efectos sutiles de aire y vidrio (`scripts/generate-sfx.mjs` → `public/sfx2/`, en re mayor como la música, con volúmenes bajos), y normalización final a -14 LUFS / -1,5 dBTP (`scripts/render.sh`).
 
 ## Uso

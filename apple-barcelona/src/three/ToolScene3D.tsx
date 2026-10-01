@@ -19,10 +19,10 @@ const Rig: React.FC<{orbit: number; height: number; dist: number}> = ({orbit, he
 };
 
 const FLOATERS: {shape: GlassShape; p: [number, number, number]; s: number; tint: string; spin: number}[] = [
-  {shape: 'torus', p: [-2.0, 3.6, -0.8], s: 0.85, tint: '#ffd0da', spin: 1},
-  {shape: 'sphere', p: [2.1, 3.2, 0.2], s: 0.75, tint: '#fff3c4', spin: -1},
+  {shape: 'torus', p: [-2.0, 3.6, -0.8], s: 0.85, tint: '#a9d0ff', spin: 1},
+  {shape: 'sphere', p: [2.1, 3.2, 0.2], s: 0.75, tint: '#cfe6ff', spin: -1},
   {shape: 'cube', p: [-2.2, 0.9, 1.6], s: 0.5, tint: '#ffffff', spin: 1.3},
-  {shape: 'capsule', p: [2.2, 0.8, 1.4], s: 0.7, tint: '#ffd0da', spin: -0.8},
+  {shape: 'capsule', p: [2.2, 0.8, 1.4], s: 0.7, tint: '#a9d0ff', spin: -0.8},
   {shape: 'ring', p: [0.3, 4.4, -2.4], s: 1.2, tint: '#ffffff', spin: 0.6},
 ];
 

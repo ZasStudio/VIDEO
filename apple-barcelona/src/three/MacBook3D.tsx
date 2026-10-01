@@ -26,8 +26,8 @@ const useScreenTexture = () =>
       g.fillStyle = gr;
       g.fillRect(0, 0, 1024, 660);
     };
-    blob(300, 220, 520, 'rgba(255,143,163,0.95)');
-    blob(760, 480, 520, 'rgba(255,212,59,0.85)');
+    blob(280, 200, 560, 'rgba(61,139,255,0.95)');
+    blob(780, 500, 520, 'rgba(140,200,255,0.75)');
     // ventana de vidrio en pantalla
     g.fillStyle = 'rgba(255,255,255,0.16)';
     g.strokeStyle = 'rgba(255,255,255,0.45)';

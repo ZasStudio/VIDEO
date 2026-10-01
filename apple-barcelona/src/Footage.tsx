@@ -85,25 +85,25 @@ export const Footage: React.FC = () => (
     >
       <Hold />
     </Sequence>
-    {/* Look: calidez suave en luces, sombras un poco frías, y viñeta */}
+    {/* Look: un toque azul frío (a juego con la paleta) sin enfriar la piel, y viñeta */}
     <AbsoluteFill
       style={{
         background:
-          "linear-gradient(180deg, rgba(255,176,102,0.10) 0%, rgba(255,150,90,0.04) 45%, rgba(20,60,110,0.10) 100%)",
+          "linear-gradient(180deg, rgba(40,90,190,0.10) 0%, rgba(20,60,140,0.05) 45%, rgba(10,40,110,0.16) 100%)",
         mixBlendMode: "soft-light",
       }}
     />
     <AbsoluteFill
       style={{
         background:
-          "radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,0,0,0.42) 100%)",
+          "radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(0,6,20,0.48) 100%)",
       }}
     />
-    {/* Degradados para que los textos se lean arriba y abajo */}
+    {/* Degradados azul-negro para que los textos se lean arriba y abajo */}
     <AbsoluteFill
       style={{
         background:
-          "linear-gradient(180deg, rgba(0,0,0,0.35) 0%, transparent 18%, transparent 58%, rgba(0,0,0,0.45) 100%)",
+          "linear-gradient(180deg, rgba(3,12,32,0.5) 0%, transparent 20%, transparent 58%, rgba(0,4,14,0.55) 100%)",
       }}
     />
   </AbsoluteFill>
