@@ -26,7 +26,8 @@ export type Sfx =
   // Effects generated with Magnific for the shorts: public/<short>/sfx/<name>.wav
   | `inca/${string}`
   | `oxigeno/${string}`
-  | `dino/${string}`;
+  | `dino/${string}`
+  | `thanos/${string}`;
 
 /** [global frame, sound, volume, optional max length in frames, optional frames skipped at its start] */
 export type Cue = [number, Sfx, number, number?, number?];
@@ -34,4 +35,4 @@ export type Cue = [number, Sfx, number, number?, number?];
 export type Bed = [number, number, Sfx, number];
 
 /** Length in frames of the looping beds (their files). */
-export const BED_FRAMES: Partial<Record<Sfx, number>> = { rain: 180, rumble: 90, "inca/run": 90, "dino/city": 90 };
+export const BED_FRAMES: Partial<Record<Sfx, number>> = { rain: 180, rumble: 90, "inca/run": 90, "dino/city": 90, "thanos/battle": 150, "thanos/castle": 150 };

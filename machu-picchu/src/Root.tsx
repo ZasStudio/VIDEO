@@ -6,6 +6,8 @@ import { IncaPhoneShort, IncaSoundtrack } from "./inca/IncaPhoneShort";
 import { OxigenoShort, OxigenoSoundtrack } from "./oxigeno/OxigenoShort";
 import { DinoShort, DinoSoundtrack } from "./dino/DinoShort";
 import { DINO, DINO_HEIGHT, DINO_WIDTH } from "./dino/timeline";
+import { ThanosShort, ThanosSoundtrack } from "./thanos/ThanosShort";
+import { THANOS, THANOS_HEIGHT, THANOS_WIDTH } from "./thanos/timeline";
 import { OXI, OXI_HEIGHT, OXI_WIDTH } from "./oxigeno/timeline";
 import { INCA, INCA_HEIGHT, INCA_WIDTH } from "./inca/timeline";
 import { NubiShort, NubiSoundtrack } from "./nubi/NubiShort";
@@ -24,6 +26,9 @@ import { OXI_PROPS_SHEET_FRAMES, OxiPropsSheet } from "./dev/OxiPropsSheet";
 import { DINO_UI_SHEET_DURATION, DinoUISheet } from "./dev/DinoUISheet";
 import { DINO_SHEET_FRAMES, DinoSheet } from "./dev/DinoSheet";
 import { DINO_PROPS_SHEET_FRAMES, DinoPropsSheet } from "./dev/DinoPropsSheet";
+import { THANOS_CAST_SHEET_FRAMES, ThanosCastSheet } from "./dev/ThanosCastSheet";
+import { THANOS_PROPS_SHEET_FRAMES, ThanosPropsSheet } from "./dev/ThanosPropsSheet";
+import { THANOS_UI_SHEET_DURATION, ThanosUISheet } from "./dev/ThanosUISheet";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -118,6 +123,24 @@ export const RemotionRoot: React.FC = () => {
         width={DINO_WIDTH}
         height={DINO_HEIGHT}
       />
+      {/* Nubi's vertical short: what if Thanos had never snapped his fingers? (90 s). */}
+      <Composition
+        id="ThanosShort"
+        component={ThanosShort}
+        durationInFrames={THANOS.DURATION}
+        fps={FPS}
+        width={THANOS_WIDTH}
+        height={THANOS_HEIGHT}
+        defaultProps={{ withAudio: true }}
+      />
+      <Composition
+        id="ThanosShortAudio"
+        component={ThanosSoundtrack}
+        durationInFrames={THANOS.DURATION}
+        fps={FPS}
+        width={THANOS_WIDTH}
+        height={THANOS_HEIGHT}
+      />
       <Folder name="Dev">
         <Composition
           id="WorldTest"
@@ -206,6 +229,30 @@ export const RemotionRoot: React.FC = () => {
           fps={30}
           width={1920}
           height={1080}
+        />
+        <Composition
+          id="ThanosCastSheet"
+          component={ThanosCastSheet}
+          durationInFrames={THANOS_CAST_SHEET_FRAMES}
+          fps={30}
+          width={1920}
+          height={1080}
+        />
+        <Composition
+          id="ThanosPropsSheet"
+          component={ThanosPropsSheet}
+          durationInFrames={THANOS_PROPS_SHEET_FRAMES}
+          fps={30}
+          width={1920}
+          height={1080}
+        />
+        <Composition
+          id="ThanosUISheet"
+          component={ThanosUISheet}
+          durationInFrames={THANOS_UI_SHEET_DURATION}
+          fps={30}
+          width={1080}
+          height={1920}
         />
       </Folder>
     </>

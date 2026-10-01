@@ -60,23 +60,26 @@ export const Mix: React.FC<{
   duration: number;
   /** Frames of fade at the end of the music. */
   fadeOut?: number;
+  /** Frame where the music stops (default: the end of the video); it fades out over `fadeOut` before it. */
+  musicTo?: number;
   cues: Cue[];
   beds: BedCue[];
   lines: { id: string; start: number }[];
   /** Folder in public/ with <line id>.wav. */
   voiceDir: string;
   ducking: (g: number) => number;
-}> = ({ music, musicTrim = 0, duration, fadeOut = 4, cues, beds, lines, voiceDir, ducking }) => {
+}> = ({ music, musicTrim = 0, duration, fadeOut = 4, musicTo, cues, beds, lines, voiceDir, ducking }) => {
+  const end = musicTo ?? duration;
   return (
     <>
-      <Sequence name="Música" layout="none">
+      <Sequence name="Música" durationInFrames={end} layout="none">
         <Audio
           src={staticFile(music)}
           trimBefore={musicTrim || undefined}
           volume={(f) =>
             MUSIC *
             (1 - MUSIC_DUCK * ducking(f)) *
-            interpolate(f, [0, 3, duration - fadeOut, duration], [0, 1, 1, 0], CLAMP)
+            interpolate(f, [0, 3, end - fadeOut, end], [0, 1, 1, 0], CLAMP)
           }
         />
       </Sequence>

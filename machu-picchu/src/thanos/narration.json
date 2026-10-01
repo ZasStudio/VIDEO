@@ -1,0 +1,25 @@
+{
+  "_title": "¿Y si Thanos NUNCA chasqueaba los dedos?",
+  "_voices": "Magnific TTS, ElevenLabs v3. nubi = 'Nerea Escudero' (stability 0.45, speed 0.95); doom = 'Sergio Bermúdez' (deep, slow, metallic FX in post).",
+  "_captions": "Same syntax as src/narration.json. Doom's words are all green (^g).",
+  "lines": [
+    {"id": "L01", "voice": "nubi", "scene": "portal", "tts": "[surprised] ¡Alto, alto, alto…! [whispers] Este es el segundo más importante de todo el universo.", "captions": "¡ALTO, ALTO, / ALTO…! / ESTE ES EL SEGUNDO / MÁS IMPORTANTE^y / DE TODO EL UNIVERSO.^c"},
+    {"id": "L02", "voice": "nubi", "scene": "carrera", "tts": "[determined] Thanos está por chasquear los dedos… y yo tengo que evitarlo.", "captions": "THANOS^o ESTÁ POR / CHASQUEAR LOS DEDOS…^y / Y YO TENGO / QUE EVITARLO.^g"},
+    {"id": "L03", "voice": "nubi", "scene": "carrera", "tts": "[confident] Fácil, ¿no?", "captions": "FÁCIL, ¿NO?^c"},
+    {"id": "L04", "voice": "nubi", "scene": "carrera", "tts": "[groaning] No. No es fácil.", "captions": "NO. / NO ES FÁCIL.^r"},
+    {"id": "L05", "voice": "nubi", "scene": "thor", "tts": "[shouting] ¡Esta vez voy directo al guantelete!", "captions": "¡ESTA VEZ VOY / DIRECTO AL GUANTELETE!^y"},
+    {"id": "L06", "voice": "nubi", "scene": "thor", "tts": "[laughs] ¡Se quedó sin señal cósmica!", "captions": "¡SE QUEDÓ SIN / SEÑAL CÓSMICA!^c"},
+    {"id": "L07", "voice": "nubi", "scene": "heroes", "tts": "Como nadie desaparece, todos los héroes siguen aquí.", "captions": "COMO NADIE / DESAPARECE,^c / TODOS LOS HÉROES^y / SIGUEN AQUÍ."},
+    {"id": "L08", "voice": "nubi", "scene": "heroes", "tts": "No hay cinco años tristes, no hay viaje en el tiempo… [excited] ¡y el equipo está completo!", "captions": "NO HAY CINCO AÑOS^r / TRISTES, / NO HAY VIAJE / EN EL TIEMPO…^c / ¡Y EL EQUIPO / ESTÁ COMPLETO!^g"},
+    {"id": "L09", "voice": "nubi", "scene": "trajes", "tts": "[excited] Uno con escudo, uno con martillo, uno con rayos, uno con magia…", "captions": "UNO CON ESCUDO,^c / UNO CON MARTILLO,^y / UNO CON RAYOS,^o / UNO CON MAGIA…^g"},
+    {"id": "L10", "voice": "nubi", "scene": "trajes", "tts": "[proudly] ¡Y yo, que traje una piedra!", "captions": "¡Y YO, QUE TRAJE / UNA PIEDRA!^o"},
+    {"id": "L11", "voice": "nubi", "scene": "piedras", "tts": "[serious] Pero cuidado: Thanos todavía tiene las piedras.", "captions": "PERO CUIDADO:^r / THANOS TODAVÍA / TIENE LAS PIEDRAS.^y"},
+    {"id": "L12", "voice": "nubi", "scene": "piedras", "tts": "Si no puede borrar a la mitad del universo… [scared] ¡intentará conquistar todo el universo!", "captions": "SI NO PUEDE BORRAR / A LA MITAD / DEL UNIVERSO… / ¡INTENTARÁ CONQUISTAR^r / TODO EL UNIVERSO!^r"},
+    {"id": "L13", "voice": "nubi", "scene": "portales", "tts": "[awestruck] Entonces ocurre la batalla más grande de la historia: todos juntos contra Thanos, sin perder a nadie.", "captions": "ENTONCES OCURRE / LA BATALLA^y / MÁS GRANDE^y / DE LA HISTORIA: / TODOS JUNTOS^g / CONTRA THANOS, / SIN PERDER^c / A NADIE.^c"},
+    {"id": "L14", "voice": "nubi", "scene": "final", "tts": "Al final, Thanos pierde… [proudly] y yo me quedo con el guantelete.", "captions": "AL FINAL, / THANOS PIERDE…^g / Y YO ME QUEDO / CON EL GUANTELETE.^y"},
+    {"id": "L15", "voice": "nubi", "scene": "final", "tts": "[curious] Espera… ¿esto sirve para pedir pizza?", "captions": "ESPERA… / ¿ESTO SIRVE PARA / PEDIR PIZZA?^o"},
+    {"id": "L16", "voice": "doom", "scene": "doom", "tts": "[menacing] Thanos quería controlar el universo…", "captions": "THANOS^g QUERÍA^g / CONTROLAR^g EL^g UNIVERSO…^g"},
+    {"id": "L17", "voice": "doom", "scene": "doom", "tts": "[cold] Yo pienso mejorarlo.", "captions": "YO^g PIENSO^g / MEJORARLO.^g"},
+    {"id": "L18", "voice": "nubi", "scene": "doom", "tts": "[nervous] Eh… creo que ahora sí tenemos un problema.", "captions": "EH… / CREO QUE AHORA SÍ / TENEMOS UN PROBLEMA.^r"}
+  ]
+}

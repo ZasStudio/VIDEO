@@ -34,6 +34,19 @@ export type NubiPose = {
 export const NUBI_GREEN = "#8EDCA2";
 const EYE = "#151515";
 
+/**
+ * Colours of a Nubi-shaped character (the other heroes and villains are Nubis of other
+ * colours). Fins and legs default to the body colour; `eyeGlow` > 0 makes the eyes emit their
+ * own colour (glowing eyes behind a mask).
+ */
+export type NubiPalette = {
+  body?: string;
+  fins?: string;
+  legs?: string;
+  eyes?: string;
+  eyeGlow?: number;
+};
+
 const BODY = { w: 10, h: 7.4, d: 8.8, y: 6.2 };
 const LEG = { w: 1.95, h: 2.6, l: 3.9 };
 // Front is +z. Eight legs as on the toy: a parallel pair at the front, then pairs angled
@@ -98,6 +111,10 @@ export const Nubi: React.FC<{
   holdL?: React.ReactNode;
   /** Extra objects in model units attached to the body (costumes, hats...). */
   children?: React.ReactNode;
+  /** Other colours (default: Nubi's mint green with black eyes). */
+  palette?: NubiPalette;
+  /** Hide the eyes (a mask or helmet draws its own). */
+  hideEyes?: boolean;
 }> = ({
   pose = {},
   size = 2,
@@ -108,6 +125,8 @@ export const Nubi: React.FC<{
   holdR,
   holdL,
   children,
+  palette,
+  hideEyes = false,
 }) => {
   const {
     hop = 0,
@@ -125,20 +144,26 @@ export const Nubi: React.FC<{
     lookY = 0,
   } = pose;
 
-  const bodyMat = useMemo(
+  const bodyColor = palette?.body ?? NUBI_GREEN;
+  const finColor = palette?.fins ?? bodyColor;
+  const legColor = palette?.legs ?? bodyColor;
+  const eyeColor = palette?.eyes ?? EYE;
+  const eyeGlow = palette?.eyeGlow ?? 0;
+  const vinyl = (c: string) =>
+    new THREE.MeshStandardMaterial({ color: c, roughness: 0.42, metalness: 0, emissive: new THREE.Color(c), emissiveIntensity: 0.14 });
+  const bodyMat = useMemo(() => vinyl(bodyColor), [bodyColor]);
+  const finMat = useMemo(() => (finColor === bodyColor ? bodyMat : vinyl(finColor)), [finColor, bodyColor, bodyMat]);
+  const legMat = useMemo(() => (legColor === bodyColor ? bodyMat : vinyl(legColor)), [legColor, bodyColor, bodyMat]);
+  const eyeMat = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        color: NUBI_GREEN,
-        roughness: 0.42,
-        metalness: 0,
-        emissive: new THREE.Color(NUBI_GREEN),
-        emissiveIntensity: 0.14,
+        color: eyeColor,
+        roughness: 0.32,
+        emissive: new THREE.Color(eyeGlow > 0 ? eyeColor : "#000000"),
+        emissiveIntensity: eyeGlow,
+        toneMapped: eyeGlow <= 0,
       }),
-    [],
-  );
-  const eyeMat = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: EYE, roughness: 0.32 }),
-    [],
+    [eyeColor, eyeGlow],
   );
   const bodyGeo = useRounded(BODY.w, BODY.h, BODY.d, 0.6);
   const legGeo = useRounded(LEG.w, LEG.h, LEG.l, 0.42);
@@ -171,14 +196,14 @@ export const Nubi: React.FC<{
             return (
               <group key={k} position={[x, 0, z]} rotation={[0, a, 0]}>
                 <group rotation={[-lift, 0, 0]}>
-                  <mesh geometry={legGeo} material={bodyMat} position={[0, LEG.h / 2, LEG.l / 2]} castShadow />
+                  <mesh geometry={legGeo} material={legMat} position={[0, LEG.h / 2, LEG.l / 2]} castShadow />
                 </group>
               </group>
             );
           })}
           <mesh geometry={bodyGeo} material={bodyMat} position={[0, BODY.y, 0]} castShadow />
           {/* Eyes sit a little below the middle of the face. */}
-          {[-1, 1].map((side) => (
+          {(hideEyes ? [] : [-1, 1]).map((side) => (
             <mesh
               key={side}
               geometry={eyeGeo}
@@ -188,11 +213,11 @@ export const Nubi: React.FC<{
             />
           ))}
           {/* Fins pivot where they meet the body; the left one is a mirror of the right. */}
-          <Fin raise={finR} geo={finGeo} mat={bodyMat}>
+          <Fin raise={finR} geo={finGeo} mat={finMat}>
             {holdR}
           </Fin>
           <group scale={[-1, 1, 1]}>
-            <Fin raise={finL} geo={finGeo} mat={bodyMat}>
+            <Fin raise={finL} geo={finGeo} mat={finMat}>
               {/* Undo the mirror so held objects (a phone screen, text) read the right way. */}
               {holdL ? <group scale={[-1, 1, 1]}>{holdL}</group> : null}
             </Fin>
