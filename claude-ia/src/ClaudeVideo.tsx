@@ -14,6 +14,7 @@ import {S10Forward} from './scenes/S10Forward';
 import {S11Understand} from './scenes/S11Understand';
 import {S12Outro} from './scenes/S12Outro';
 import {Soundtrack} from './Soundtrack';
+import {MotionBlurDirector, SceneCamera} from './camera';
 import {LeakOverlay} from './mg/LeakOverlay';
 import {BlurDefs} from './mg/Blur';
 import {DURATIONS, STARTS} from './timeline';
@@ -46,13 +47,17 @@ const LEAKS = [
 export const ClaudeVideo: React.FC<{withAudio: boolean}> = ({withAudio}) => (
   <AbsoluteFill style={{background: C.ink}}>
     <BlurDefs />
-    <Series>
-      {SCENES.map((Scene, i) => (
-        <Series.Sequence key={i} durationInFrames={DURATIONS[i]}>
-          <Scene />
-        </Series.Sequence>
-      ))}
-    </Series>
+    <MotionBlurDirector>
+      <Series>
+        {SCENES.map((Scene, i) => (
+          <Series.Sequence key={i} durationInFrames={DURATIONS[i]}>
+            <SceneCamera index={i}>
+              <Scene />
+            </SceneCamera>
+          </Series.Sequence>
+        ))}
+      </Series>
+    </MotionBlurDirector>
     {/* Destellos de luz sobre los cortes clave (no acortan la línea de tiempo) */}
     {LEAKS.map((l) => (
       <Sequence key={l.scene} from={STARTS[l.scene] - 14} durationInFrames={30} layout="absolute-fill">

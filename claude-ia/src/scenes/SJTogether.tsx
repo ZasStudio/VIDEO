@@ -2,7 +2,7 @@ import React from 'react';
 import {AbsoluteFill, useCurrentFrame} from 'remotion';
 import {EASE_IN_OUT, EASE_OUT, keyframes, ramp} from '../anim';
 import {BlurDefs, motionBlur} from '../mg/Blur';
-import {Grain} from '../mg/Backdrop';
+import {Bleed, Grain} from '../mg/Backdrop';
 import {CollabCursor} from '../mg/CollabCursor';
 import {Line} from '../mg/Text';
 import {C} from '../theme';
@@ -17,7 +17,6 @@ const TEXT = '#ECEAE6';
 export const SJTogether: React.FC = () => {
   const f = useCurrentFrame();
   const cam = keyframes(f, [0, 144], [1.06, 1], (t) => t);
-  const fadeOut = ramp(f, 134, 144, [0, 1], EASE_IN_OUT);
 
   // Cursor "Tú": entra desde abajo a la izquierda, se queda junto a "Crea" y luego baja
   const youX = keyframes(f, [8, 28, 84, 104], [-160, 170, 170, 210], EASE_OUT);
@@ -33,7 +32,8 @@ export const SJTogether: React.FC = () => {
   const idle = (k: number) => ({x: Math.sin((f + k) / 17) * 8, y: Math.cos((f + k) / 21) * 6});
 
   return (
-    <AbsoluteFill style={{background: '#060303', overflow: 'hidden'}}>
+    <AbsoluteFill>
+      <Bleed background="#060303" />
       <BlurDefs />
       <AbsoluteFill style={{scale: String(cam)}}>
         {/* Brillo naranja abajo a la izquierda */}
@@ -143,7 +143,6 @@ export const SJTogether: React.FC = () => {
         </div>
       </AbsoluteFill>
       <Grain opacity={0.13} />
-      <AbsoluteFill style={{background: '#060303', opacity: fadeOut}} />
     </AbsoluteFill>
   );
 };

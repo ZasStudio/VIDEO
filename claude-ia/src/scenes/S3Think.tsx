@@ -1,4 +1,3 @@
-import {CameraMotionBlur} from '@remotion/motion-blur';
 import React from 'react';
 import {AbsoluteFill, useCurrentFrame} from 'remotion';
 import {EASE_IN, EASE_IN_OUT, appear, keyframes, ramp} from '../anim';
@@ -88,15 +87,9 @@ export const S3Think: React.FC = () => {
         }}
       />
 
-      {/* Chispa: el disparo final usa CameraMotionBlur (varias sub-muestras por frame) */}
+      {/* Chispa (el motion blur del disparo lo pone el director global) */}
       <div style={{opacity: ramp(f, 4, 12)}}>
-        {f >= 90 ? (
-          <CameraMotionBlur samples={8} shutterAngle={240}>
-            <Streak x={spX} y={spY} size={spSize} bloom={1} />
-          </CameraMotionBlur>
-        ) : (
-          <Streak x={spX} y={spY} size={spSize * Number(boxIn.scale)} bloom={1} />
-        )}
+        <Streak x={spX} y={spY} size={spSize * (f >= 90 ? 1 : Number(boxIn.scale))} bloom={1} />
       </div>
 
       {/* Texto */}

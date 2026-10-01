@@ -2,7 +2,7 @@ import React from 'react';
 import {AbsoluteFill, useCurrentFrame} from 'remotion';
 import {EASE_IN, EASE_OUT, appear, keyframes, ramp} from '../anim';
 import {BlurDefs, motionBlur} from '../mg/Blur';
-import {Grain} from '../mg/Backdrop';
+import {Bleed, Grain} from '../mg/Backdrop';
 import {Spark} from '../mg/Spark';
 import {Line} from '../mg/Text';
 import {ChatWindow} from '../mg/UI';
@@ -24,7 +24,8 @@ export const S4Chat: React.FC = () => {
   const sIn = appear(f, 56);
 
   return (
-    <AbsoluteFill style={{background: C.ink, overflow: 'hidden'}}>
+    <AbsoluteFill>
+      <Bleed background={C.ink} />
       <BlurDefs />
       {/* Chat desenfocado de fondo */}
       <AbsoluteFill

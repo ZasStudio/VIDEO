@@ -65,7 +65,8 @@ export const keyframes = (
  * y opacidad 0 -> 1. Devuelve propiedades listas para `style`.
  */
 export const appear = (frame: number, start: number, from = 0.82) => {
-  const s = pop(frame, start, {damping: 13, stiffness: 190, mass: 0.7});
+  // Resorte suave tipo Apple: rebote ~0.15, asentamiento largo.
+  const s = pop(frame, start, {damping: 15, stiffness: 120, mass: 0.8});
   return {
     opacity: clamp01((frame - start) / 5),
     scale: String(from + (1 - from) * s),

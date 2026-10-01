@@ -1,4 +1,3 @@
-import {CameraMotionBlur} from '@remotion/motion-blur';
 import React from 'react';
 import {AbsoluteFill, useCurrentFrame} from 'remotion';
 import {EASE_IN_OUT, EASE_OUT, appear, keyframes, ramp} from '../anim';
@@ -85,8 +84,6 @@ const Board: React.FC = () => {
 
 export const S7Dashboard: React.FC = () => {
   const f = useCurrentFrame();
-  // Motion blur real solo mientras las tarjetas vuelan (entrada y salida)
-  const fast = f < 32 || (f >= 64 && f < 88);
   return (
     <DarkBackdrop
       orbs={[
@@ -95,15 +92,7 @@ export const S7Dashboard: React.FC = () => {
         {x: 150, y: 200, r: 420, color: 'rgba(90,40,22,0.6)'},
       ]}
     >
-      {f < 90 ? (
-        fast ? (
-          <CameraMotionBlur samples={6} shutterAngle={200}>
-            <Board />
-          </CameraMotionBlur>
-        ) : (
-          <Board />
-        )
-      ) : null}
+      {f < 90 ? <Board /> : null}
 
       <div style={{position: 'absolute', left: 110, top: 600}}>
         <Line size={128} seed={9} segs={[{text: 'Claude', at: 80, weight: 400, speed: 1.4}]} />

@@ -12,9 +12,13 @@ Todo está hecho con código en [Remotion](https://www.remotion.dev). No hay im�
 
 ## Recursos de movimiento
 
-- **Curvas fuertes** (`src/anim.ts`): ease-out `cubic-bezier(0.23, 1, 0.32, 1)` para entradas y salidas, ease-in-out `cubic-bezier(0.77, 0, 0.175, 1)` para movimientos en pantalla; las entradas con resorte nunca parten de `scale(0)` (`appear()`).
-- **Motion blur direccional** (`src/mg/Blur.tsx`): filtros SVG que desenfocan solo en el eje del movimiento; se usan en el texto, la chispa, los cursores y la pastilla.
-- **Motion blur real** con `CameraMotionBlur` (`@remotion/motion-blur`) en el disparo de la chispa (escena 3) y en el vuelo de las tarjetas (tablero).
+Inspirados en una referencia de motion de After Effects: nada se queda quieto, todo llega con impulso y frena con una cola larga, y lo rápido se desenfoca.
+
+- **Cámara virtual** (`src/camera.tsx`): cada corte tiene impulso. La escena que sale acelera fuera de cuadro (barrido vertical, barrido lateral o zoom) y la que entra llega en movimiento y frena con un expo-out de 18 frames. Además, cada escena tiene una deriva suave (push-in lento, flotación y una rotación mínima).
+- **Motion blur real** (`MotionBlurDirector`): `CameraMotionBlur` de `@remotion/motion-blur` con 8 sub-muestras y obturador de 220°, activado solo en las ventanas rápidas (cortes, chispa en vuelo, tarjetas, cursores, estela…). Envuelve toda la serie de escenas, así las sub-muestras cruzan los cortes como en cine.
+- **Motion blur direccional** (`src/mg/Blur.tsx`): filtros SVG que desenfocan solo en el eje del movimiento; se usan en cada letra, la chispa, los cursores y la pastilla.
+- **Curvas** (`src/anim.ts`): ease-out `cubic-bezier(0.23, 1, 0.32, 1)`, ease-in-out `cubic-bezier(0.77, 0, 0.175, 1)` y resortes suaves tipo Apple (`appear()`: rebote leve y asentamiento largo; nunca desde `scale(0)`). Las letras tardan 11 frames en asentarse.
+- **Fondos con sangrado** (`Bleed`): los fondos sobresalen del cuadro para que los barridos de cámara nunca muestren bordes vacíos.
 - **Destellos de luz** (`lightLeak()` de `@remotion/effects`) sobre cuatro cortes clave, en modo *screen* (requiere WebGL: `Config.setChromiumOpenGlRenderer("angle")`, ya configurado).
 
 ## Estructura del video
@@ -60,4 +64,5 @@ REMOTION_BROWSER_EXECUTABLE=/ruta/a/chrome npx remotion render ClaudeIA out/clau
 - `src/mg/Text.tsx`: tipografía cinética (tecleo, decodificado, resaltado, caja de selección).
 - `src/mg/Backdrop.tsx`, `Spark.tsx`, `Ribbon.tsx`, `UI.tsx`, `CollabCursor.tsx`: fondos, chispa, cintas, interfaces y cursores.
 - `src/mg/Blur.tsx`, `LeakOverlay.tsx`: motion blur direccional y destellos de luz.
+- `src/camera.tsx`: movimientos de cámara entre escenas y ventanas de motion blur real.
 - `src/theme.ts`: paleta, tipografías y tiempos musicales.

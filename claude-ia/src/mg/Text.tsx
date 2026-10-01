@@ -38,7 +38,8 @@ const Char: React.FC<{
 }> = ({ch, i, seg, frame, seed}) => {
   const speed = seg.speed ?? 1.4;
   const t0 = seg.at + i * speed;
-  const p = clamp01((frame - t0) / 7);
+  // 11 frames por letra: se mueve rápido al inicio y se asienta despacio (cola larga).
+  const p = clamp01((frame - t0) / 11);
   const e = EASE_OUT(p);
   let q = 1;
   if (seg.out !== undefined) q = 1 - EASE_OUT(clamp01((frame - (seg.out + i * 0.8)) / 6));

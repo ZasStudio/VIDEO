@@ -28,7 +28,7 @@ export const Orbs: React.FC<{orbs: Orb[]; offsetX?: number; offsetY?: number}> =
 }) => {
   const frame = useCurrentFrame();
   return (
-    <AbsoluteFill style={{overflow: 'hidden'}}>
+    <AbsoluteFill>
       {orbs.map((o, i) => {
         const t = (frame / 30) * (o.speed ?? 0.12) * Math.PI * 2 + (o.phase ?? i * 1.7);
         const d = o.drift ?? 60;
@@ -61,7 +61,8 @@ export const DarkBackdrop: React.FC<{orbs: Orb[]; offsetX?: number; offsetY?: nu
   offsetY,
   children,
 }) => (
-  <AbsoluteFill style={{background: `linear-gradient(180deg, ${C.ink} 0%, ${C.night} 55%, #24140E 100%)`}}>
+  <AbsoluteFill>
+    <Bleed background={`linear-gradient(180deg, ${C.ink} 0%, ${C.night} 55%, #24140E 100%)`} />
     <BlurDefs />
     <Orbs orbs={orbs} offsetX={offsetX} offsetY={offsetY} />
     <AbsoluteFill
@@ -79,7 +80,8 @@ export const LightBackdrop: React.FC<{orbs: Orb[]; offsetX?: number; offsetY?: n
   offsetY,
   children,
 }) => (
-  <AbsoluteFill style={{background: `linear-gradient(160deg, #FFFBF4 0%, ${C.cream} 50%, ${C.paper} 100%)`}}>
+  <AbsoluteFill>
+    <Bleed background={`linear-gradient(160deg, #FFFBF4 0%, ${C.cream} 50%, ${C.paper} 100%)`} />
     <BlurDefs />
     <Orbs orbs={orbs} offsetX={offsetX} offsetY={offsetY} />
     {children}
@@ -98,4 +100,12 @@ export const Grain: React.FC<{opacity: number}> = ({opacity}) => (
       <rect width="100%" height="100%" filter="url(#grain)" />
     </svg>
   </AbsoluteFill>
+);
+
+/**
+ * Fondo que sobresale del cuadro: los movimientos de cámara entre escenas
+ * (barridos y zooms) nunca dejan ver bordes vacíos.
+ */
+export const Bleed: React.FC<{background: string}> = ({background}) => (
+  <div style={{position: 'absolute', left: -1200, top: -1600, right: -1200, bottom: -1600, background}} />
 );
