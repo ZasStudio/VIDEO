@@ -3,22 +3,12 @@ import {AbsoluteFill, useCurrentFrame, useVideoConfig} from 'remotion';
 import {EASE_IN_OUT, EASE_OUT, appear, clamp01, ramp} from './anim';
 import {FPS} from './edit';
 import {C, FONT, TEXT_SHADOW} from './theme';
-import {WORDS, type Word} from './words';
+import {findPhrase} from './words';
 
 // Títulos y tarjetas: limpios, estilo Apple (vidrio esmerilado, serif cursiva para las citas),
 // con entradas que suben con desenfoque y frenan despacio.
 
 const sec = (s: number) => Math.round(s * FPS);
-
-/** Busca en el guion la secuencia de palabras `phrase` (sin puntuación) y devuelve sus palabras. */
-export const findPhrase = (phrase: string): Word[] => {
-  const norm = (t: string) => t.toLowerCase().replace(/[^a-záéíóúñü]/g, '');
-  const target = phrase.split(' ').map(norm);
-  for (let i = 0; i <= WORDS.length - target.length; i++) {
-    if (target.every((t, k) => norm(WORDS[i + k].text) === t)) return WORDS.slice(i, i + target.length);
-  }
-  throw new Error(`No encuentro "${phrase}" en el guion`);
-};
 
 /** Entrada/salida con ascenso y desenfoque (frenado largo). */
 const rise = (f: number, start: number, end: number, dist = 30) => {
@@ -224,16 +214,5 @@ export const EndCard: React.FC<{from: number}> = ({from}) => {
         />
       </div>
     </AbsoluteFill>
-  );
-};
-
-/** Barra de progreso fina arriba (retención en Reels/TikTok). */
-export const ProgressBar: React.FC = () => {
-  const f = useCurrentFrame();
-  const {durationInFrames} = useVideoConfig();
-  return (
-    <div style={{position: 'absolute', top: 0, left: 0, right: 0, height: 7, background: 'rgba(255,255,255,0.18)'}}>
-      <div style={{width: `${(f / (durationInFrames - 1)) * 100}%`, height: '100%', background: 'rgba(255,255,255,0.92)'}} />
-    </div>
   );
 };

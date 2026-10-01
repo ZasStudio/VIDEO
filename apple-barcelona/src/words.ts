@@ -81,3 +81,14 @@ export const PAGES: Page[] = (() => {
   flush();
   return pages;
 })();
+
+/** Busca en el guion la secuencia de palabras `phrase` (sin puntuación) y devuelve sus palabras. */
+export const findPhrase = (phrase: string): Word[] => {
+  const norm = (t: string) => t.toLowerCase().replace(/[^a-záéíóúñü]/g, '');
+  const target = phrase.split(' ').map(norm);
+  for (let i = 0; i <= WORDS.length - target.length; i++) {
+    if (target.every((t, k) => norm(WORDS[i + k].text) === t)) return WORDS.slice(i, i + target.length);
+  }
+  throw new Error(`No encuentro "${phrase}" en el guion`);
+};
+
