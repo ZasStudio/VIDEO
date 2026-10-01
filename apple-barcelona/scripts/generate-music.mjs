@@ -3,30 +3,46 @@
 // scripts/generate-music.mjs
 //
 // Procedural music bed for the "apple-barcelona" vlog (Spanish voiceover).
-// Every sound is synthesized from math (additive felt piano, PolyBLEP string /
-// pad ensembles, sine sub bass, noise drums, freeverb, ping-pong delay).
-// No samples, no downloads, zero npm deps. Deterministic: all randomness comes
-// from seeded PRNGs (never Math.random), so two runs are byte-identical.
+// Brief: "un poco más movida pero a la vez que inspire" -> modern uplifting /
+// motivational pop with drive, built to sit ~-18 dB under a talking voice.
+//
+// Every sound is synthesized from math (punchy sine kick, noise claps / snare /
+// hats / shakers, additive felt piano, PolyBLEP plucks, pads and string
+// ensemble, sine-based bass, FM bells, chord stabs, risers, cymbals, booms,
+// freeverb, ping-pong delay). No samples, no downloads, zero npm deps.
+// Deterministic: all randomness comes from seeded PRNGs (never Math.random),
+// so two runs are byte-identical.
 //
 //   node scripts/generate-music.mjs
 //
 // Writes public/music.wav (48 kHz, stereo, 16-bit PCM, exactly 72.44 s) and
 // prints a verification report computed by re-reading the file from disk.
 //
-// Musical design (bed UNDER a voiceover: warm, sparse in 1-4 kHz, no lead line)
-//   Key C major, 4/4, 85.89 BPM (beat = 47.5/68 s, so 8.4 s and 55.9 s fall
-//   exactly on bar lines; grid origin 0.0176 s).
-//   bars  0-2   0.0- 8.4  intro     Fmaj7 Am7 Gsus4-G : felt-piano arpeggio, airy pad,
-//                                   soft heartbeat kick + shaker, riser into 8.4
-//   bars  3-11  8.4-33.2  groove    C G/B Am Fmaj7 x2, Gsus4-G : soft kick, snaps/claps,
-//                                   shaker, tresillo piano chords + bass; strings from bar 7;
-//                                   "push" stop on the and-of-4 (33.2 s) anticipating Am
-//   bars 12-19 33.2-55.9  intimate  Am7 Fmaj7 C G Am7 Fmaj7 Dm7 Gsus4-G : piano arp +
-//                                   strings, heartbeat pulse, 6 s build (16ths, riser, toms)
-//   bars 20-24 55.9-69.9  climax    C G/B Am7 Fmaj7 | Cadd9 (anticipated at 66.4 s, the
-//                                   biggest hit) Gsus4-G : full drums, 8th piano, strings swell
-//   bar  25+   69.9-72.44 ending    C final soft hit, warm piano + strings ring-out,
-//                                   raised-cosine fade, digital silence in the last 0.2 s
+// Musical design
+//   Key D major, 4/4 (with a few 1-, 2- and 3-beat "edit" bars), ~114 BPM.
+//   The tempo map is a smooth monotone (PCHIP) curve through anchor points, so
+//   every edit point of the video lands EXACTLY on a downbeat while the tempo
+//   only drifts gently between ~111.5 and ~120 BPM (average 114.2).
+//   Voice-friendly: no lead melody; plucks / piano / stabs / bells are
+//   low-passed and dipped at 2.6 kHz, the master has a wide 2.5 kHz pocket.
+//
+//   0.0- 8.4  intro     Dadd9 Bm7 Gmaj7 Asus4-A : low-passed four-on-the-floor
+//                       opening up, 8th -> 16th plucks, riser + snare roll
+//   8.4-18.4  groove    D A/C# Bm7 G | Asus4-A : kick, claps, offbeat hats,
+//                       16th shaker, pumping bass, tresillo piano, 16th plucks
+//  18.4-27.3  lift      G A Bm7 G-Asus4-A : open hats, octave bass, 8th piano,
+//                       strings; chord-stab hits 18.4 22.6 24.2 25.0 26.5,
+//                       one-beat stop + roll before 27.3
+//  27.3-33.2  groove B  D A/C# G : lighter (snaps, 8th plucks, no strings)
+//  33.2-38.9  dream     Bm7 Gmaj7 Asus4 : half-time, no 4-on-floor, bells,
+//                       high plucks, wide pad; kick/snare build into 38.9
+//  38.9-55.9  groove C  D A/C# Bm7 G D | Gmaj7 (break 49.5-51.6) | Em7 Asus4-A
+//                       steady build, then riser + roll into 55.9
+//  55.9-59.0  tension   Bm7 Asus4 : low-passed half-time bar, stop + riser
+//  59.0-61.1  drop      D : full groove
+//  61.1-69.9  climax    G Em7 Asus4 | D (66.4 = biggest hit) G A : everything +
+//                       strings, tom fill into 66.4, IV-V-I cadence
+//  69.9-72.44 ending    D final hit, ring-out, digital silence in the last 0.2 s
 // =============================================================================
 
 import { writeFileSync, readFileSync, mkdirSync } from 'node:fs';
@@ -42,17 +58,23 @@ const TAU = Math.PI * 2;
 const DURATION = 72.44;
 const N_TOTAL = Math.round(DURATION * SR);
 const SILENT_TAIL = 0.2;
-const FADE = [70.7, DURATION - SILENT_TAIL - 0.01]; // raised-cosine fade, zero from 72.23 s
+const FADE = [70.9, DURATION - SILENT_TAIL - 0.01]; // raised-cosine fade, zero from 72.23 s
 
 // Section map of the final edit (seconds)
 const SECTIONS = [
   ['intro', 0.0, 8.4],
-  ['groove', 8.4, 33.2],
-  ['intimate', 33.2, 55.9],
-  ['climax', 55.9, 69.9],
+  ['groove', 8.4, 18.4],
+  ['lift', 18.4, 27.3],
+  ['groove B', 27.3, 33.2],
+  ['dream', 33.2, 38.9],
+  ['groove C', 38.9, 55.9],
+  ['tension', 55.9, 59.0],
+  ['drop', 59.0, 61.1],
+  ['climax', 61.1, 69.9],
   ['ending', 69.9, DURATION],
 ];
 const sectionAtSec = (t) => (SECTIONS.find(([, a, b]) => t >= a && t < b) ?? SECTIONS[SECTIONS.length - 1])[0];
+const lerp = (a, b, t) => a + (b - a) * t;
 
 // ----------------------------------------------------------------------------
 // Math helpers
@@ -1014,40 +1036,227 @@ function bassNote(midi, dur, vel = 1, { release = 0.08, drive = 1.3 } = {}) {
 }
 
 // ----------------------------------------------------------------------------
-// Song map: C major, 4/4. The beat length is chosen so that the edit points
-// 8.4 s (bar 3) and 55.9 s (bar 20) land exactly on downbeats: 68 beats apart.
+// Extra voices (pluck / bell / stab adapted from claude-ia/scripts/generate-audio.mjs)
 // ----------------------------------------------------------------------------
-const BEAT = 47.5 / 68; // 0.698529 s
-const BPM = 60 / BEAT; // 85.89
-const BAR = 4 * BEAT;
-const ORIGIN = 8.4 - 12 * BEAT; // 0.0176 s: beat 0
-const tb = (beat) => ORIGIN + beat * BEAT; // beat -> seconds
+
+// Pop snare: pitched shell (190 / 330 Hz) + high-passed noise, lightly saturated.
+function snare({ seed = 35, tone = 1 } = {}) {
+  const rng = makeRng(seed);
+  const n = samples(0.32);
+  const nz = filt(filt(whiteNoise(n, rng), 'hp', 1200), 'lp', 7500);
+  const y = new Float64Array(n);
+  let p1 = 0;
+  let p2 = 0;
+  for (let i = 0; i < n; i++) {
+    const t = i / SR;
+    p1 += (TAU * 190 * tone * (1 + 0.3 * Math.exp(-t / 0.01))) / SR;
+    p2 += (TAU * 330 * tone) / SR;
+    const body = (0.8 * Math.sin(p1) + 0.35 * Math.sin(p2)) * Math.exp(-t / 0.045);
+    const noise = nz[i] * (0.55 * Math.exp(-t / 0.02) + 0.45 * Math.exp(-t / 0.11));
+    y[i] = Math.min(1, t / 0.0006) * (body + 0.9 * noise);
+  }
+  for (let i = 0; i < n; i++) y[i] = sat(y[i], 1.4);
+  return normMono(tailFade(y, 0.03));
+}
+
+// Plucky synth: two detuned saws + a sine through an enveloped low-pass
+// (bright attack, quickly darkening). Cached per (midi, velocity level 1-8).
+const pluckCache = new Map();
+function pluckNote(midi, level) {
+  const key = midi * 16 + level;
+  const hit = pluckCache.get(key);
+  if (hit) return hit;
+  const rng = makeRng(90000 + key * 13);
+  const freq = mtof(midi);
+  const vel = level / 8;
+  const n = samples(0.6);
+  const src = new Float64Array(n);
+  const o1 = new Osc(rng.next());
+  const o2 = new Osc(rng.next());
+  const o3 = new Osc(rng.next());
+  for (let i = 0; i < n; i++) src[i] = 0.42 * o1.saw(freq) + 0.32 * o2.saw(freq * 1.0047) + 0.4 * o3.sine(freq);
+  const y = filt(src, 'lp', (t) => 450 + 0.8 * freq + 2500 * (0.45 + 0.55 * vel) * Math.exp(-t / 0.05), 0.95);
+  for (let i = 0; i < n; i++) {
+    const t = i / SR;
+    y[i] *= Math.min(1, t / 0.0015) * (0.7 * Math.exp(-t / 0.12) + 0.3 * Math.exp(-t / 0.38));
+  }
+  normMono(tailFade(y, 0.05));
+  pluckCache.set(key, y);
+  return y;
+}
+
+// Glassy bell: FM (ratio 4, decaying index) + inharmonic 2.756x partial. Sparkles.
+function bell(freq, vel = 1, { len = 1.8, decay = 0.7, seed = 401 } = {}) {
+  const rng = makeRng(seed);
+  const n = samples(len);
+  const y = new Float64Array(n);
+  let pc = rng.next() * TAU;
+  let pm = rng.next() * TAU;
+  let pg = rng.next() * TAU;
+  const kt = Math.sqrt(880 / freq);
+  for (let i = 0; i < n; i++) {
+    const t = i / SR;
+    pc += (TAU * freq) / SR;
+    pm += (TAU * freq * 4) / SR;
+    pg += (TAU * freq * 2.756) / SR;
+    const idx = 0.12 + 0.9 * vel * Math.exp(-t / 0.1);
+    const env = Math.min(1, t / 0.0015) * Math.exp(-t / (decay * kt));
+    y[i] = (Math.sin(pc + idx * Math.sin(pm)) * env + 0.2 * Math.sin(pg) * Math.min(1, t / 0.0015) * Math.exp(-t / (0.18 * kt))) * vel;
+  }
+  return tailFade(y, 0.05);
+}
+
+// Chord-stab note: detuned saws + sub pulse through a decaying low-pass.
+function stabNote(freq, dur, vel = 1, { seed = 501 } = {}) {
+  const rng = makeRng(seed);
+  const rel = 0.16;
+  const n = samples(dur + rel + 0.02);
+  const src = new Float64Array(n);
+  const o1 = new Osc(rng.next());
+  const o2 = new Osc(rng.next());
+  const o3 = new Osc(rng.next());
+  for (let i = 0; i < n; i++) src[i] = 0.4 * o1.saw(freq * 0.9965) + 0.4 * o2.saw(freq * 1.0035) + 0.15 * o3.pulse(freq * 0.5, 0.5);
+  const y = filt(src, 'lp', (t) => 600 + 2600 * (0.6 + 0.4 * vel) * Math.exp(-t / 0.09), 0.8);
+  for (let i = 0; i < n; i++) {
+    const t = i / SR;
+    let env = Math.min(1, t / 0.003) * (0.45 + 0.55 * Math.exp(-t / 0.12));
+    if (t > dur) env *= Math.max(0, 1 - (t - dur) / rel) ** 2;
+    y[i] *= env * vel;
+  }
+  return tailFade(y, 0.01);
+}
+
+// ----------------------------------------------------------------------------
+// Tempo map. [beat, seconds] anchors: every edit point of the video is a
+// downbeat (24.2 / 25.0 are accent hits on beat 4 / the "and" of 1). Between
+// anchors, time(beat) is a monotone cubic (Fritsch-Butland PCHIP), so the
+// tempo is continuous and drifts smoothly instead of jumping.
+// ----------------------------------------------------------------------------
+const ANCHORS = [
+  [0, 0.0], //    intro
+  [16, 8.4], //   groove kicks in
+  [35, 18.4], //  motion-graphics lift
+  [43, 22.6], //  hit
+  [46, 24.2], //  hit (beat 4)
+  [47.5, 25.0], // hit (and of 1)
+  [52, 27.3], //  back to video
+  [63, 33.2], //  dreamy interlude
+  [74, 38.9], //  groove back
+  [106, 55.9], // tension
+  [112, 59.0], // drop
+  [116, 61.1], // climax
+  [126, 66.4], // biggest hit
+  [133, 69.9], // final hit
+];
+const AX = ANCHORS.map((a) => a[0]);
+const AY = ANCHORS.map((a) => a[1]);
+const AH = AX.slice(1).map((x, k) => x - AX[k]);
+const AD = AH.map((h, k) => (AY[k + 1] - AY[k]) / h); // seconds per beat per segment
+const AM = AX.map((_, k) => {
+  if (k === 0) return AD[0];
+  if (k === AX.length - 1) return AD[k - 1];
+  const h0 = AH[k - 1];
+  const h1 = AH[k];
+  const w1 = 2 * h1 + h0;
+  const w2 = h1 + 2 * h0;
+  return (w1 + w2) / (w1 / AD[k - 1] + w2 / AD[k]);
+});
+// beat -> seconds
+function tb(beat) {
+  const K = AX.length - 1;
+  if (beat <= AX[0]) return AY[0] + (beat - AX[0]) * AM[0];
+  if (beat >= AX[K]) return AY[K] + (beat - AX[K]) * AM[K];
+  let k = 0;
+  while (beat > AX[k + 1]) k++;
+  const h = AH[k];
+  const s = (beat - AX[k]) / h;
+  const s2 = s * s;
+  const s3 = s2 * s;
+  return (2 * s3 - 3 * s2 + 1) * AY[k] + (s3 - 2 * s2 + s) * h * AM[k] + (-2 * s3 + 3 * s2) * AY[k + 1] + (s3 - s2) * h * AM[k + 1];
+}
+const bpmAt = (beat) => 60 / ((tb(beat + 1e-3) - tb(beat - 1e-3)) / 2e-3);
+// seconds -> beat (bisection table every 32 samples, linear in between)
+const BT_STEP = 32;
+const BEAT_TABLE = (() => {
+  const m = Math.ceil(N_TOTAL / BT_STEP) + 2;
+  const y = new Float64Array(m);
+  let lo = -8;
+  for (let j = 0; j < m; j++) {
+    const t = (j * BT_STEP) / SR;
+    let a = lo;
+    let b = 200;
+    for (let it = 0; it < 48; it++) {
+      const mid = 0.5 * (a + b);
+      if (tb(mid) < t) a = mid;
+      else b = mid;
+    }
+    y[j] = 0.5 * (a + b);
+    lo = y[j] - 0.01;
+  }
+  return y;
+})();
+function beatAt(t) {
+  const x = (t * SR) / BT_STEP;
+  const j = clamp(Math.floor(x), 0, BEAT_TABLE.length - 2);
+  return lerp(BEAT_TABLE[j], BEAT_TABLE[j + 1], x - j);
+}
+const END_BEAT = beatAt(DURATION);
+const AVG_BPM = (60 * AX[AX.length - 1]) / AY[AY.length - 1];
+const NOM_BEAT = 60 / AVG_BPM; // nominal beat for delay times
 const GAP = 0.03; // swells stop just before their downbeat (a breath)
 
-// Voicings (MIDI). bass: bass note; alt: passing chord tone for the bass;
-// lh: piano left hand [oct2, oct3]; rh: piano right-hand chord (E4..C5 zone);
-// arp: 6 arpeggio tones low->high; str: strings; pad: airy pad.
-const CHORDS = {
-  C: { name: 'C', bass: 36, alt: 43, lh: [36, 48], rh: [64, 67, 72], arp: [48, 55, 60, 62, 64, 67], str: [48, 55, 64, 67, 72], pad: [48, 55, 62, 64, 67] },
-  Cadd9: { name: 'Cadd9', bass: 36, alt: 43, lh: [36, 48], rh: [64, 67, 74], arp: [48, 55, 60, 62, 64, 67], str: [48, 55, 64, 67, 76], pad: [48, 55, 62, 64, 67] },
-  'G/B': { name: 'G/B', bass: 35, alt: 38, lh: [35, 47], rh: [62, 67, 71], arp: [47, 55, 59, 62, 67, 69], str: [47, 55, 62, 67, 71], pad: [47, 55, 62, 67, 69] },
-  G: { name: 'G', bass: 31, alt: 38, lh: [31, 43], rh: [62, 67, 71], arp: [43, 50, 55, 59, 62, 67], str: [43, 50, 59, 62, 71], pad: [43, 50, 57, 59, 62] },
-  Gsus4: { name: 'Gsus4', bass: 31, alt: 38, lh: [31, 43], rh: [62, 67, 72], arp: [43, 50, 55, 60, 62, 67], str: [43, 50, 60, 62, 72], pad: [43, 50, 55, 60, 62] },
-  Am: { name: 'Am7', bass: 33, alt: 40, lh: [33, 45], rh: [60, 64, 69], arp: [45, 52, 57, 60, 64, 67], str: [45, 52, 60, 64, 69], pad: [45, 52, 55, 60, 64] },
-  F: { name: 'Fmaj7', bass: 29, alt: 36, lh: [29, 41], rh: [60, 64, 69], arp: [41, 48, 53, 57, 60, 64], str: [41, 48, 57, 60, 65], pad: [41, 48, 55, 57, 64] },
-  Dm7: { name: 'Dm7', bass: 38, alt: 45, lh: [38, 50], rh: [60, 65, 69], arp: [50, 57, 60, 62, 65, 69], str: [50, 57, 60, 65, 69], pad: [50, 53, 57, 60, 64] },
-};
-
-// Chord timeline: [start beat, chord]. 47.5 (= 33.2 s) and 95 (= 66.38 s) are
-// pop "pushes" (the next bar's chord anticipated by an 8th / a beat).
-const CHORD_TL = [
-  [0, 'F'], [4, 'Am'], [8, 'Gsus4'], [10, 'G'],
-  [12, 'C'], [16, 'G/B'], [20, 'Am'], [24, 'F'], [28, 'C'], [32, 'G/B'], [36, 'Am'], [40, 'F'], [44, 'Gsus4'], [46, 'G'],
-  [47.5, 'Am'], [52, 'F'], [56, 'C'], [60, 'G'], [64, 'Am'], [68, 'F'], [72, 'Dm7'], [76, 'Gsus4'], [78, 'G'],
-  [80, 'C'], [84, 'G/B'], [88, 'Am'], [92, 'F'], [95, 'Cadd9'], [98, 'Gsus4'], [99, 'G'],
-  [100, 'C'],
+// Bars: [start beat, length in beats, section]
+const BARS = [
+  [0, 4, 'intro'], [4, 4, 'intro'], [8, 4, 'intro'], [12, 4, 'intro'],
+  [16, 4, 'groove'], [20, 4, 'groove'], [24, 4, 'groove'], [28, 4, 'groove'], [32, 3, 'groove'],
+  [35, 4, 'lift'], [39, 4, 'lift'], [43, 4, 'lift'], [47, 4, 'lift'], [51, 1, 'lift (stop)'],
+  [52, 4, 'groove B'], [56, 4, 'groove B'], [60, 3, 'groove B'],
+  [63, 4, 'dream'], [67, 4, 'dream'], [71, 3, 'dream (build)'],
+  [74, 4, 'groove C'], [78, 4, 'groove C'], [82, 4, 'groove C'], [86, 4, 'groove C'], [90, 4, 'groove C'],
+  [94, 4, 'groove C (break)'], [98, 4, 'groove C (build)'], [102, 4, 'groove C (build)'],
+  [106, 4, 'tension (half-time)'], [110, 2, 'tension (stop)'],
+  [112, 4, 'drop'],
+  [116, 4, 'climax'], [120, 4, 'climax'], [124, 2, 'climax (fill)'], [126, 4, 'climax (PEAK)'], [130, 3, 'climax (cadence)'],
+  [133, 5, 'ending'],
 ];
-const END_BEAT = (DURATION - ORIGIN) / BEAT;
+
+// Requested hit points -> grid position
+const HITS = [
+  ['groove in', 8.4, 16], ['lift', 18.4, 35], ['accent', 22.6, 43], ['accent', 24.2, 46], ['accent', 25.0, 47.5],
+  ['accent', 26.5, 50.5], ['back to video', 27.3, 52], ['dream', 33.2, 63], ['groove back', 38.9, 74],
+  ['break bar', null, 94], ['tension', 55.9, 106], ['drop', 59.0, 112], ['climax', 61.1, 116],
+  ['BIGGEST hit', 66.4, 126], ['final hit', 69.9, 133],
+];
+
+// ----------------------------------------------------------------------------
+// Harmony: D major. bass: bass note; rh: piano chord; arp: 6 pluck tones
+// low->high; pad / str: pad and string voicings (MIDI).
+// ----------------------------------------------------------------------------
+const CH = (name, bass, rh, arp, pad, str) => ({ name, bass, rh, arp, pad, str });
+const CHORDS = {
+  Dadd9: CH('Dadd9', 38, [62, 64, 69], [57, 62, 64, 66, 69, 74], [50, 57, 62, 64, 66], [50, 57, 64, 66, 69]),
+  D: CH('D', 38, [62, 66, 69], [57, 62, 64, 66, 69, 74], [50, 57, 62, 66, 69], [50, 57, 62, 66, 69]),
+  'A/C#': CH('A/C#', 37, [61, 64, 69], [57, 61, 64, 69, 71, 73], [45, 52, 57, 61, 64], [49, 57, 61, 64, 69]),
+  Bm7: CH('Bm7', 35, [62, 66, 71], [54, 59, 62, 66, 69, 71], [47, 54, 57, 62, 66], [47, 54, 62, 66, 69]),
+  G: CH('G', 31, [62, 67, 71], [55, 59, 62, 67, 69, 71], [43, 50, 57, 59, 62], [43, 50, 59, 62, 67]),
+  Gmaj7: CH('Gmaj7', 31, [62, 66, 71], [55, 59, 62, 66, 67, 71], [43, 50, 54, 59, 62], [43, 50, 59, 62, 66]),
+  Em7: CH('Em7', 40, [62, 67, 71], [55, 59, 62, 64, 67, 71], [40, 47, 55, 59, 62], [40, 47, 59, 62, 67]),
+  Asus4: CH('Asus4', 33, [62, 64, 69], [57, 62, 64, 69, 71, 74], [45, 52, 57, 62, 64], [45, 52, 62, 64, 69]),
+  A: CH('A', 33, [61, 64, 69], [57, 61, 64, 69, 71, 73], [45, 52, 57, 61, 64], [45, 52, 61, 64, 69]),
+};
+const CHORD_TL = [
+  [0, 'Dadd9'], [4, 'Bm7'], [8, 'Gmaj7'], [12, 'Asus4'], [14, 'A'],
+  [16, 'D'], [20, 'A/C#'], [24, 'Bm7'], [28, 'G'], [32, 'Asus4'], [34, 'A'],
+  [35, 'G'], [39, 'A'], [43, 'Bm7'], [47, 'G'], [49, 'Asus4'], [50.5, 'A'],
+  [52, 'D'], [56, 'A/C#'], [60, 'G'],
+  [63, 'Bm7'], [67, 'Gmaj7'], [71, 'Asus4'],
+  [74, 'D'], [78, 'A/C#'], [82, 'Bm7'], [86, 'G'], [90, 'D'], [94, 'Gmaj7'], [98, 'Em7'], [102, 'Asus4'], [104, 'A'],
+  [106, 'Bm7'], [110, 'Asus4'],
+  [112, 'D'],
+  [116, 'G'], [120, 'Em7'], [124, 'Asus4'],
+  [126, 'D'], [130, 'G'], [132, 'A'],
+  [133, 'D'],
+];
 const chordAt = (beat) => {
   let c = CHORD_TL[0];
   for (const e of CHORD_TL) if (e[0] <= beat + 1e-9) c = e;
@@ -1058,11 +1267,10 @@ const nextChange = (beat) => {
   return END_BEAT + 1;
 };
 
-// Musical sections in beats
-const B = { GROOVE: 12, STRINGS_IN: 28, PUSH: 47.5, INTIMATE: 48, HEART: 64, BUILD: 72, CLIMAX: 80, PEAK: 95, BREATH: 99.5, END: 100 };
-
-const ARP8 = [0, 1, 2, 4, 3, 5, 4, 2];
-const ARP16 = [0, 1, 2, 3, 4, 5, 4, 3, 2, 3, 4, 5, 4, 3, 2, 1];
+const ARP16 = [0, 2, 4, 2, 5, 2, 4, 1, 0, 3, 4, 2, 5, 3, 4, 2];
+const ACC16 = [1, 0.55, 0.72, 0.58, 0.9, 0.55, 0.75, 0.6, 0.95, 0.55, 0.72, 0.58, 0.88, 0.55, 0.75, 0.62];
+const ARP8 = [0, 2, 4, 5, 3, 4, 2, 1];
+const ACC8 = [1, 0.7, 0.85, 0.72, 0.92, 0.7, 0.85, 0.75];
 
 // ----------------------------------------------------------------------------
 // Music render: returns the dry stems + a drum reverb send
@@ -1073,340 +1281,451 @@ function renderMusic() {
     drums: stereoN(N),
     drumVerb: stereoN(N),
     bass: stereoN(N),
-    pianoA: stereoN(N), // arpeggios (gets ping-pong)
-    pianoC: stereoN(N), // chords + left hand
+    piano: stereoN(N),
+    pluck: stereoN(N),
+    bells: stereoN(N),
     strings: stereoN(N),
     pad: stereoN(N),
+    stab: stereoN(N),
     fx: stereoN(N),
   };
-  const rng = makeRng(2026);
-  const hum = () => rng.range(-0.004, 0.004);
+  const rng = makeRng(2027);
+  const hum = () => rng.range(-0.003, 0.003);
   const kickTimes = [];
 
   // ---- kit
-  const K = kickSoft({ seed: 11 });
-  const KS = kickSoft({ f0: 92, f1: 44, click: 0.04, decay: 0.24, lp: 1800, seed: 12 }); // heartbeat
-  const RIM = [rim({ seed: 21 }), rim({ seed: 22, tone: 1.03 })];
-  const CLAP = clap({ seed: 31 });
+  const KICK = kickSoft({ f0: 160, f1: 50, pitchTau: 0.028, decay: 0.2, len: 0.45, click: 0.3, drive: 1.8, lp: 9000, seed: 11 });
+  const KICK_SOFT = kickSoft({ f0: 110, f1: 46, click: 0.05, decay: 0.24, lp: 2400, seed: 12 });
+  const SNARES = [snare({ seed: 35 }), snare({ seed: 36, tone: 1.03 })];
+  const CLAPS = [clap({ seed: 31 }), clap({ seed: 32, tail: 0.09 })];
   const SNAPS = [snap({ seed: 91 }), snap({ seed: 92, tone: 1.05 })];
-  const HATS = [0, 1, 2, 3].map((k) => hat({ seed: 41 + k, tone: 0.95 + 0.012 * k, decay: 0.022 + 0.004 * (k % 3) }));
-  const HAT_OPEN = hat({ open: true, seed: 48, decay: 0.18 });
-  const SHAKE = [0, 1, 2, 3].map((k) => shaker({ seed: 70 + k, bright: 0.92 + 0.04 * k }));
-  const TOMS = [tom(185, { seed: 61 }), tom(155, { seed: 62 }), tom(123, { seed: 63 })];
+  const HATS = [0, 1, 2, 3].map((k) => hat({ seed: 41 + k, tone: 0.97 + 0.012 * k, decay: 0.02 + 0.004 * (k % 3) }));
+  const HAT_OPEN = hat({ open: true, seed: 48, decay: 0.15 });
+  const SHAKE = [0, 1, 2, 3].map((k) => shaker({ seed: 70 + k, bright: 0.94 + 0.04 * k }));
+  const TOMS = [tom(196, { seed: 61 }), tom(165, { seed: 62 }), tom(131, { seed: 63 })];
 
-  const addKick = (beat, v = 1, soft = false) => {
+  const kick = (beat, v = 1, soft = false) => {
     const t = tb(beat);
-    addMono(bus.drums, soft ? KS : K, t, 0.95 * v);
-    kickTimes.push([t, soft ? 0.6 * v : v]);
+    addMono(bus.drums, soft ? KICK_SOFT : KICK, t, 0.95 * v);
+    kickTimes.push([t, soft ? 0.5 * v : v]);
   };
-  const addSnap = (beat, v = 1) => {
-    addMono(bus.drums, SNAPS[rng.int(0, 1)], tb(beat) + hum(), 0.42 * v, 0.12);
-    addMono(bus.drumVerb, SNAPS[0], tb(beat), 0.5 * v);
+  const clapAt = (beat, v = 1) => {
+    addMono(bus.drums, CLAPS[rng.int(0, 1)], tb(beat) + 0.002 + hum(), 0.5 * v, -0.08);
+    addMono(bus.drumVerb, CLAPS[0], tb(beat), 0.45 * v);
   };
-  const addClap = (beat, v = 1) => {
-    addMono(bus.drums, CLAP, tb(beat) + 0.003, 0.5 * v, -0.06);
-    addMono(bus.drumVerb, CLAP, tb(beat), 0.5 * v);
+  const snareAt = (beat, v = 1, pan = 0.05) => {
+    addMono(bus.drums, SNARES[rng.int(0, 1)], tb(beat), 0.42 * v, pan);
+    addMono(bus.drumVerb, SNARES[0], tb(beat), 0.3 * v);
   };
-  const addRim = (beat, v = 1, pan = -0.15) => {
-    addMono(bus.drums, RIM[rng.int(0, 1)], tb(beat) + hum(), 0.36 * v, pan);
-    addMono(bus.drumVerb, RIM[0], tb(beat), 0.2 * v);
+  const snapAt = (beat, v = 1) => {
+    addMono(bus.drums, SNAPS[rng.int(0, 1)], tb(beat) + hum(), 0.4 * v, 0.18);
+    addMono(bus.drumVerb, SNAPS[0], tb(beat), 0.45 * v);
   };
-  const addShaker = (beat, v) => addMono(bus.drums, SHAKE[rng.int(0, 3)], tb(beat) + hum() + 0.004, 0.17 * v, -0.35);
-  const addHat = (beat, v) => addMono(bus.drums, HATS[rng.int(0, 3)], tb(beat) + hum(), 0.14 * v, 0.3);
-  const addOpenHat = (beat, chokeBeats, v = 1) => {
+  const hatAt = (beat, v) => addMono(bus.drums, HATS[rng.int(0, 3)], tb(beat) + hum(), 0.15 * v, 0.3);
+  const openHatAt = (beat, chokeBeats, v) => {
     const x = Float64Array.from(HAT_OPEN);
-    const c = samples(chokeBeats * BEAT);
+    const c = samples(tb(beat + chokeBeats) - tb(beat));
     const fl = samples(0.015);
     for (let i = c; i < x.length; i++) x[i] *= Math.max(0, 1 - (i - c) / fl);
-    addMono(bus.drums, x, tb(beat), 0.1 * v, 0.3);
+    addMono(bus.drums, x, tb(beat) + hum(), 0.11 * v, 0.28);
   };
-  const addTom = (beat, k, v = 1) => {
+  const shakerAt = (beat, v) => addMono(bus.drums, SHAKE[rng.int(0, 3)], tb(beat) + hum() + 0.003, 0.17 * v, -0.35);
+  const tomAt = (beat, k, v = 1) => {
     addMono(bus.drums, TOMS[k], tb(beat), 0.5 * v, [0.3, 0, -0.3][k]);
     addMono(bus.drumVerb, TOMS[k], tb(beat), 0.25 * v);
   };
+  const roll = (from, to, step, v0, v1, kind = 'snare') => {
+    const n = Math.round((to - from) / step);
+    for (let k = 0; k < n; k++) {
+      const v = v0 + (v1 - v0) * (k / Math.max(1, n - 1));
+      if (kind === 'snare') snareAt(from + k * step, v, k % 2 ? 0.12 : -0.04);
+      else clapAt(from + k * step, v);
+    }
+  };
 
-  // ---- tonal helpers
-  const piano = (busName, midi, beat, durBeats, vel, extraSec = 0) =>
-    addPiano(bus[busName], midi, tb(beat) + rng.range(-0.005, 0.005), durBeats * BEAT + extraSec, clamp(vel + rng.range(-0.035, 0.035), 0.1, 1));
-  const playBass = (midi, beat, durBeats, vel, opts = {}) => addMono(bus.bass, bassNote(midi, Math.max(0.05, durBeats * BEAT - 0.02), vel, opts), tb(beat), 0.55);
+  // One bar of drums. o: { kick: '4' | 'half' | 'one', kv, softKick, back: '24' | '3',
+  // cv (clap), snare, snap, hat (offbeat closed), open (offbeat open), hat16, shaker, shaker16 }
+  const drumBar = (start, len, o) => {
+    for (let q = 0; q < len; q++) {
+      const b = start + q;
+      if (o.kick === '4') kick(b, (q === 0 ? 1 : 0.92) * o.kv);
+      if (o.kick === 'half' && q % 2 === 0) kick(b, (q === 0 ? 1 : 0.8) * o.kv, !!o.softKick);
+      if (o.kick === 'one' && q === 0) kick(b, o.kv, !!o.softKick);
+      const backbeat = (o.back === '24' && q % 2 === 1) || (o.back === '3' && q === 2);
+      if (backbeat) {
+        if (o.cv) clapAt(b, o.cv);
+        if (o.snare) snareAt(b, o.snare);
+        if (o.snap) snapAt(b, o.snap);
+      }
+      if (o.open) openHatAt(b + 0.5, 0.42, o.open);
+      else if (o.hat) hatAt(b + 0.5, o.hat);
+      if (o.hat16) {
+        hatAt(b + 0.25, o.hat16 * 0.8);
+        hatAt(b + 0.75, o.hat16);
+      }
+      if (o.shaker) {
+        const steps = o.shaker16 ? [0, 0.25, 0.5, 0.75] : [0, 0.5];
+        for (const s of steps) shakerAt(b + s, o.shaker * (s === 0.5 ? 1 : s === 0 ? 0.75 : 0.55));
+      }
+    }
+  };
 
-  // =====================================================================
-  // PIANO
-  // =====================================================================
-  // Intro: gentle arpeggio an octave up (light, hopeful), LH octave-3 roots
-  for (let e = 0; e < 24; e++) {
-    const beat = e * 0.5;
-    const ch = chordAt(beat);
-    const v = 0.34 + 0.1 * (e / 23) + (e % 8 === 0 ? 0.08 : 0) - (e % 2 ? 0.03 : 0);
-    piano('pianoA', ch.arp[ARP8[e % 8]] + 12, beat, nextChange(beat) - beat + 0.1, v);
-  }
-  for (const b of [0, 4, 8, 10]) piano('pianoC', chordAt(b).lh[1], b, nextChange(b) - b + 0.1, 0.42);
-
-  // Groove: tresillo (3+3+2) piano chords, LH roots; soft high arp from bar 7
-  for (let bar = 3; bar <= 11; bar++) {
-    const base = bar * 4;
-    const hits = [0, 1.5, 3, 4].map((x) => base + x);
-    const vels = [0.62, 0.47, 0.53];
-    for (let h = 0; h < 3; h++) {
-      const beat = hits[h];
+  // ---- bass
+  const bassVoice = (midi, beat, durBeats, vel, opts = {}) => {
+    const dur = Math.max(0.05, tb(beat + durBeats) - tb(beat) - 0.015);
+    addMono(bus.bass, bassNote(midi, dur, vel, opts), tb(beat), 0.55);
+  };
+  // mode: 'pump' (8ths), 'oct' (8ths, offbeats an octave up), 'off' (offbeats only), 'long'
+  const bassBar = (start, len, mode, v) => {
+    if (mode === 'long') {
+      for (let b = start; b < start + len - 1e-9; ) {
+        const e = Math.min(nextChange(b), start + len);
+        bassVoice(chordAt(b).bass, b, e - b, 0.75 * v, { release: 0.25 });
+        b = e;
+      }
+      return;
+    }
+    for (let e = 0; e < len * 2; e++) {
+      const beat = start + e * 0.5;
       const ch = chordAt(beat);
-      const dur = Math.min(hits[h + 1], B.PUSH) - beat - 0.08;
-      for (const m of ch.rh) piano('pianoC', m, beat, dur, vels[h] + (bar >= 7 ? 0.04 : 0));
+      const off = e % 2 === 1;
+      if (mode === 'off' && !off) continue;
+      bassVoice(mode === 'oct' && off ? ch.bass + 12 : ch.bass, beat, 0.42, (off ? 1 : 0.85) * v);
     }
-    for (const [b] of CHORD_TL) if (b >= base && b < base + 4 && b < B.PUSH) piano('pianoC', chordAt(b).lh[1], b, Math.min(nextChange(b), B.PUSH) - b, 0.5);
-    if (bar >= 7 && bar <= 10) {
-      for (let e = 0; e < 8; e++) {
-        const beat = base + e * 0.5;
-        piano('pianoA', chordAt(beat).arp[ARP8[e]] + 12, beat, 1.0, 0.3 + (e === 0 ? 0.05 : 0));
-      }
-    }
-  }
-  // The push at 33.2 s: Am anticipated, held into the intimate section
-  {
-    const ch = chordAt(B.PUSH);
-    for (const m of ch.rh) piano('pianoC', m, B.PUSH, 4.4, 0.72);
-    for (const m of ch.lh) piano('pianoC', m, B.PUSH, 4.4, 0.7);
-  }
+  };
 
-  // Intimate: warm-register 8th arpeggio, LH low roots; bar 19 = 16ths crescendo
-  for (let bar = 12; bar <= 19; bar++) {
-    const base = bar * 4;
-    if (bar < 19) {
-      for (let e = 0; e < 8; e++) {
-        const beat = base + e * 0.5;
-        const v = 0.44 + (e === 0 ? 0.08 : 0) - 0.012 * e + (bar >= 16 ? 0.03 : 0) + (bar >= 18 ? 0.05 : 0);
-        piano('pianoA', chordAt(beat).arp[ARP8[e]], beat, Math.min(nextChange(beat) - beat, 2) + 0.1, v);
-      }
-    } else {
-      for (let e = 0; e < 16; e++) {
-        const beat = base + e * 0.25;
-        piano('pianoA', chordAt(beat).arp[ARP16[e]] + (e >= 8 ? 12 : 0), beat, 0.5, 0.42 + 0.33 * (e / 15));
-      }
+  // ---- piano (felt piano played brighter / harder)
+  const pianoHit = (midi, beat, durBeats, vel, pan = null) =>
+    addPiano(bus.piano, midi, tb(beat) + rng.range(-0.004, 0.004), tb(beat + durBeats) - tb(beat), clamp(vel + rng.range(-0.03, 0.03), 0.1, 1), { pan, rel: 0.12 });
+  const PIANO_PAT = {
+    tres: [[0, 1.4, 0.66], [1.5, 1.4, 0.56], [3, 0.9, 0.6]],
+    pop: [[0, 0.45, 0.74], [0.5, 0.4, 0.46], [1, 0.4, 0.52], [1.5, 0.45, 0.64], [2, 0.4, 0.55], [2.5, 0.4, 0.62], [3, 0.4, 0.5], [3.5, 0.45, 0.62]],
+  };
+  const pianoBar = (start, len, pat, vAdd = 0) => {
+    // left hand / held chords at every chord change inside the bar
+    for (let b = start; b < start + len - 1e-9; ) {
+      const e = Math.min(nextChange(b), start + len);
+      const ch = chordAt(b);
+      if (pat === 'hold') for (const m of ch.rh) pianoHit(m, b, e - b + 0.1, 0.5 + vAdd);
+      pianoHit(ch.bass + 12, b, e - b + 0.05, 0.5 + vAdd);
+      b = e;
     }
-  }
-  for (const [b] of CHORD_TL) {
-    if (b < B.INTIMATE || b >= B.CLIMAX) continue;
-    piano('pianoC', chordAt(b).lh[0], b, nextChange(b) - b + 0.1, b >= B.BUILD ? 0.6 : 0.5);
-  }
+    if (pat === 'hold') return;
+    for (const [s, d, v] of PIANO_PAT[pat]) {
+      if (s >= len) continue;
+      const beat = start + s;
+      const dur = Math.max(0.2, Math.min(d, nextChange(beat) - beat - 0.05, start + len - beat));
+      for (const m of chordAt(beat).rh) pianoHit(m, beat, dur, v + vAdd);
+    }
+  };
 
-  // Climax: driving 8th-note chords, LH octaves on 1 and 3 (and on the push)
-  const ACC8 = [0.82, 0.5, 0.62, 0.5, 0.74, 0.5, 0.62, 0.55];
-  for (let e = 0; e < 40; e++) {
-    const beat = B.CLIMAX + e * 0.5;
-    if (beat >= B.BREATH) break;
+  // ---- plucks
+  const pluckAt = (midi, beat, vel, pan) => {
+    const lvl = clamp(Math.round(vel * 8), 1, 8);
+    addMono(bus.pluck, pluckNote(midi, lvl), tb(beat) + rng.range(-0.002, 0.002), Math.pow(vel, 1.2), pan);
+  };
+  const pluckBar = (start, len, mode, v, oct = 0) => {
+    const step = mode === '16' ? 0.25 : 0.5;
+    const pat = mode === '16' ? ARP16 : ARP8;
+    const acc = mode === '16' ? ACC16 : ACC8;
+    for (let e = 0; e < Math.round(len / step); e++) {
+      const beat = start + e * step;
+      const k = e % pat.length;
+      pluckAt(chordAt(beat).arp[pat[k]] + oct, beat, v * acc[k], k % 2 ? 0.28 : -0.22);
+    }
+  };
+
+  // ---- bells, stabs, hits
+  const bellAt = (midi, beat, vel) => addMono(bus.bells, bell(mtof(midi), vel, { seed: 400 + midi }), tb(beat), 1, rng.range(-0.5, 0.5));
+  const stabAt = (beat, v = 1, lenBeats = 0.5) => {
     const ch = chordAt(beat);
-    const v = ACC8[e % 8] - (beat < 92 ? 0.05 : 0) + (beat >= B.PEAK ? 0.08 : 0) + (beat === B.PEAK ? 0.2 : 0) + (beat === B.CLIMAX ? 0.12 : 0);
-    for (const m of ch.rh) piano('pianoC', m, beat, 0.46, v);
-  }
-  for (const b of [80, 82, 84, 86, 88, 90, 92, 94, 95, 96, 98]) {
-    const ch = chordAt(b);
-    const dur = Math.min(2, nextChange(b) - b, B.BREATH - b);
-    for (const m of ch.lh) piano('pianoC', m, b, dur, b === 80 || b === 95 ? 0.85 : 0.68);
-  }
-  // Final soft hit: open C chord, rings into the fade
-  for (const m of [60, 64, 67, 72]) piano('pianoC', m, B.END, 4, 0.8);
-  for (const m of [36, 48]) piano('pianoC', m, B.END, 4, 0.85);
-  // warm ring-out: a few soft, rising C-major tones (echoed by the ping-pong)
-  [
-    [100.5, 64, 0.36],
-    [101, 67, 0.33],
-    [101.5, 72, 0.3],
-    [102.25, 76, 0.26],
-  ].forEach(([b, m, v]) => piano('pianoA', m, b, END_BEAT - b, v));
+    const dur = tb(beat + lenBeats) - tb(beat);
+    const notes = [ch.bass + 24, ...ch.rh, ch.rh[0] + 12];
+    notes.forEach((m, k) => addMono(bus.stab, stabNote(mtof(m), dur, 1, { seed: 500 + m }), tb(beat), 0.2 * v, k % 2 ? 0.3 : -0.3));
+  };
+  const before = (beat, dur) => tb(beat) - GAP - dur;
+  let crashSeed = 51;
+  const hit = (beat, { crashG = 0, boomG = 0, decay = 1.3, bright = 1, boom = {} } = {}) => {
+    if (crashG) addStereo(bus.fx, crash({ seed: crashSeed++, decay, len: decay * 2.6, bright }), tb(beat), crashG);
+    if (boomG) addStereo(bus.fx, softBoom({ seed: 80 + crashSeed, ...boom }), tb(beat), boomG);
+  };
+  const riserTo = (beat, dur, gain, opts = {}) => addStereo(bus.fx, riser({ dur, ...opts }), before(beat, dur), gain);
+  const revTo = (beat, dur, gain, seed) => addStereo(bus.fx, reverseCymbal(dur, seed), before(beat, dur), gain);
 
   // =====================================================================
-  // STRINGS (from bar 7) and PAD (whole song)
+  // INTRO 0.0-8.4 (beats 0-16): low-passed beat + plucks, building fast
   // =====================================================================
+  for (let bar = 0; bar < 4; bar++) {
+    const s = bar * 4;
+    drumBar(s, bar === 3 ? 2 : 4, {
+      kick: '4',
+      kv: 0.72 + 0.08 * bar,
+      back: bar >= 1 ? '24' : null,
+      cv: bar >= 2 ? 0.55 + 0.1 * (bar - 2) : 0,
+      snap: bar >= 1 ? 0.5 : 0,
+      hat: bar >= 1 ? 0.45 + 0.05 * bar : 0,
+      shaker: bar >= 2 ? 0.35 + 0.1 * (bar - 2) : 0,
+      shaker16: bar >= 3,
+    });
+    pluckBar(s, 4, bar < 2 ? '8' : '16', 0.5 + 0.05 * bar);
+    if (bar >= 2) bassBar(s, 4, 'off', 0.6 + 0.12 * (bar - 2));
+  }
+  kick(14, 0.9);
+  kick(15, 0.95);
+  roll(14, 15, 0.5, 0.3, 0.45);
+  roll(15, 16, 0.25, 0.5, 0.85);
+  riserTo(16, tb(16) - tb(8) - GAP, 0.09, { fStart: 350, fEnd: 7000, toneFrom: 293.7, toneTo: 1174.7, toneAmt: 0.1, seed: 71 });
+  revTo(16, 1.5, 0.11, 58);
+
+  // =====================================================================
+  // GROOVE 8.4-18.4 (beats 16-35)
+  // =====================================================================
+  hit(16, { crashG: 0.1, boomG: 0.22, boom: { decay: 0.4 } });
+  for (const s of [16, 20, 24, 28]) {
+    drumBar(s, 4, { kick: '4', kv: 0.95, back: '24', cv: 0.8, snare: 0.45, hat: 0.6, shaker: 0.5, shaker16: true });
+    bassBar(s, 4, 'pump', 0.9);
+    pianoBar(s, 4, 'tres');
+    pluckBar(s, 4, '16', 0.55);
+  }
+  // bar 32 (3/4): fill into the lift
+  drumBar(32, 3, { kick: '4', kv: 0.9, hat: 0.55, shaker: 0.5, shaker16: true });
+  roll(33, 34, 0.5, 0.45, 0.6, 'clap');
+  roll(34, 35, 0.25, 0.5, 0.9);
+  tomAt(34.5, 0, 0.5);
+  tomAt(34.75, 1, 0.65);
+  bassBar(32, 3, 'pump', 0.9);
+  pianoBar(32, 3, 'tres');
+  pluckBar(32, 3, '16', 0.58);
+  riserTo(35, 1.5, 0.07, { fStart: 500, fEnd: 8000, toneAmt: 0.08, seed: 72 });
+  revTo(35, 1.2, 0.12, 59);
+
+  // =====================================================================
+  // LIFT 18.4-27.3 (beats 35-52): motion-graphics, fuller groove + hits
+  // =====================================================================
+  for (const s of [35, 39, 43, 47]) {
+    drumBar(s, 4, { kick: '4', kv: 0.95, back: '24', cv: 0.85, snare: 0.5, open: 0.62, hat16: 0.3, shaker: 0.5, shaker16: true });
+    bassBar(s, 4, 'oct', 0.9);
+    pianoBar(s, 4, 'pop', 0.02);
+    pluckBar(s, 4, '16', 0.6);
+  }
+  hit(35, { crashG: 0.14, boomG: 0.3 });
+  hit(43, { crashG: 0.15, boomG: 0.36 });
+  hit(46, { boomG: 0.14, boom: { decay: 0.3, len: 1 } });
+  hit(47.5, { boomG: 0.16, boom: { decay: 0.3, len: 1 } });
+  hit(50.5, { crashG: 0.08, boomG: 0.18, decay: 0.8 });
+  for (const [b, v] of [[35, 1], [43, 1.1], [46, 0.8], [47.5, 0.85], [50.5, 0.95]]) stabAt(b, v);
+  snareAt(46, 0.7);
+  tomAt(46.5, 1, 0.5);
+  kick(47.5, 0.75);
+  // beat 51: one-beat stop (no kick), roll into 27.3
+  for (const m of chordAt(50.5).rh) pianoHit(m, 50.5, 1.5, 0.66);
+  pluckBar(51, 1, '16', 0.5);
+  roll(51, 52, 0.25, 0.3, 0.7);
+  revTo(52, 0.7, 0.1, 60);
+
+  // =====================================================================
+  // GROOVE B 27.3-33.2 (beats 52-63): back to video, a bit lighter
+  // =====================================================================
+  hit(52, { crashG: 0.08, boomG: 0.14 });
+  for (const s of [52, 56]) {
+    drumBar(s, 4, { kick: '4', kv: 0.85, back: '24', cv: 0.6, snap: 0.6, hat: 0.5, shaker: 0.45 });
+    bassBar(s, 4, 'pump', 0.8);
+    pianoBar(s, 4, 'tres', -0.06);
+    pluckBar(s, 4, '8', 0.52);
+  }
+  drumBar(60, 3, { kick: 'one', kv: 0.8, back: '24', cv: 0.5, snap: 0.5, hat: 0.4, shaker: 0.4 });
+  bassBar(60, 3, 'long', 0.8);
+  pianoBar(60, 3, 'tres', -0.08);
+  pluckBar(60, 3, '8', 0.48);
+  revTo(63, 1.4, 0.12, 61);
+
+  // =====================================================================
+  // DREAM 33.2-38.9 (beats 63-74): half-time, sparkly
+  // =====================================================================
+  hit(63, { crashG: 0.08, boomG: 0.16, decay: 2.2, bright: 0.9, boom: { decay: 0.6, len: 1.8 } });
+  for (const s of [63, 67]) {
+    drumBar(s, 4, { kick: 'one', kv: 0.55, softKick: true, back: '3', cv: 0.25, snap: 0.55, shaker: 0.3 });
+    bassBar(s, 4, 'long', 0.6);
+    pianoBar(s, 4, 'hold', -0.12);
+    pluckBar(s, 4, '8', 0.4, 12);
+  }
+  const SPARK = [[0, 5, 0.55], [1.5, 3, 0.4], [2.5, 4, 0.45], [3, 2, 0.35], [3.5, 5, 0.3]];
+  for (const [s, len] of [[63, 4], [67, 4], [71, 3]]) {
+    for (const [o, k, v] of SPARK) if (o < len) bellAt(chordAt(s + o).arp[k] + 12, s + o, v);
+  }
+  // bar 71 (3/4): build back into the groove
+  kick(71, 0.5, true);
+  kick(72, 0.6);
+  kick(73, 0.7);
+  kick(73.5, 0.75);
+  for (let e = 0; e < 12; e++) shakerAt(71 + e * 0.25, 0.25 + 0.35 * (e / 11));
+  roll(72, 73, 0.5, 0.3, 0.45);
+  roll(73, 74, 0.25, 0.45, 0.85);
+  bassBar(71, 3, 'long', 0.65);
+  pianoBar(71, 3, 'hold', -0.08);
+  pluckBar(71, 3, '16', 0.45, 12);
+  riserTo(74, tb(74) - tb(69), 0.08, { fStart: 400, fEnd: 7500, toneFrom: 220, toneTo: 880, toneAmt: 0.1, seed: 73 });
+  revTo(74, 1.3, 0.12, 62);
+
+  // =====================================================================
+  // GROOVE C 38.9-55.9 (beats 74-106): steady build, break, riser
+  // =====================================================================
+  hit(74, { crashG: 0.12, boomG: 0.26 });
+  [74, 78, 82, 86, 90].forEach((s, i) => {
+    drumBar(s, 4, {
+      kick: '4',
+      kv: 0.93 + 0.015 * i,
+      back: '24',
+      cv: 0.75 + 0.04 * i,
+      snare: i >= 4 ? 0.5 : i >= 2 ? 0.35 : 0,
+      snap: i < 2 ? 0.4 : 0,
+      open: i >= 2 ? 0.55 + 0.05 * (i - 2) : 0,
+      hat: 0.58,
+      hat16: i >= 3 ? 0.28 : 0,
+      shaker: 0.5,
+      shaker16: true,
+    });
+    bassBar(s, 4, i >= 4 ? 'oct' : 'pump', 0.88 + 0.03 * i);
+    pianoBar(s, 4, i >= 2 ? 'pop' : 'tres', -0.04 + 0.02 * i);
+    pluckBar(s, 4, '16', 0.52 + 0.02 * i);
+  });
+  hit(90, { crashG: 0.06 });
+  // break bar 94 (49.5-51.65 s)
+  revTo(94, 1.0, 0.08, 63);
+  hit(94, { boomG: 0.15, boom: { decay: 0.6, len: 1.8 } });
+  kick(94, 0.7);
+  drumBar(94, 4, { shaker: 0.3 });
+  bassBar(94, 4, 'long', 0.6);
+  pianoBar(94, 4, 'hold', -0.04);
+  pluckBar(94, 4, '8', 0.45);
+  // build 98-106 (51.65-55.9 s)
+  drumBar(98, 4, { kick: '4', kv: 0.8, hat: 0.45, shaker: 0.4, shaker16: true });
+  drumBar(102, 4, { kick: '4', kv: 0.9, hat: 0.55, shaker: 0.5, shaker16: true });
+  roll(100, 102, 1, 0.4, 0.5, 'clap');
+  roll(102, 104, 0.5, 0.45, 0.6, 'clap');
+  roll(104, 105, 0.25, 0.4, 0.6);
+  roll(105, 106, 0.125, 0.55, 0.95);
+  tomAt(105.5, 0, 0.6);
+  tomAt(105.75, 2, 0.8);
+  bassBar(98, 4, 'off', 0.8);
+  bassBar(102, 4, 'pump', 0.9);
+  pianoBar(98, 4, 'tres', -0.04);
+  pianoBar(102, 4, 'pop', 0);
+  pluckBar(98, 4, '16', 0.52);
+  pluckBar(102, 4, '16', 0.58);
+  riserTo(106, tb(106) - tb(98) - GAP, 0.14, { fStart: 300, fEnd: 7500, toneFrom: 196, toneTo: 784, toneAmt: 0.14, curve: 2.4, seed: 74 });
+  revTo(106, 2.0, 0.16, 64);
+
+  // =====================================================================
+  // TENSION 55.9-59.0 (beats 106-112): low-passed half-time, stop, drop
+  // =====================================================================
+  hit(106, { crashG: 0.13, boomG: 0.34, decay: 1.8 });
+  drumBar(106, 4, { kick: 'half', kv: 0.9, back: '3', cv: 0.7, snare: 0.5, hat: 0.35 });
+  bassBar(106, 4, 'long', 0.85);
+  pianoBar(106, 4, 'hold', -0.06);
+  pluckBar(106, 4, '8', 0.5);
+  bassBar(110, 2, 'long', 0.6);
+  pianoBar(110, 2, 'hold', -0.06);
+  pluckBar(110, 2, '16', 0.52);
+  roll(110, 111, 0.5, 0.35, 0.5);
+  roll(111, 112, 0.25, 0.5, 0.95);
+  riserTo(112, tb(112) - tb(107) - GAP, 0.13, { fStart: 400, fEnd: 9000, toneFrom: 293.7, toneTo: 1174.7, toneAmt: 0.12, curve: 2.6, seed: 75 });
+  revTo(112, 1.6, 0.18, 65);
+
+  // =====================================================================
+  // DROP 59.0-61.1 (beats 112-116)
+  // =====================================================================
+  hit(112, { crashG: 0.17, boomG: 0.4 });
+  stabAt(112, 1);
+  drumBar(112, 4, { kick: '4', kv: 0.97, back: '24', cv: 0.9, snare: 0.55, open: 0.62, hat16: 0.3, shaker: 0.5, shaker16: true });
+  bassBar(112, 4, 'oct', 0.95);
+  pianoBar(112, 4, 'pop', 0.04);
+  pluckBar(112, 4, '16', 0.62);
+
+  // =====================================================================
+  // CLIMAX 61.1-69.9 (beats 116-133): biggest; 66.4 = beat 126 peak
+  // =====================================================================
+  hit(116, { crashG: 0.17, boomG: 0.36 });
+  stabAt(116, 1);
+  for (const s of [116, 120]) {
+    drumBar(s, 4, { kick: '4', kv: 1, back: '24', cv: 1, snare: 0.65, open: 0.75, hat16: 0.4, shaker: 0.6, shaker16: true });
+    bassBar(s, 4, 'oct', 1);
+    pianoBar(s, 4, 'pop', 0.06);
+    pluckBar(s, 4, '16', 0.62);
+  }
+  // 124 (2/4): tom fill into the peak
+  kick(124, 1);
+  kick(125, 0.9);
+  clapAt(125, 0.9);
+  snareAt(125, 0.6);
+  for (const [b, k, v] of [[125, 0, 0.6], [125.25, 0, 0.7], [125.5, 1, 0.8], [125.75, 2, 0.95]]) tomAt(b, k, v);
+  for (let e = 0; e < 8; e++) shakerAt(124 + e * 0.25, 0.6);
+  bassBar(124, 2, 'oct', 1);
+  pianoBar(124, 2, 'pop', 0.06);
+  pluckBar(124, 2, '16', 0.64);
+  riserTo(126, 1.1, 0.09, { fStart: 600, fEnd: 9000, toneAmt: 0.08, seed: 76 });
+  revTo(126, 1.1, 0.2, 66);
+  // 126 PEAK (66.4 s)
+  hit(126, { crashG: 0.26, boomG: 0.6, decay: 1.8, boom: { f0: 60, decay: 0.55, len: 1.8 } });
+  hit(126, { crashG: 0.1, decay: 2.4, bright: 0.85 });
+  stabAt(126, 1.3, 1);
+  for (const m of [74, 78, 81]) pianoHit(m, 126, 1.5, 0.8);
+  drumBar(126, 4, { kick: '4', kv: 1.05, back: '24', cv: 1.1, snare: 0.75, open: 0.85, hat16: 0.45, shaker: 0.65, shaker16: true });
+  bassBar(126, 4, 'oct', 1.05);
+  pianoBar(126, 4, 'pop', 0.1);
+  pluckBar(126, 4, '16', 0.66);
+  // 130 (3/4): G - A cadence into the final hit
+  drumBar(130, 3, { kick: '4', kv: 1.02, back: '24', cv: 1.05, snare: 0.7, open: 0.8, hat16: 0.42, shaker: 0.62, shaker16: true });
+  roll(132, 133, 0.25, 0.55, 1);
+  bassBar(130, 3, 'oct', 1.05);
+  pianoBar(130, 3, 'pop', 0.08);
+  pluckBar(130, 3, '16', 0.64);
+  revTo(133, 1.2, 0.11, 67);
+
+  // =====================================================================
+  // ENDING 69.9-72.44 (beat 133): final tonic hit + ring-out
+  // =====================================================================
+  hit(133, { crashG: 0.11, boomG: 0.28, decay: 1.5, boom: { decay: 0.6, len: 2 } });
+  stabAt(133, 0.8, 1.5);
+  kick(133, 0.85);
+  for (const m of [50, 57, 62, 66, 69, 74]) pianoHit(m, 133, END_BEAT - 133, 0.72);
+  bassVoice(38, 133, END_BEAT - 133 - 0.5, 0.9, { release: 0.6 });
+  [[133.5, 66, 0.5], [134, 69, 0.45], [134.5, 74, 0.4], [135, 78, 0.34]].forEach(([b, m, v]) => pluckAt(m, b, v, 0));
+
+  // =====================================================================
+  // PAD (whole song) and STRINGS (lift, dream, late groove C, tension, climax)
+  // =====================================================================
+  const strOn = (s) => s >= 35 && !(s >= 52 && s < 63) && !(s >= 74 && s < 86);
   CHORD_TL.forEach(([s, name], idx) => {
     const ch = CHORDS[name];
-    const e = idx + 1 < CHORD_TL.length ? CHORD_TL[idx + 1][0] : END_BEAT;
-    const last = s === B.END;
-    const dur = last ? DURATION - tb(s) : (e - s) * BEAT + 0.05;
-    // pad
+    const last = idx === CHORD_TL.length - 1;
+    const t0 = tb(s);
+    const dur = last ? DURATION - t0 : tb(CHORD_TL[idx + 1][0]) - t0 + 0.05;
     ch.pad.forEach((m, k) => {
-      const x = padVoice(mtof(m), dur, { attack: s === 0 ? 2.2 : 0.45, release: last ? 0.8 : 0.9, seed: 3000 + idx * 10 + k });
-      addStereo(bus.pad, x, tb(s), 0.1);
+      const x = padVoice(mtof(m), dur, { attack: s === 0 ? 1.6 : 0.35, release: last ? 0.6 : 0.8, seed: 3000 + idx * 10 + k });
+      addStereo(bus.pad, x, t0, 0.1);
     });
-    // strings
-    if (s < B.STRINGS_IN) return;
-    const attack = s < B.PUSH ? 0.6 : s < B.CLIMAX ? 0.9 : 0.3;
-    const notes = s >= B.CLIMAX ? [ch.str[0] - 12, ...ch.str] : ch.str;
+    if (!strOn(s)) return;
+    const notes = [...ch.str];
+    if (s >= 112) notes.unshift(ch.str[0] - 12);
+    if (s >= 126) notes.push(ch.str[ch.str.length - 1] + 12);
     notes.forEach((m, k) => {
-      const x = stringVoice(mtof(m), dur, { attack, release: last ? 0.8 : 1.1, seed: 5000 + idx * 10 + k });
-      addStereo(bus.strings, x, tb(s), k === 0 ? 0.1 : 0.085);
+      const x = stringVoice(mtof(m), dur, { attack: s >= 112 ? 0.25 : 0.5, release: last ? 0.8 : 0.9, seed: 5000 + idx * 10 + k });
+      addStereo(bus.strings, x, t0, k === 0 ? 0.1 : 0.085);
     });
   });
 
   // =====================================================================
-  // BASS
-  // =====================================================================
-  for (let bar = 3; bar <= 11; bar++) {
-    const base = bar * 4;
-    const ev = [
-      [0, 1.35, 'r', 0.95],
-      [1.5, 1.35, 'r', 0.8],
-      [3, 0.85, bar % 2 ? 'alt' : 'oct', 0.75],
-    ];
-    for (const [s, len, kind, v] of ev) {
-      const beat = base + s;
-      const ch = chordAt(beat);
-      const m = kind === 'r' ? ch.bass : kind === 'alt' ? ch.alt : ch.bass + 12;
-      playBass(m, beat, Math.min(len, B.PUSH - beat - 0.05), 0.88 * v);
-    }
-  }
-  playBass(chordAt(B.PUSH).bass, B.PUSH, 3.8, 0.6, { release: 0.4 });
-  for (const [b] of CHORD_TL) {
-    if (b < 56 || b >= 76) continue;
-    playBass(chordAt(b).bass, b, nextChange(b) - b - 0.05, b >= B.BUILD ? 0.58 : 0.42, { release: 0.25 });
-  }
-  for (let e = 0; e < 8; e++) {
-    const beat = 76 + e * 0.5;
-    playBass(chordAt(beat).bass, beat, 0.42, 0.55 + 0.3 * (e / 7));
-  }
-  const BASS_ACC = [1, 0.7, 0.85, 0.7, 0.95, 0.7, 0.85, 0.75];
-  for (let e = 0; e < 40; e++) {
-    const beat = B.CLIMAX + e * 0.5;
-    if (beat >= B.BREATH) break;
-    const ch = chordAt(beat);
-    playBass(ch.bass + (e % 8 === 7 ? 12 : 0), beat, 0.44, BASS_ACC[e % 8]);
-  }
-  addMono(bus.bass, bassNote(36, 2.0, 1, { release: 0.6 }), tb(B.END), 0.55);
-
-  // =====================================================================
-  // DRUMS
-  // =====================================================================
-  // Intro: soft heartbeat kick + shaker swell in bar 2
-  addKick(4, 0.35, true);
-  addKick(8, 0.42, true);
-  addKick(10, 0.36, true);
-  for (let e = 0; e < 8; e++) addShaker(8 + e * 0.5, 0.2 + 0.4 * (e / 7) * (e % 2 ? 0.75 : 1));
-
-  // Groove (bars 3-11)
-  for (let bar = 3; bar <= 11; bar++) {
-    const base = bar * 4;
-    [
-      [0, 0.72],
-      [1.5, 0.54],
-      [2, 0.63],
-    ].forEach(([s, v]) => addKick(base + s, v));
-    if (bar % 2 === 0 && bar !== 10) addKick(base + 3.5, 0.4);
-    for (const s of [1, 3]) {
-      addSnap(base + s, 0.85);
-      if (bar >= 5) addClap(base + s, bar >= 7 ? 0.55 : 0.45);
-    }
-    const sixteenths = bar >= 5;
-    for (let k = 0; k < 16; k++) {
-      const beat = base + k * 0.25;
-      if (beat >= B.PUSH) break;
-      if (!sixteenths && k % 2) continue;
-      addShaker(beat, k % 4 === 2 ? 0.8 : k % 2 ? 0.45 : 0.62);
-    }
-    if (bar >= 7) for (let k = 0; k < 4; k++) if (base + k + 0.5 < B.PUSH) addHat(base + k + 0.5, 0.55 + rng.range(-0.06, 0.06));
-    if (bar === 6 || bar === 10) {
-      addRim(base + 3.5, 0.4, 0.2);
-      addRim(base + 3.75, 0.55, 0.2);
-    }
-  }
-  // the push: soft kick under the anticipated Am, then the drums are out
-  addKick(B.PUSH, 0.7);
-
-  // Intimate: heartbeat pulse (bars 16-17), then the build (bars 18-19)
-  for (let bar = 16; bar <= 17; bar++) {
-    addKick(bar * 4, 0.42, true);
-    addKick(bar * 4 + 0.4, 0.3, true);
-  }
-  for (let k = 0; k < 4; k++) addKick(72 + k, 0.36 + 0.03 * k, true);
-  for (let e = 0; e < 8; e++) addShaker(72 + e * 0.5, 0.25 + 0.25 * (e / 7));
-  for (let k = 0; k < 4; k++) addKick(76 + k, 0.5 + 0.07 * k);
-  for (let e = 0; e < 16; e++) addShaker(76 + e * 0.25, (0.4 + 0.4 * (e / 15)) * (e % 2 ? 0.7 : 1));
-  for (let e = 0; e < 4; e++) addRim(78 + e * 0.25, 0.25 + 0.12 * e, e % 2 ? 0.2 : -0.2);
-  [
-    [79, 0, 0.5],
-    [79.25, 0, 0.6],
-    [79.5, 1, 0.75],
-    [79.75, 2, 0.9],
-  ].forEach(([b, k, v]) => addTom(b, k, v));
-
-  // Climax (bars 20-24)
-  for (let bar = 20; bar <= 24; bar++) {
-    const base = bar * 4;
-    const cl = bar <= 22 ? 0.86 : bar === 23 ? 0.93 : 1; // intensity grows toward the peak
-    for (let q = 0; q < 4; q++) {
-      const beat = base + q;
-      if (bar === 23 && beat === 94) {
-        addKick(94, 0.75 * cl);
-        continue;
-      }
-      addKick(beat, (q % 2 ? 0.8 : 0.95) * cl);
-    }
-    if (bar !== 23 && bar !== 24) addKick(base + 1.5, 0.55 * cl);
-    if (bar === 23) addKick(B.PEAK, 1.0);
-    for (const s of [1, 3]) {
-      const beat = base + s;
-      const v = beat >= B.PEAK ? 1.1 : cl;
-      addClap(beat, v);
-      addRim(beat, 0.6 * v, -0.1);
-      addSnap(beat, 0.6 * v);
-    }
-    for (let k = 0; k < 16; k++) {
-      const beat = base + k * 0.25;
-      if (beat >= B.BREATH) break;
-      if (bar === 23 && beat >= 94 && beat < 95) continue; // tom fill
-      addShaker(beat, (k % 4 === 2 ? 0.85 : k % 2 ? 0.5 : 0.65) * cl);
-      if (k % 2 === 0) addHat(beat, (k % 4 === 2 ? 0.75 : 0.45) * cl);
-    }
-    if (bar === 20 || bar === 21 || bar === 22) addOpenHat(base + 3.5, 0.5, 0.9 * cl);
-  }
-  [
-    [94, 0, 0.6],
-    [94.25, 1, 0.7],
-    [94.5, 1, 0.8],
-    [94.75, 2, 0.95],
-  ].forEach(([b, k, v]) => addTom(b, k, v));
-  // Final soft hit
-  addKick(B.END, 0.85);
-
-  // =====================================================================
-  // FX: risers, reverse cymbals, crashes, booms
-  // =====================================================================
-  // into the groove (8.4 s)
-  addStereo(bus.fx, riser({ dur: 2.4, fStart: 400, fEnd: 6000, toneFrom: 392, toneTo: 1046.5, toneAmt: 0.12, seed: 71 }), tb(B.GROOVE) - GAP - 2.4, 0.08);
-  addStereo(bus.fx, reverseCymbal(1.6, 58), tb(B.GROOVE) - GAP - 1.6, 0.11);
-  addStereo(bus.fx, crash({ seed: 51, decay: 1.2 }), tb(B.GROOVE), 0.06);
-  // strings enter (bar 7)
-  addStereo(bus.fx, reverseCymbal(1.0, 59), tb(B.STRINGS_IN) - GAP - 1.0, 0.06);
-  // the push into the intimate section (33.2 s): soft wash + gentle low boom
-  addStereo(bus.fx, reverseCymbal(1.4, 60), tb(B.PUSH) - GAP - 1.4, 0.12);
-  addStereo(bus.fx, crash({ seed: 52, decay: 2.0, len: 4, bright: 0.9 }), tb(B.PUSH), 0.11);
-  addStereo(bus.fx, softBoom({ seed: 82, decay: 0.55, len: 1.8, air: 0.08 }), tb(B.PUSH), 0.16);
-  // the build into the climax (55.9 s)
-  const buildDur = tb(B.CLIMAX) - tb(B.BUILD) - GAP;
-  addStereo(bus.fx, riser({ dur: buildDur, fStart: 300, fEnd: 7000, toneFrom: 196, toneTo: 784, toneAmt: 0.15, curve: 2.4, seed: 73 }), tb(B.BUILD), 0.15);
-  addStereo(bus.fx, reverseCymbal(2.0, 61), tb(B.CLIMAX) - GAP - 2.0, 0.2);
-  addStereo(bus.fx, crash({ seed: 53, decay: 1.5 }), tb(B.CLIMAX), 0.17);
-  addStereo(bus.fx, softBoom({ seed: 83 }), tb(B.CLIMAX), 0.33);
-  // the biggest moment (66.4 s, "Porque si yo pude...")
-  addStereo(bus.fx, reverseCymbal(1.4, 62), tb(B.PEAK) - GAP - 1.4, 0.22);
-  addStereo(bus.fx, riser({ dur: 1.4, fStart: 600, fEnd: 9000, toneAmt: 0.1, seed: 74 }), tb(B.PEAK) - GAP - 1.4, 0.09);
-  addStereo(bus.fx, crash({ seed: 54, decay: 1.8, len: 4.5 }), tb(B.PEAK), 0.22);
-  addStereo(bus.fx, softBoom({ seed: 84, f0: 60, decay: 0.55, len: 1.8 }), tb(B.PEAK), 0.45);
-  // final soft hit (69.87 s)
-  addStereo(bus.fx, crash({ seed: 55, decay: 1.4, len: 3, bright: 0.95 }), tb(B.END), 0.13);
-  addStereo(bus.fx, softBoom({ seed: 85, decay: 0.6, len: 2 }), tb(B.END), 0.3);
-
-  // =====================================================================
   // Bus processing
   // =====================================================================
-  const secToBeat = (t) => (t - ORIGIN) / BEAT;
-
-  // Soft sidechain-style ducking from every kick
+  // Sidechain pump from every kick
   const duck = new Float64Array(N);
   for (const [tk, v] of kickTimes) {
     const s0 = Math.round(tk * SR);
     const m = Math.min(N - s0, samples(0.4));
     for (let i = 0; i < m; i++) {
       const t = i / SR;
-      duck[s0 + i] = Math.max(duck[s0 + i], v * Math.min(1, t / 0.004) * Math.exp(-t / 0.11));
+      duck[s0 + i] = Math.max(duck[s0 + i], v * Math.min(1, t / 0.004) * Math.exp(-t / 0.12));
     }
   }
   const duckBy = (buf, amt) => {
@@ -1416,36 +1735,57 @@ function renderMusic() {
       buf.R[i] *= g;
     }
   };
-  duckBy(bus.bass, 0.35);
-  duckBy(bus.pad, 0.25);
-  duckBy(bus.strings, 0.12);
-  duckBy(bus.pianoC, 0.06);
+  duckBy(bus.bass, 0.5);
+  duckBy(bus.pad, 0.38);
+  duckBy(bus.pluck, 0.25);
+  duckBy(bus.strings, 0.15);
+  duckBy(bus.piano, 0.1);
 
-  filtStereo(bus.bass, 'hp', 28, 0.7);
-  filtStereo(bus.bass, 'lp', 700, 0.7);
+  // Beat filter (drums + bass): low-passed intro opening up, low-passed tension bar
+  const beatFcFn = (t) => {
+    const b = beatAt(t);
+    if (b < 16) return expInterp(260, 2800, Math.pow(Math.max(0, b) / 16, 1.15));
+    if (b >= 106 && b < 110) return 750;
+    if (b >= 110 && b < 112) return expInterp(750, 20000, Math.pow((b - 110) / 2, 2.2));
+    return 20000;
+  };
+  const beatFc = fromArray(automation(N, beatFcFn, 0.012, true));
+  filtStereo(bus.drums, 'lp', beatFc, 0.8);
+  filtStereo(bus.bass, 'lp', beatFc, 0.75);
+  filtStereo(bus.bass, 'hp', 30, 0.7);
+  filtStereo(bus.bass, 'lp', 900, 0.7);
 
-  // Pad: airy, low-passed, swells in at the start
+  // Pad: airy, low-passed, level per section
   const padLevelFn = (t) => {
-    const b = secToBeat(t);
-    if (b < B.GROOVE) return 0.12 + 0.88 * smoothstep(t / 3.5);
-    if (b < B.PUSH) return 0.7;
-    if (b < B.BUILD) return 0.6;
-    if (b < B.CLIMAX) return 0.6 + 0.15 * smoothstep((b - B.BUILD) / 8);
-    if (b < B.END) return 0.75;
-    return 0.9;
+    const b = beatAt(t);
+    if (b < 16) return 0.35 + 0.45 * smoothstep(b / 12);
+    if (b < 35) return 0.7;
+    if (b < 52) return 0.8;
+    if (b < 63) return 0.62;
+    if (b < 74) return 1.0;
+    if (b < 94) return 0.68;
+    if (b < 98) return 1.0;
+    if (b < 106) return 0.75;
+    if (b < 112) return 0.95;
+    return 0.95;
   };
   const padFcFn = (t) => {
-    const b = secToBeat(t);
-    if (b < B.GROOVE) return expInterp(650, 1500, t / tb(B.GROOVE));
-    if (b < B.PUSH) return 1700;
-    if (b < B.BUILD) return 1500;
-    if (b < B.CLIMAX) return expInterp(1500, 2500, (b - B.BUILD) / (B.CLIMAX - B.BUILD));
-    if (b < B.END) return 2500;
-    return expInterp(2500, 1000, (t - tb(B.END)) / 2.5);
+    const b = beatAt(t);
+    if (b < 16) return expInterp(700, 2200, b / 16);
+    if (b < 35) return 2400;
+    if (b < 52) return 3000;
+    if (b < 63) return 2300;
+    if (b < 74) return 3200;
+    if (b < 94) return 2400;
+    if (b < 98) return 3000;
+    if (b < 106) return expInterp(2400, 3200, (b - 98) / 8);
+    if (b < 112) return expInterp(1200, 3600, (b - 106) / 6);
+    if (b < 133) return 3800;
+    return expInterp(3800, 1200, (b - 133) / 5);
   };
   let pad = chorus(bus.pad, { mix: 0.35 });
   pad = filtStereo(pad, 'lp', fromArray(automation(N, padFcFn, 0.1, true)), 0.75);
-  filtStereo(pad, 'hp', 120, 0.7);
+  filtStereo(pad, 'hp', 150, 0.7);
   applyGain(pad, automation(N, padLevelFn, 0.12));
 
   // Air: very quiet pink-noise shimmer above the voice band
@@ -1454,124 +1794,163 @@ function renderMusic() {
     air[c] = filt(filt(pinkNoise(N, makeRng(880 + ci)), 'bp', 7500, 0.6), 'hp', 5000, 0.7);
   });
   const airLevelFn = (t) => {
-    const b = secToBeat(t);
-    if (b < B.GROOVE) return 0.2 + 0.8 * smoothstep(t / 4);
-    if (b < B.PUSH) return 0.5;
-    if (b < B.BUILD) return 0.6;
-    if (b < B.CLIMAX) return 0.6 + 0.4 * smoothstep((b - B.BUILD) / 8);
+    const b = beatAt(t);
+    if (b < 16) return 0.3 + 0.3 * (b / 16);
+    if (b < 35) return 0.5;
+    if (b < 52) return 0.8;
+    if (b < 63) return 0.5;
+    if (b < 74) return 0.9;
+    if (b < 106) return 0.6;
+    if (b < 112) return 0.8;
     return 1;
   };
   applyGain(air, automation(N, airLevelFn, 0.3));
 
-  // Strings: 24 dB/oct low-pass automation (opens through the build and peak)
+  // Strings: 24 dB/oct low-pass automation, level per section
   const strLevelFn = (t) => {
-    const b = secToBeat(t);
-    if (b < B.STRINGS_IN) return 0;
-    if (b < B.PUSH) return 0.3 + 0.2 * smoothstep((b - B.STRINGS_IN) / 16);
-    if (b < B.BUILD) return 0.55;
-    if (b < B.CLIMAX) return 0.55 + 0.35 * smoothstep((b - B.BUILD) / 8);
-    if (b < B.PEAK - 1) return 0.9;
-    if (b < B.END) return 0.9 + 0.3 * smoothstep((b - B.PEAK + 1) / 1.5);
-    return 1.1;
+    const b = beatAt(t);
+    if (b < 35) return 0;
+    if (b < 52) return 0.36;
+    if (b < 63) return 0;
+    if (b < 74) return 0.3;
+    if (b < 86) return 0;
+    if (b < 94) return 0.35;
+    if (b < 98) return 0.5;
+    if (b < 106) return 0.4 + 0.15 * smoothstep((b - 98) / 8);
+    if (b < 112) return 0.5 + 0.35 * smoothstep((b - 106) / 6);
+    if (b < 116) return 0.8;
+    if (b < 126) return 1.0;
+    return 1.15;
   };
   const strFcFn = (t) => {
-    const b = secToBeat(t);
-    if (b < B.PUSH) return 1300;
-    if (b < B.BUILD) return 1900;
-    if (b < B.CLIMAX) return expInterp(1900, 3300, (b - B.BUILD) / (B.CLIMAX - B.BUILD));
-    if (b < B.PEAK - 1) return 3300;
-    if (b < B.END) return 4000;
-    return expInterp(4000, 1500, (t - tb(B.END)) / 2.5);
+    const b = beatAt(t);
+    if (b < 63) return 2200;
+    if (b < 74) return 2000;
+    if (b < 106) return expInterp(2200, 2800, (b - 86) / 20);
+    if (b < 112) return expInterp(1500, 3500, (b - 106) / 6);
+    if (b < 126) return 3800;
+    if (b < 133) return 4200;
+    return expInterp(4200, 1500, (b - 133) / 5);
   };
   const strFc = fromArray(automation(N, strFcFn, 0.1, true));
   filtStereo(bus.strings, 'lp', strFc, 0.6);
   filtStereo(bus.strings, 'lp', strFc, 0.6);
-  filtStereo(bus.strings, 'hp', 70, 0.7);
+  filtStereo(bus.strings, 'hp', 90, 0.7);
   const strings = chorus(bus.strings, { mix: 0.25, rate: 0.27, depth: 0.003 });
-  applyGain(strings, automation(N, strLevelFn, 0.1));
+  applyGain(strings, automation(N, strLevelFn, 0.08));
 
-  // Piano: warm felt tone, voice-pocket dip; arps get a dotted-8th ping-pong
-  for (const k of ['pianoA', 'pianoC']) {
-    filtStereo(bus[k], 'hp', 60, 0.7);
-    filtStereo(bus[k], 'lp', 4200, 0.7);
-    eqStereo(bus[k], peakEq, 2600, -3, 0.9);
-  }
-  const pianoEcho = pingPong(bus.pianoA, { time: 0.75 * BEAT, feedback: 0.3, lp: 3500, hp: 400 });
-  const pianoA = stereoN(N);
-  addStereo(pianoA, bus.pianoA, 0, 1);
-  addStereo(pianoA, pianoEcho, 0, 0.22);
+  // Piano: bright-ish but with a voice-pocket dip
+  filtStereo(bus.piano, 'hp', 80, 0.7);
+  filtStereo(bus.piano, 'lp', 5000, 0.7);
+  eqStereo(bus.piano, peakEq, 2600, -4, 0.9);
 
-  return { drums: bus.drums, bass: bus.bass, pianoA, pianoC: bus.pianoC, strings, pad, air, fx: bus.fx, drumVerb: bus.drumVerb };
+  // Plucks: filter automation, voice-pocket dip, dotted-8th ping-pong
+  const pluckFcFn = (t) => {
+    const b = beatAt(t);
+    if (b < 16) return expInterp(700, 3200, b / 16);
+    if (b >= 63 && b < 74) return 2100;
+    if (b >= 94 && b < 98) return 1100;
+    if (b >= 98 && b < 106) return expInterp(1100, 3400, (b - 98) / 8);
+    if (b >= 106 && b < 110) return 900;
+    if (b >= 110 && b < 112) return expInterp(900, 3400, (b - 110) / 2);
+    return 3400;
+  };
+  filtStereo(bus.pluck, 'lp', fromArray(automation(N, pluckFcFn, 0.03, true)), 0.8);
+  filtStereo(bus.pluck, 'hp', 200, 0.7);
+  eqStereo(bus.pluck, peakEq, 2600, -4, 0.9);
+  const pluckEcho = pingPong(bus.pluck, { time: 0.75 * NOM_BEAT, feedback: 0.35, lp: 3000, hp: 400 });
+  const pluck = stereoN(N);
+  addStereo(pluck, bus.pluck, 0, 1);
+  addStereo(pluck, pluckEcho, 0, 0.3);
+
+  // Bells: sparkle above the voice core, long echo
+  filtStereo(bus.bells, 'hp', 400, 0.7);
+  filtStereo(bus.bells, 'lp', 7000, 0.7);
+  eqStereo(bus.bells, peakEq, 2600, -5, 0.9);
+  const bellEcho = pingPong(bus.bells, { time: 0.75 * NOM_BEAT, feedback: 0.45, lp: 5000, hp: 600 });
+  const bells = stereoN(N);
+  addStereo(bells, bus.bells, 0, 1);
+  addStereo(bells, bellEcho, 0, 0.4);
+
+  // Stabs
+  filtStereo(bus.stab, 'hp', 120, 0.7);
+  filtStereo(bus.stab, 'lp', 5000, 0.7);
+  eqStereo(bus.stab, peakEq, 2600, -4, 0.9);
+
+  return { drums: bus.drums, bass: bus.bass, piano: bus.piano, pluck, bells, strings, pad, air, stab: bus.stab, fx: bus.fx, drumVerb: bus.drumVerb };
 }
 
 // ----------------------------------------------------------------------------
 // Mix + master
 // ----------------------------------------------------------------------------
-const CLIMAX_RANGE = [[55.9, 69.9]];
-const INTIMATE_RANGE = [[33.2, 55.9]];
+const CLIMAX_RANGE = [[61.1, 69.9]];
+const DREAM_RANGE = [[33.2, 38.9]];
 // Stem balance: each stem is scaled so its K-weighted RMS over a reference
-// range hits the target (dB). The arpeggio piano is referenced to the intimate
-// section (it is silent in the climax). fx / drumVerb follow the drums' gain.
+// range hits the target (dB). stab / fx / drumVerb follow the drums' gain.
 const STEM_TARGETS = {
-  drums: [CLIMAX_RANGE, -16.5],
-  bass: [CLIMAX_RANGE, -18.5],
-  pianoC: [CLIMAX_RANGE, -18.5],
-  pianoA: [INTIMATE_RANGE, -22],
-  strings: [CLIMAX_RANGE, -19],
-  pad: [CLIMAX_RANGE, -24],
+  drums: [CLIMAX_RANGE, -15.5],
+  bass: [CLIMAX_RANGE, -17.5],
+  piano: [CLIMAX_RANGE, -21],
+  pluck: [CLIMAX_RANGE, -21.5],
+  strings: [CLIMAX_RANGE, -19.5],
+  pad: [CLIMAX_RANGE, -23],
   air: [CLIMAX_RANGE, -38],
+  bells: [DREAM_RANGE, -26],
   verb: [CLIMAX_RANGE, -22],
 };
-const TARGET_RMS_DB = -14.5; // climax RMS (dBFS) after the master chain
+const TARGET_RMS_DB = -13.0; // climax RMS (dBFS) after the master chain
 const CEILING_DB = -1.0;
+const STEM_ORDER = ['drums', 'bass', 'piano', 'pluck', 'bells', 'strings', 'pad', 'air', 'stab', 'fx', 'verb'];
 
 function mixAndMaster(stems) {
   const N = stems.drums.L.length;
   const gains = {};
-  for (const k of ['drums', 'bass', 'pianoC', 'pianoA', 'strings', 'pad', 'air']) {
+  for (const k of ['drums', 'bass', 'piano', 'pluck', 'bells', 'strings', 'pad', 'air']) {
     const [range, target] = STEM_TARGETS[k];
     const r = gainToDb(rmsOf(kWeight(stems[k]), range));
     gains[k] = dbToGain(target - r);
     scaleBuf(stems[k], gains[k]);
   }
+  scaleBuf(stems.stab, gains.drums);
   scaleBuf(stems.fx, gains.drums);
   scaleBuf(stems.drumVerb, gains.drums);
 
-  // Reverb glue: one shared hall fed by the melodic stems, claps/snaps and fx.
+  // Reverb glue: one shared hall fed by the melodic stems, claps / snares and fx.
   const send = stereoN(N);
   addStereo(send, stems.pad, 0, 0.2);
   addStereo(send, stems.strings, 0, 0.25);
-  addStereo(send, stems.pianoA, 0, 0.35);
-  addStereo(send, stems.pianoC, 0, 0.25);
+  addStereo(send, stems.piano, 0, 0.22);
+  addStereo(send, stems.pluck, 0, 0.22);
+  addStereo(send, stems.bells, 0, 0.45);
+  addStereo(send, stems.stab, 0, 0.25);
   addStereo(send, stems.drumVerb, 0, 0.35);
   addStereo(send, stems.fx, 0, 0.15);
-  const verb = freeverb(send, { room: 0.86, damp: 0.35 });
+  const verb = freeverb(send, { room: 0.84, damp: 0.35 });
   filtStereo(verb, 'hp', 300, 0.7);
   filtStereo(verb, 'lp', 7000, 0.7);
   const rv = gainToDb(rmsOf(kWeight(verb), STEM_TARGETS.verb[0]));
   scaleBuf(verb, dbToGain(STEM_TARGETS.verb[1] - rv));
   stems.verb = verb;
 
-  const order = ['drums', 'bass', 'pianoC', 'pianoA', 'strings', 'pad', 'air', 'fx', 'verb'];
   const mix = stereoN(N);
-  for (const k of order) addStereo(mix, stems[k], 0, 1);
+  for (const k of STEM_ORDER) addStereo(mix, stems[k], 0, 1);
 
-  // Warm master: 25 Hz HP, low-mid warmth, a wide dip in the voice presence
-  // band, a touch of air, then soft clip -> limiter -> end fade -> peak normalise.
+  // Master: 25 Hz HP, low-end weight, wide dip in the voice presence band,
+  // a touch of air, then soft clip -> limiter -> end fade -> peak normalise.
   filtStereo(mix, 'hp', 25, 0.7);
-  eqStereo(mix, lowShelf, 180, 1.0);
+  eqStereo(mix, lowShelf, 120, 1.0);
   eqStereo(mix, peakEq, 2500, -2.5, 0.7);
-  eqStereo(mix, highShelf, 10000, 0.5);
+  eqStereo(mix, highShelf, 10000, 1.0);
 
   let pre = 1;
   let result = null;
   for (let iter = 0; iter < 8; iter++) {
     const out = stereoN(N);
     for (let i = 0; i < N; i++) {
-      out.L[i] = softClip(mix.L[i] * pre, 0.65);
-      out.R[i] = softClip(mix.R[i] * pre, 0.65);
+      out.L[i] = softClip(mix.L[i] * pre, 0.7);
+      out.R[i] = softClip(mix.R[i] * pre, 0.7);
     }
-    const { maxReductionDb } = limiter(out, { ceilingDb: CEILING_DB - 0.05 });
+    const { maxReductionDb } = limiter(out, { ceilingDb: CEILING_DB - 0.05, releaseSec: 0.12 });
     fadeOutRange(out, FADE[0], FADE[1]);
     const rmsDb = gainToDb(rmsOf(out, CLIMAX_RANGE));
     result = { out, preDb: gainToDb(pre), maxReductionDb, rmsDb };
@@ -1586,9 +1965,7 @@ function mixAndMaster(stems) {
   result.nonFinite = nonFinite;
 
   const mixK = rmsOf(kWeight(mix), CLIMAX_RANGE);
-  result.stemReport = order.map((k) => `${k} ${gainToDb(rmsOf(kWeight(stems[k]), CLIMAX_RANGE) / mixK).toFixed(1)}`).join(', ');
-  const story = [[33.2, 50.0]];
-  result.storyReport = order.map((k) => `${k} ${gainToDb(rmsOf(kWeight(stems[k]), story) / mixK).toFixed(1)}`).join(', ');
+  result.stemReport = STEM_ORDER.map((k) => `${k} ${gainToDb(rmsOf(kWeight(stems[k]), CLIMAX_RANGE) / mixK).toFixed(1)}`).join(', ');
   return result;
 }
 
@@ -1596,8 +1973,21 @@ function mixAndMaster(stems) {
 // Verification (operates on the file re-read from disk)
 // ----------------------------------------------------------------------------
 const fmtDb = (db) => (Number.isFinite(db) ? db.toFixed(1) : '-inf');
-const pad = (s, w) => String(s).padEnd(w);
+const padR = (s, w) => String(s).padEnd(w);
 const padL = (s, w) => String(s).padStart(w);
+
+function peakIn(L, R, a, b) {
+  let pk = 0;
+  let at = a;
+  for (let i = Math.max(0, Math.round(a * SR)); i < Math.min(L.length, Math.round(b * SR)); i++) {
+    const v = Math.max(Math.abs(L[i]), Math.abs(R[i]));
+    if (v > pk) {
+      pk = v;
+      at = i / SR;
+    }
+  }
+  return [pk, at];
+}
 
 function verify(path) {
   const w = readWav(path);
@@ -1606,14 +1996,15 @@ function verify(path) {
   const n = w.frames;
   const problems = [];
 
-  let peak = 0;
+  let nonFinite = 0;
   let sumL = 0;
   let sumR = 0;
   for (let i = 0; i < n; i++) {
-    peak = Math.max(peak, Math.abs(L[i]), Math.abs(R[i]));
+    if (!Number.isFinite(L[i]) || !Number.isFinite(R[i])) nonFinite++;
     sumL += L[i];
     sumR += R[i];
   }
+  const [peak, peakAt] = peakIn(L, R, 0, DURATION);
   const tail0 = n - Math.round(SILENT_TAIL * SR);
   let tailPk = 0;
   for (let i = tail0; i < n; i++) tailPk = Math.max(tailPk, Math.abs(L[i]), Math.abs(R[i]));
@@ -1627,43 +2018,72 @@ function verify(path) {
   console.log(`  frames          ${n}  (expected ${N_TOTAL})`);
   console.log(`  duration        ${w.duration.toFixed(6)} s  (target ${DURATION} s, error ${((w.duration - DURATION) * 1000).toFixed(3)} ms)`);
   console.log(`  size            ${w.bytes.length} bytes`);
-  console.log(`  peak            ${fmtDb(gainToDb(peak))} dBFS`);
+  console.log(`  peak            ${fmtDb(gainToDb(peak))} dBFS at ${peakAt.toFixed(3)} s`);
   console.log(`  RMS (whole)     ${fmtDb(gainToDb(rmsOf(buf, [[0, DURATION]])))} dBFS`);
+  console.log(`  NaN / Inf       ${nonFinite}`);
   console.log(`  full-scale smp  ${w.fullScale}`);
   console.log(`  DC offset       L ${((sumL / n) * 100).toFixed(4)} %  R ${((sumR / n) * 100).toFixed(4)} %`);
   console.log(`  last ${SILENT_TAIL} s     ${tailPk === 0 ? 'digital silence (all samples 0)' : 'peak ' + fmtDb(gainToDb(tailPk)) + ' dBFS'}; last non-zero sample at ${(lastNonZero / SR).toFixed(4)} s`);
   console.log(`  sha256          ${sha}`);
 
-  if (w.sampleRate !== SR || w.channels !== 2 || w.bits !== 16) problems.push('wrong format');
+  if (w.sampleRate !== SR || w.channels !== 2 || w.bits !== 16 || w.format !== 1) problems.push('wrong format');
   if (Math.abs(w.duration - DURATION) > 0.001) problems.push(`duration ${w.duration} != ${DURATION}`);
+  if (nonFinite) problems.push(`${nonFinite} non-finite samples`);
   if (w.fullScale) problems.push(`${w.fullScale} full-scale (clipped) samples`);
   if (gainToDb(peak) > -0.95) problems.push('peak above -1 dBFS');
   if (tailPk !== 0) problems.push(`last ${SILENT_TAIL} s not silent`);
 
-  const bar = (db) => '#'.repeat(Math.max(0, Math.round((db + 40) / 1)));
+  const bar = (db) => '#'.repeat(Math.max(0, Math.round(db + 40)));
   console.log('\nRMS per 2 s window (dBFS):');
-  console.log('  window (s)      section     RMS    peak');
+  console.log('  window (s)      section       RMS   peak');
   for (let a = 0; a < DURATION - 1e-9; a += 2) {
     const b = Math.min(DURATION, a + 2);
-    let pk = 0;
-    for (let i = Math.round(a * SR); i < Math.min(n, Math.round(b * SR)); i++) pk = Math.max(pk, Math.abs(L[i]), Math.abs(R[i]));
+    const [pk] = peakIn(L, R, a, b);
     const r = gainToDb(rmsOf(buf, [[a, b]]));
-    console.log(`  ${padL(a.toFixed(1), 5)} - ${pad(b.toFixed(2), 6)}  ${pad(sectionAtSec((a + b) / 2), 10)} ${padL(fmtDb(r), 6)} ${padL(fmtDb(gainToDb(pk)), 6)}  ${bar(r)}`);
+    console.log(`  ${padL(a.toFixed(1), 5)} - ${padR(b.toFixed(2), 6)}  ${padR(sectionAtSec((a + b) / 2), 10)} ${padL(fmtDb(r), 6)} ${padL(fmtDb(gainToDb(pk)), 6)}  ${bar(r)}`);
   }
 
   console.log('\nRMS per section (dBFS):');
   const rows = [
     ...SECTIONS,
-    ['  intimate: story', 33.2, 50.0],
-    ['  intimate: build', 50.0, 55.9],
-    ['  climax: 55.9-66.5', 55.9, 66.5],
-    ['  climax: peak 66.5-69.9', 66.5, 69.9],
+    ['  groove C: story', 38.9, tb(94)],
+    ['  groove C: break', tb(94), tb(98)],
+    ['  groove C: build', tb(98), 55.9],
+    ['  climax: 61.1-66.4', 61.1, 66.4],
+    ['  climax: peak 66.4-69.9', 66.4, 69.9],
     ['  ring-out 69.9-72.24', 69.9, DURATION - SILENT_TAIL],
   ];
+  const secRms = {};
   for (const [name, a, b] of rows) {
-    let pk = 0;
-    for (let i = Math.round(a * SR); i < Math.min(n, Math.round(b * SR)); i++) pk = Math.max(pk, Math.abs(L[i]), Math.abs(R[i]));
-    console.log(`  ${pad(name, 26)} ${padL(a.toFixed(2), 6)}-${pad(b.toFixed(2), 6)} RMS ${padL(fmtDb(gainToDb(rmsOf(buf, [[a, b]]))), 6)}  peak ${padL(fmtDb(gainToDb(pk)), 6)}`);
+    const [pk, at] = peakIn(L, R, a, b);
+    const r = gainToDb(rmsOf(buf, [[a, b]]));
+    secRms[name] = r;
+    console.log(`  ${padR(name, 26)} ${padL(a.toFixed(2), 6)}-${padR(b.toFixed(2), 6)} RMS ${padL(fmtDb(r), 6)}  peak ${padL(fmtDb(gainToDb(pk)), 6)} @ ${at.toFixed(2)} s`);
+  }
+  // 0.5 s windows: where is the loudest moment?
+  let best = [-Infinity, 0];
+  for (let a = 0; a < DURATION - 0.5; a += 0.25) {
+    const r = gainToDb(rmsOf(buf, [[a, a + 0.5]]));
+    if (r > best[0]) best = [r, a];
+  }
+  console.log(`  loudest 0.5 s window: ${best[1].toFixed(2)}-${(best[1] + 0.5).toFixed(2)} s at ${best[0].toFixed(1)} dBFS RMS`);
+  for (const t of [59.0, 61.1, 66.4, 69.9]) console.log(`  0.5 s after the ${t.toFixed(1)} s hit: ${fmtDb(gainToDb(rmsOf(buf, [[t, t + 0.5]])))} dBFS RMS`);
+  const band = { L: filt(filt(L, 'hp', 1000, 0.7), 'lp', 4000, 0.7), R: filt(filt(R, 'hp', 1000, 0.7), 'lp', 4000, 0.7) };
+  const share = SECTIONS.map(([s, a, b]) => `${s} ${fmtDb(gainToDb(rmsOf(band, [[a, b]]) / rmsOf(buf, [[a, b]])))}`).join(', ');
+  console.log(`  1-4 kHz band level rel. full band (dB): ${share}`);
+
+  const peakHit = gainToDb(rmsOf(buf, [[66.4, 66.9]]));
+  const arc = [
+    ['intro < groove', secRms.intro < secRms.groove],
+    ['dream (33.2) softer than groove B and groove C', secRms.dream < secRms['groove B'] && secRms.dream < secRms['groove C']],
+    ['climax loudest section', SECTIONS.every(([s]) => s === 'climax' || secRms[s] < secRms.climax)],
+    ['peak half of climax (66.4-69.9) louder than 61.1-66.4', secRms['  climax: peak 66.4-69.9'] > secRms['  climax: 61.1-66.4']],
+    ['66.4 s hit is the loudest hit (0.5 s RMS vs 59.0 / 61.1 / 69.9)', [59.0, 61.1, 69.9].every((t) => gainToDb(rmsOf(buf, [[t, t + 0.5]])) < peakHit)],
+  ];
+  console.log('\nArc checks:');
+  for (const [name, ok] of arc) {
+    console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${name}`);
+    if (!ok) problems.push(`arc: ${name}`);
   }
   return { problems, sha };
 }
@@ -1675,9 +2095,32 @@ function main() {
   const t0 = Date.now();
   mkdirSync(dirname(OUT_PATH), { recursive: true });
 
-  console.log(`Grid: ${BPM.toFixed(3)} BPM (beat ${BEAT.toFixed(6)} s, bar ${BAR.toFixed(4)} s), origin ${ORIGIN.toFixed(4)} s, key C major`);
-  console.log(`  edit points -> beats: 8.4 s = ${((8.4 - ORIGIN) / BEAT).toFixed(2)}, 33.2 s = ${((33.2 - ORIGIN) / BEAT).toFixed(2)}, 55.9 s = ${((55.9 - ORIGIN) / BEAT).toFixed(2)}, 66.5 s = ${((66.5 - ORIGIN) / BEAT).toFixed(2)} (peak hit at ${tb(B.PEAK).toFixed(3)} s), final hit ${tb(B.END).toFixed(3)} s`);
-  console.log(`  chords: ${CHORD_TL.map(([b, c]) => `${tb(b).toFixed(2)}s ${CHORDS[c].name}`).join(' | ')}`);
+  let minBpm = Infinity;
+  let maxBpm = -Infinity;
+  for (let b = 0; b <= AX[AX.length - 1]; b += 0.05) {
+    const v = bpmAt(b);
+    minBpm = Math.min(minBpm, v);
+    maxBpm = Math.max(maxBpm, v);
+  }
+  console.log(`Key D major, 4/4. Tempo map (PCHIP through anchors): average ${AVG_BPM.toFixed(2)} BPM, instantaneous ${minBpm.toFixed(1)}-${maxBpm.toFixed(1)} BPM`);
+  console.log('  anchor segments (beat@s -> beat@s : mean BPM):');
+  for (let k = 0; k < AX.length - 1; k++) {
+    console.log(`    ${padL(AX[k], 5)} @ ${padL(AY[k].toFixed(2), 5)} s -> ${padL(AX[k + 1], 5)} @ ${padL(AY[k + 1].toFixed(2), 5)} s : ${(60 / AD[k]).toFixed(2)} BPM`);
+  }
+  console.log('\nBars (start time, length, chord(s)):');
+  for (const [s, len, name] of BARS) {
+    const chords = CHORD_TL.filter(([b]) => b >= s && b < s + len).map(([b, c]) => (b === s ? CHORDS[c].name : `${CHORDS[c].name}@+${b - s}`));
+    if (!chords.length || CHORD_TL.every(([b]) => b !== s)) chords.unshift(`(${chordAt(s).name})`);
+    console.log(`  beat ${padL(s, 3)}  ${padL(tb(s).toFixed(3), 7)} s  ${len}/4  ${padR(name, 22)} ${chords.join(' ')}`);
+  }
+  console.log('\nHit points -> grid:');
+  for (const [name, t0, b] of HITS) {
+    const t = t0 ?? tb(b);
+    const bar = BARS.filter(([s]) => s <= b + 1e-9).pop();
+    const pos = b - bar[0];
+    const where = pos === 0 ? 'downbeat' : `beat ${Math.floor(pos) + 1}${pos % 1 ? ' +1/8 ("and")' : ''}`;
+    console.log(`  ${padR(name, 15)} ${padL(t.toFixed(2), 6)} s -> beat ${padL(b, 5)} (${padR(where, 18)}) at ${tb(b).toFixed(3)} s, ${t0 === null ? `(requested "around 50-52 s"; bar runs ${tb(b).toFixed(2)}-${tb(b + 4).toFixed(2)} s)` : `error ${padL(((tb(b) - t) * 1000).toFixed(1), 6)} ms`}`);
+  }
 
   const stems = renderMusic();
   const m = mixAndMaster(stems);
@@ -1685,11 +2128,10 @@ function main() {
   writeWav(OUT_PATH, m.out);
   console.log(`\nMaster: pre-gain ${m.preDb.toFixed(2)} dB, limiter max reduction ${m.maxReductionDb.toFixed(2)} dB, climax RMS ${m.rmsDb.toFixed(2)} dBFS, non-finite samples 0`);
   console.log(`Stem loudness in climax (K-weighted, dB rel. full mix): ${m.stemReport}`);
-  console.log(`Stem loudness in intimate story 33.2-50 s (same reference): ${m.storyReport}`);
-  console.log(`Piano notes rendered (cached): ${pianoCache.size}`);
+  console.log(`Notes rendered (cached): piano ${pianoCache.size}, pluck ${pluckCache.size}`);
 
   const { problems } = verify(OUT_PATH);
-  console.log(problems.length ? `\nPROBLEMS:\n  ${problems.join('\n  ')}` : '\nAll format / length / peak / clipping / silent-tail checks passed.');
+  console.log(problems.length ? `\nPROBLEMS:\n  ${problems.join('\n  ')}` : '\nAll format / length / peak / clipping / silent-tail / arc checks passed.');
   console.log(`Done in ${((Date.now() - t0) / 1000).toFixed(1)} s -> ${OUT_PATH}`);
   if (problems.length) process.exitCode = 1;
 }

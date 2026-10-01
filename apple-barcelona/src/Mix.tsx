@@ -7,7 +7,7 @@ import {SEGMENTS, TOTAL_FRAMES} from './edit';
 // Mezcla: voz limpia cortada con la misma EDL que el video, música de fondo con
 // "ducking" automático (baja mientras él habla) y efectos sutiles en los títulos.
 
-const MUSIC_BED = 0.3; // nivel de la música cuando no hay voz
+const MUSIC_BED = 0.23; // nivel de la música cuando no hay voz
 const DUCK = 0.6; // cuánto baja con voz (60 %)
 
 /** Frame del original que corresponde a un frame de la edición. */
