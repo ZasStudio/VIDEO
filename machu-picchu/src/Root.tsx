@@ -8,6 +8,8 @@ import { DinoShort, DinoSoundtrack } from "./dino/DinoShort";
 import { DINO, DINO_HEIGHT, DINO_WIDTH } from "./dino/timeline";
 import { ThanosShort, ThanosSoundtrack } from "./thanos/ThanosShort";
 import { THANOS, THANOS_HEIGHT, THANOS_WIDTH } from "./thanos/timeline";
+import { AguaShort, AguaSoundtrack } from "./agua/AguaShort";
+import { AGUA, AGUA_HEIGHT, AGUA_WIDTH } from "./agua/timeline";
 import { OXI, OXI_HEIGHT, OXI_WIDTH } from "./oxigeno/timeline";
 import { INCA, INCA_HEIGHT, INCA_WIDTH } from "./inca/timeline";
 import { NubiShort, NubiSoundtrack } from "./nubi/NubiShort";
@@ -29,6 +31,11 @@ import { DINO_PROPS_SHEET_FRAMES, DinoPropsSheet } from "./dev/DinoPropsSheet";
 import { THANOS_CAST_SHEET_FRAMES, ThanosCastSheet } from "./dev/ThanosCastSheet";
 import { THANOS_PROPS_SHEET_FRAMES, ThanosPropsSheet } from "./dev/ThanosPropsSheet";
 import { THANOS_UI_SHEET_DURATION, ThanosUISheet } from "./dev/ThanosUISheet";
+import { AGUA_HOME_SHEET_FRAMES, AguaHomeSheet } from "./dev/AguaHomeSheet";
+import { AGUA_OUTDOOR_SHEET_FRAMES, AguaOutdoorSheet } from "./dev/AguaOutdoorSheet";
+import { AGUA_SHOP_SHEET_FRAMES, AguaShopSheet } from "./dev/AguaShopSheet";
+import { AGUA_STREET_SHEET_FRAMES, AguaStreetSheet } from "./dev/AguaStreetSheet";
+import { AGUA_UI_SHEET_DURATION, AguaUISheet } from "./dev/AguaUISheet";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -141,6 +148,24 @@ export const RemotionRoot: React.FC = () => {
         width={THANOS_WIDTH}
         height={THANOS_HEIGHT}
       />
+      {/* Nubi's vertical short: what if all the water disappeared? (70 s, a reply to a comment). */}
+      <Composition
+        id="AguaShort"
+        component={AguaShort}
+        durationInFrames={AGUA.DURATION}
+        fps={FPS}
+        width={AGUA_WIDTH}
+        height={AGUA_HEIGHT}
+        defaultProps={{ withAudio: true }}
+      />
+      <Composition
+        id="AguaShortAudio"
+        component={AguaSoundtrack}
+        durationInFrames={AGUA.DURATION}
+        fps={FPS}
+        width={AGUA_WIDTH}
+        height={AGUA_HEIGHT}
+      />
       <Folder name="Dev">
         <Composition
           id="WorldTest"
@@ -250,6 +275,46 @@ export const RemotionRoot: React.FC = () => {
           id="ThanosUISheet"
           component={ThanosUISheet}
           durationInFrames={THANOS_UI_SHEET_DURATION}
+          fps={30}
+          width={1080}
+          height={1920}
+        />
+        <Composition
+          id="AguaHomeSheet"
+          component={AguaHomeSheet}
+          durationInFrames={AGUA_HOME_SHEET_FRAMES}
+          fps={30}
+          width={1920}
+          height={1080}
+        />
+        <Composition
+          id="AguaOutdoorSheet"
+          component={AguaOutdoorSheet}
+          durationInFrames={AGUA_OUTDOOR_SHEET_FRAMES}
+          fps={30}
+          width={1920}
+          height={1080}
+        />
+        <Composition
+          id="AguaShopSheet"
+          component={AguaShopSheet}
+          durationInFrames={AGUA_SHOP_SHEET_FRAMES}
+          fps={30}
+          width={1920}
+          height={1080}
+        />
+        <Composition
+          id="AguaStreetSheet"
+          component={AguaStreetSheet}
+          durationInFrames={AGUA_STREET_SHEET_FRAMES}
+          fps={30}
+          width={1920}
+          height={1080}
+        />
+        <Composition
+          id="AguaUISheet"
+          component={AguaUISheet}
+          durationInFrames={AGUA_UI_SHEET_DURATION}
           fps={30}
           width={1080}
           height={1920}

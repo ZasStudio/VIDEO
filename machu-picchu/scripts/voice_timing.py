@@ -483,7 +483,7 @@ def main():
             raise SystemExit(f"{lid}: captions cover {caption_word_count(line['captions'])} words, text has {len(words)}")
         x, sr = load_clip(raw_dir, lid, tmp_dir, float(option("--tempo", "1")))
         a, b = trim_bounds(x, sr)
-        x = level(cap_pauses(x[a:b].copy(), sr), sr)
+        x = level(cap_pauses(x[a:b].copy(), sr, max_s=float(option("--max-pause", "1.4"))), sr)
         fade = int(0.01 * sr)
         x[:fade] *= np.linspace(0, 1, fade)
         x[-fade:] *= np.linspace(1, 0, fade)

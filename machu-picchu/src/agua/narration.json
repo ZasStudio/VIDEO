@@ -1,0 +1,27 @@
+{
+  "_title": "¿Y si toda el agua desapareciera?",
+  "_voices": "Magnific TTS, ElevenLabs v3. nubi = Nubi's usual voice (stability 0.45, speed 0.95); seller = a shady street seller (whispery). L16 is slowed down in post (slow-motion «¡NOOO!»).",
+  "_captions": "Same syntax as src/narration.json. The seller's words are all green (^g).",
+  "lines": [
+    {"id": "L01", "voice": "nubi", "scene": "hook", "tts": "[curious] ¿Y si toda el agua desapareciera… [dramatic] ahora?", "captions": "¿Y SI TODA EL AGUA^c / DESAPARECIERA…^c / AHORA?^r"},
+    {"id": "L02", "voice": "nubi", "scene": "hook", "tts": "[nervous] Encontré la última botella… pero cometí un pequeño error.", "captions": "ENCONTRÉ LA / ÚLTIMA BOTELLA…^c / PERO COMETÍ UN / PEQUEÑO ERROR.^r"},
+    {"id": "L03", "voice": "nubi", "scene": "antes", "tts": "Pensé que habían cortado el agua… [sarcastic] hasta que fui a la playa.", "captions": "PENSÉ QUE HABÍAN / CORTADO EL AGUA…^c / HASTA QUE FUI / A LA PLAYA.^y"},
+    {"id": "L04", "voice": "nubi", "scene": "antes", "tts": "[sarcastic] Creo que estacionaron mal.", "captions": "CREO QUE / ESTACIONARON MAL.^o"},
+    {"id": "L05", "voice": "nubi", "scene": "problema", "tts": "Pero la sed sería solo el comienzo.", "captions": "PERO LA SED^r / SERÍA SOLO / EL COMIENZO."},
+    {"id": "L06", "voice": "nubi", "scene": "problema", "tts": "Sin agua, los cultivos se perderían… y conseguir comida sería cada vez más difícil.", "captions": "SIN AGUA,^c / LOS CULTIVOS^g / SE PERDERÍAN… / Y CONSEGUIR COMIDA^y / SERÍA CADA VEZ / MÁS DIFÍCIL.^r"},
+    {"id": "L07", "voice": "nubi", "scene": "problema", "tts": "[excited] ¡Ahora la papa viene con seguridad!", "captions": "¡AHORA LA PAPA^o / VIENE CON / SEGURIDAD!^y"},
+    {"id": "L08", "voice": "seller", "scene": "solucion", "tts": "[whispers] Pssst… ¡oye, tú!", "captions": "PSSST…^g / ¡OYE,^g TÚ!^g"},
+    {"id": "L09", "voice": "seller", "scene": "solucion", "tts": "[whispers] La última. [mysterious] Diez millones.", "captions": "LA^g ÚLTIMA.^g / DIEZ^g MILLONES.^g"},
+    {"id": "L10", "voice": "nubi", "scene": "solucion", "tts": "[nervous] Tengo tres soles… y te hago un retrato.", "captions": "TENGO TRES SOLES…^y / Y TE HAGO / UN RETRATO.^o"},
+    {"id": "L11", "voice": "seller", "scene": "solucion", "tts": "[emotional] Igualito a mí.", "captions": "IGUALITO^g / A^g MÍ.^g"},
+    {"id": "L12", "voice": "nubi", "scene": "peligro", "tts": "Mi error fue mostrarla. De pronto… tenía demasiados amigos.", "captions": "MI ERROR FUE / MOSTRARLA.^r / DE PRONTO… / TENÍA DEMASIADOS / AMIGOS.^y"},
+    {"id": "L13", "voice": "nubi", "scene": "peligro", "tts": "[whispers] Si yo no los veo… ellos tampoco.", "captions": "SI YO NO / LOS VEO… / ELLOS TAMPOCO.^c"},
+    {"id": "L14", "voice": "nubi", "scene": "giro", "tts": "[relieved] Por fin… [shouting] ¡NO!", "captions": "POR FIN…^g / ¡NO!^r"},
+    {"id": "L15", "voice": "nubi", "scene": "giro", "tts": "[panicked] ¡Me seguían porque estaba perdiendo el agua!", "captions": "¡ME SEGUÍAN / PORQUE ESTABA / PERDIENDO EL AGUA!^c"},
+    {"id": "L16", "voice": "nubi", "scene": "giro", "tts": "[shouting] ¡Noooooo!", "captions": "¡NOOOOOO!^r"},
+    {"id": "L17", "voice": "nubi", "scene": "final", "tts": "[relieved] ¡Uf… era un sueño!", "captions": "¡UF…^g / ERA UN SUEÑO!^g"},
+    {"id": "L18", "voice": "nubi", "scene": "final", "tts": "Pero… si tuvieras la última botella de agua del mundo…", "captions": "PERO… SI TUVIERAS / LA ÚLTIMA BOTELLA^c / DE AGUA DEL MUNDO…^c"},
+    {"id": "L19", "voice": "nubi", "scene": "final", "tts": "[mischievous] ¿La compartirías… o te la quedarías?", "captions": "¿LA COMPARTIRÍAS…^g / O TE LA QUEDARÍAS?^o"},
+    {"id": "L20", "voice": "nubi", "scene": "final", "tts": "[suspicious] Sé sincero… te estoy mirando.", "captions": "SÉ SINCERO…^y / TE ESTOY MIRANDO.^r"}
+  ]
+}
