@@ -4,7 +4,7 @@ import { EASE_IN_OUT, EASE_OUT, clamp01, ramp } from "../../anim";
 import { Shake, Stage } from "../../scenes/common";
 import { aim } from "../../thanos/camera";
 import { Vec3, lerp3 } from "../../three/CameraRig";
-import { STUDIO_BASIN, STUDIO_FAUCET_KNOB, STUDIO_SINK, STUDIO_SINK_RAISE, STUDIO_SINK_YAW, Studio, StudioLights } from "../../three/agua/Home";
+import { STUDIO_BASIN, STUDIO_SINK, STUDIO_SINK_RAISE, STUDIO_SINK_YAW, Studio, StudioLights } from "../../three/agua/Home";
 import { Nubi, NubiPose } from "../../three/Nubi";
 import { ANTES } from "../beats";
 import { SHOTS } from "../shots";
@@ -68,10 +68,6 @@ export const GrifoShot: React.FC = () => {
           <StudioLights />
           <Studio t={t} faucet={{ handle, shake, sputter }} pool={0} />
           <Nubi size={2} position={STUDIO_SINK} rotationY={STUDIO_SINK_YAW} pose={pose} shadowOpacity={0.4} />
-          {/* A faint glint on the knob so the turn reads in the medium shot. */}
-          <mesh position={[STUDIO_FAUCET_KNOB[0], STUDIO_FAUCET_KNOB[1] + 0.12, STUDIO_FAUCET_KNOB[2]]} visible={false}>
-            <sphereGeometry args={[0.01, 4, 4]} />
-          </mesh>
         </Stage>
       </Shake>
     </AbsoluteFill>

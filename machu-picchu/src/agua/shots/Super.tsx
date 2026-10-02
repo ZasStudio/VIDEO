@@ -72,13 +72,13 @@ export const SuperShot: React.FC = () => {
       blink: slump > 0.5 ? 0.35 : 0,
     });
     tumble = ramp(g, START + 22, START + 62, [0, 1], (x) => x);
-    const camPos: Vec3 = [0.35, 1.75, z - 6.2];
-    cam = aim(camPos, 42, [nubiAt[0], 0, z], 540, 1255);
+    const camPos: Vec3 = [0.35, 2.05, z - 9.6];
+    cam = aim(camPos, 40, [nubiAt[0], 0, z], 540, 1190);
   } else if (g < B1) {
     // B: over the shoulder: the case glowing at the end of the aisle; Nubi perks up and hops on.
     const u = ramp(g, A1, B1, [0, 1], EASE_IN_OUT);
-    const z = CASE[2] + 4.2 - 1.3 * u;
-    nubiAt = [-0.45, 0, z];
+    const z = CASE[2] + 3.4 - 0.8 * u;
+    nubiAt = [-0.9, 0, z];
     nubiYaw = Math.PI + 0.08;
     const perk = pop(g, A1 + 4);
     pose = aguaTalk(g, {
@@ -88,22 +88,22 @@ export const SuperShot: React.FC = () => {
       finR: 0.5 * perk,
       squash: 1 + 0.06 * Math.sin(g * 0.5),
     });
-    const p0: Vec3 = [0.9, 1.75, CASE[2] + 8.6];
-    const p1: Vec3 = [0.75, 1.6, CASE[2] + 7.0];
-    cam = aim(lerp3(p0, p1, u), 40, [CASE[0], 1.25, CASE[2]], 560, 860);
+    const p0: Vec3 = [1.4, 1.95, CASE[2] + 10.2];
+    const p1: Vec3 = [1.2, 1.85, CASE[2] + 8.9];
+    cam = aim(lerp3(p0, p1, u), 40, [CASE[0], 1.25, CASE[2]], 650, 880);
   } else if (g < C1) {
     // C: Nubi's view through the lasers and the glass: the potato.
     const u = ramp(g, B1, C1, [0, 1], (x) => x);
     nubiAt = [0, 0, CASE[2] + 3.4];
     nubiYaw = Math.PI;
     pose = {};
-    const p0: Vec3 = [0.18, 1.5, CASE[2] + 2.05];
-    const p1: Vec3 = [0.1, 1.44, CASE[2] + 1.55];
-    cam = aim(lerp3(p0, p1, u), 34, [CASE[0], JEWEL_POTATO_Y, CASE[2]], 540, 820);
+    const p0: Vec3 = [0.16, 1.32, CASE[2] + 2.2];
+    const p1: Vec3 = [0.1, 1.3, CASE[2] + 1.65];
+    cam = aim(lerp3(p0, p1, u), 36, [CASE[0], JEWEL_POTATO_Y, CASE[2]], 540, 800);
   } else {
     // D: beside the case, to the camera: "¡…viene con seguridad!" The lasers blink.
     const k = g - C1;
-    nubiAt = [-0.98, 0, CASE[2] + 1.75];
+    nubiAt = [-1.25, 0, CASE[2] + 2.0];
     const turn = ramp(g, C1 + 2, C1 + 10, [0, 1], EASE_IN_OUT);
     nubiYaw = 0.75 * (1 - turn) + 0.22 * turn;
     const jump = pop(g, SEGURIDAD + 2, { damping: 9 });
@@ -123,9 +123,9 @@ export const SuperShot: React.FC = () => {
     const b = g - SEGURIDAD;
     lasers = b >= 0 && b < 21 ? (Math.floor(b / 3) % 2 === 0 ? 1 : 0.1) : 1;
     shakeAt = SEGURIDAD;
-    const z0 = CASE[2] + 7.4;
-    const camPos = lerp3([0.55, 1.6, z0], [0.45, 1.5, z0 - 0.9], ramp(g, C1, END, [0, 1], (x) => x));
-    cam = aim(camPos, 38, [-0.42, 0, CASE[2] + 0.9], 520, 1250);
+    const z0 = CASE[2] + 12.6;
+    const camPos = lerp3([0.5, 2.0, z0], [0.4, 1.9, z0 - 1.2], ramp(g, C1, END, [0, 1], (x) => x));
+    cam = aim(camPos, 40, [-0.6, 0, CASE[2] + 1.3], 540, 1215);
   }
 
   // A red alarm wash while the lasers blink.

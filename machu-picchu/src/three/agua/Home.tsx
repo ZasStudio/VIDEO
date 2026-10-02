@@ -1133,6 +1133,15 @@ export const WateringCan: React.FC<{ tilt?: number; dust?: number; t?: number }>
   );
 };
 
+/** A point of the can (can units, at rest) after tipping it by `tilt` (still in the can's own frame). */
+export const canPoint = (local: V3, tilt: number): V3 => {
+  const a = -clamp01(tilt) * 0.95;
+  const [px, py] = CAN.pivot;
+  const dx = local[0] - px;
+  const dy = local[1] - py;
+  return [px + dx * Math.cos(a) - dy * Math.sin(a), py + dx * Math.sin(a) + dy * Math.cos(a), local[2]];
+};
+
 /** Where the moth leaves the can (can space, at rest): the top opening. */
 export const CAN_OPENING: V3 = [-0.04, CAN.h + 0.02, 0];
 

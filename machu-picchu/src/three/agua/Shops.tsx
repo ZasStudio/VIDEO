@@ -1391,9 +1391,9 @@ export const Safe: React.FC<{ open?: number; t?: number; glow?: number; hinge?: 
   const ease = swing * swing * (3 - 2 * swing);
   const ang = hinge * ease * 1.95;
   const g = clamp01(glow ?? o) * clamp01(swing * 2.5);
-  fx.rays.opacity = 0.75 * g;
+  fx.rays.opacity = 0.5 * g;
   fx.rays.rotation = t * 0.3;
-  fx.shaft.opacity = 0.45 * g;
+  fx.shaft.opacity = 0.38 * g;
   const yc = feet + h / 2;
   const dw = w - 0.04;
   const rivets: [number, number][] = [];
@@ -1482,8 +1482,8 @@ export const Safe: React.FC<{ open?: number; t?: number; glow?: number; hinge?: 
         <>
           <mesh geometry={geos.shaft} material={fx.shaft} renderOrder={6} />
           <sprite material={fx.rays} position={[0, yc, d / 2 + 0.1]} scale={[3.2 * g, 3.2 * g, 1]} renderOrder={6} />
-          <Glow color="#FFE9A8" size={2.2 * g} opacity={0.7 * g} position={[0, yc, d / 2]} />
-          <Glow color="#FFFFFF" size={0.9 * g} opacity={0.8 * g} position={[0, yc, d / 2 - 0.1]} />
+          <Glow color="#FFE9A8" size={2.0 * g} opacity={0.45 * g} position={[0, yc, d / 2]} />
+          <Glow color="#FFFFFF" size={0.7 * g} opacity={0.35 * g} position={[0, yc, d / 2 - 0.1]} />
           <pointLight position={[0, yc, d / 2 + 0.4]} intensity={6 * g} distance={5} decay={1.3} color="#FFE6B0" />
           {[0, 1, 2, 3, 4, 5, 6].map((i) => {
             const ph = (t * 0.35 + hash(i) ) % 1;

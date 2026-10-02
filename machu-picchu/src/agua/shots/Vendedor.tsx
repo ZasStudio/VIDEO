@@ -90,8 +90,8 @@ export const VendedorShot: React.FC = () => {
     fill = 0.55;
     const u = ramp(g, START, V1E, [0, 1], (x) => x);
     const sway: Vec3 = [Math.sin(g * 0.09) * 0.06, Math.sin(g * 0.13) * 0.04, 0];
-    const p = lerp3([0.15, 1.2, 5.6], [0.3, 1.15, 3.4], u);
-    cam = aim([p[0] + sway[0], p[1] + sway[1], p[2]], 42, [0.75, 0.0, -3.3], 560, 1240);
+    const p = lerp3([0.25, 1.25, 7.6], [0.4, 1.2, 5.6], u);
+    cam = aim([p[0] + sway[0], p[1] + sway[1], p[2]], 50, [0.85, 0.0, -3.3], 560, 1250);
     const lean = ramp(g, PSST - 4, PSST + 8, [0, 1], EASE_IN_OUT);
     const point = windowIn(g, OYE - 2, V1E + 4, 4);
     const beckon = (1 - point) * windowIn(g, PSST, OYE + 2, 4);
@@ -109,7 +109,7 @@ export const VendedorShot: React.FC = () => {
     // V2: the safe opens; the seller presents it.
     showNubi = false;
     const u = ramp(g, V1E, V2E, [0, 1], (x) => x);
-    cam = aim(lerp3([-0.55, 1.75, -1.75], [-0.4, 1.6, -2.15], u), 40, [ALLEY_SAFE[0], 0.7, ALLEY_SAFE[2] + 0.4], 540, 1010);
+    cam = aim(lerp3([-1.05, 2.35, -0.3], [-0.85, 2.2, -0.75], u), 46, [ALLEY_SAFE[0] - 0.25, 0.7, ALLEY_SAFE[2] + 0.4], 560, 1000);
     const ta = pop(g, SAFE_AT + 2);
     sellerYaw = -Math.PI / 2 - 0.15;
     sellerPose = sellerTalk(g, { finL: 0.25 + 0.6 * ta, finR: 0.25 + 0.6 * ta, hop: 0.4 * ta * Math.max(0, 1 - (g - SAFE_AT) / 12), roll: 0.05 });
@@ -117,7 +117,7 @@ export const VendedorShot: React.FC = () => {
     // V3: "La última. Diez millones." — holding the bottle up for Nubi (the camera).
     showNubi = false;
     const u = ramp(g, V2E, V3E, [0, 1], (x) => x);
-    cam = aim(lerp3([0.5, 1.75, 7.2], [0.6, 1.65, 6.0], u), 40, [ALLEY_SELLER[0], 0, ALLEY_SELLER[2]], 560, 1265);
+    cam = aim(lerp3([1.6, 1.85, 6.8], [1.7, 1.75, 5.9], u), 40, [ALLEY_SELLER[0] + 0.35, 0, ALLEY_SELLER[2]], 540, 1330);
     const lift = pop(g, V2E + 2);
     const lean = windowIn(g, MILLONES - 3, V3E + 4, 6);
     sellerYaw = -0.3 - 0.15 * lean;
@@ -131,7 +131,7 @@ export const VendedorShot: React.FC = () => {
   } else if (g < V4E) {
     // V4: Nubi's offer. Nervous; three coins; then the sheet and the pencil.
     const u = ramp(g, V3E, V4E, [0, 1], (x) => x);
-    cam = aim(lerp3([-0.7, 1.75, 5.8], [-0.6, 1.65, 5.0], u), 40, [ALLEY_NUBI[0], 0, ALLEY_NUBI[2]], 380, 1262);
+    cam = aim(lerp3([-0.9, 2.1, 9.0], [-0.85, 2.0, 8.1], u), 40, [-0.9, 0, ALLEY_NUBI[2]], 540, 1262);
     const drop = windowIn(g, SOLES - 4, SOLES + 18, 4);
     const paper = ramp(g, RETRATO - 2, RETRATO + 8);
     nubiPose = aguaTalk(g, {
@@ -147,7 +147,7 @@ export const VendedorShot: React.FC = () => {
   } else {
     // V5: the wide two-shot (characters in the lower half).
     const u = ramp(g, V4E, END, [0, 1], (x) => x);
-    cam = aim(lerp3([0.15, 3.0, 17.2], [0.15, 2.9, 16.4], u), 32, [0.0, 0, -3.05], 540, 1262);
+    cam = aim(lerp3([0.15, 2.7, 14.6], [0.15, 2.6, 13.9], u), 32, [0.0, 0, -3.05], 540, 1268);
     const scribble = windowIn(g, DRAW, SHOW - 2, 2);
     const show = windowIn(g, SHOW - 2, IGUALITO + 2, 3);
     const happy = ramp(g, GIVE + 2, GIVE + 10);
@@ -180,7 +180,7 @@ export const VendedorShot: React.FC = () => {
   // ---- Props ---------------------------------------------------------------------------
   const sellerFinR = sellerPose.finR ?? 0;
   const nubiFinL = nubiPose.finL ?? 0;
-  const bottle = <WaterBottle fill={fill} glow={bottleInSafe ? 0.35 + 0.45 * open : 0.55} t={t} />;
+  const bottle = <WaterBottle fill={fill} glow={bottleInSafe ? 0.2 + 0.3 * open : 0.5} t={t} />;
   const sellerHoldsBottle = !bottleInSafe && !given;
   const pencilInFin = g >= RETRATO && g < SHOW - 2;
   const paperInFin = paperShown && !paperHugged;
@@ -291,7 +291,7 @@ export const VendedorShot: React.FC = () => {
       </Shake>
       {/* The dark of the alley around the POV, the holy flash of the safe. */}
       <AbsoluteFill style={{ background: "radial-gradient(ellipse at 55% 55%, rgba(10,4,20,0) 35%, rgba(10,4,20,0.75) 100%)", opacity: dark }} />
-      <AbsoluteFill style={{ background: "radial-gradient(circle at 52% 52%, rgba(255,240,190,0.85) 0%, rgba(255,220,140,0.25) 35%, rgba(255,220,140,0) 70%)", opacity: holy * 0.8, mixBlendMode: "screen" }} />
+      <AbsoluteFill style={{ background: "radial-gradient(circle at 52% 52%, rgba(255,240,190,0.85) 0%, rgba(255,220,140,0.25) 35%, rgba(255,220,140,0) 70%)", opacity: holy * 0.45, mixBlendMode: "screen" }} />
     </AbsoluteFill>
   );
 };
