@@ -118,8 +118,11 @@ const SINK_GRIP: V3 = [STUDIO_FAUCET_KNOB[0] + 0.15, STUDIO_FAUCET_KNOB[1], STUD
 const sinkTip = studioFinTip(STUDIO_SINK_RAISE, -1, STUDIO_SINK_YAW);
 /** Where Nubi (size 2) stands at the sink: with yaw STUDIO_SINK_YAW and finL = STUDIO_SINK_RAISE its fin tip is on the knob. */
 export const STUDIO_SINK: V3 = [SINK_GRIP[0] - sinkTip[0], 0, SINK_GRIP[2] - sinkTip[2]];
-/** Where the last water bottle stands on the counter (front-right corner, by the faucet). */
-export const STUDIO_COUNTER_BOTTLE: V3 = [-1.62, STUDIO_COUNTER.top, -2.1];
+/**
+ * Where the water bottle stands on the counter: the back-right corner, behind the faucet (clear
+ * of the fin on the knob). Nubi at STUDIO_SINK reaches it with finL ≈ 1 turned to yaw ≈ −0.7.
+ */
+export const STUDIO_COUNTER_BOTTLE: V3 = [-1.6, STUDIO_COUNTER.top, -2.74];
 
 const BED = { x0: 1.0, x1: 3.8, z0: -3, z1: 0.0, top: 0.73 };
 /** Where Nubi sits in bed (its legs sunk in the mattress, under the quilt when `blanket` = 1). */

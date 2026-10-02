@@ -759,10 +759,10 @@ const lighthouseGeometry = () => {
 
 /** Keel centre of the stranded liner on the seabed (it heels towards +z, over SHIP_NUBI). */
 export const SHIP_SPOT: V3 = [8, COAST_FLAT_Y, -60];
-/** Nubi's spot under the overhang (the deck rail is ≈ 7 above, the superstructure ≈ 17-28). */
-export const SHIP_NUBI: V3 = [1, COAST_FLAT_Y, -39];
-/** Nubi's walk on the seabed in the playa shot (from among the stranded boats to SHIP_NUBI). */
-export const PLAYA_WALK = { from: [-1.2, COAST_FLAT_Y, -32] as V3, to: SHIP_NUBI };
+/** Nubi's spot at the foot of the overhang (deck rail ≈ 6 up, 10 behind; superstructure ≈ 17-28 up, 5 behind). */
+export const SHIP_NUBI: V3 = [1, COAST_FLAT_Y, -37];
+/** Nubi's walk on the seabed in the playa shot (left to right past the boats, to SHIP_NUBI). */
+export const PLAYA_WALK = { from: [-5.2, COAST_FLAT_Y, -34.2] as V3, to: SHIP_NUBI };
 /** Playa shot-A camera: just under the ship's rail, looking back towards the old shore. */
 export const PLAYA_CAM: V3 = [3.2, COAST_FLAT_Y + 3.0, -47.2];
 /** Playa wide camera (bow quarter): sees the bow, the anchor chain and tiny Nubi under the ship. */

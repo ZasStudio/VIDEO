@@ -79,8 +79,12 @@ export const PlayaShot: React.FC = () => {
     roll: 0.1 + 0.03 * Math.sin(t * 1.3),
   };
   const push = ramp(g, CUT_WIDE, S.to, [0, 1], EASE_IN_OUT);
-  const camC = aim(lerp3(PLAYA_WIDE, [PLAYA_WIDE[0] - 4, PLAYA_WIDE[1] - 0.2, PLAYA_WIDE[2] - 1], push), 40, SHIP_NUBI, 600, 1120);
+  const camC = aim(lerp3(PLAYA_WIDE, [PLAYA_WIDE[0] - 4, PLAYA_WIDE[1] - 0.3, PLAYA_WIDE[2] - 1], push), 46, SHIP_NUBI, 440, 1130);
   const cam = shotA ? camA : shotB ? camB : camC;
+  // Facing: the walk direction, then towards camera A when it stops; in C from the ship to us.
+  const faceCam = (c: { position: Vec3 }) => Math.atan2(c.position[0] - nubiAt[0], c.position[2] - nubiAt[2]);
+  const walkYaw = Math.atan2(PLAYA_WALK.to[0] - PLAYA_WALK.from[0], PLAYA_WALK.to[2] - PLAYA_WALK.from[2]);
+  const nubiYaw = shotA ? lerp(walkYaw, faceCam(camA), ramp(g, UP - 3, UP + 5, [0, 1], EASE_IN_OUT)) : lerp(faceCam(camC) + 1.9, faceCam(camC), turn);
   const horizon = projectToScreen(cam, [cam.target[0] + (cam.target[0] - cam.position[0]) * 40, F + 2, cam.target[2] + (cam.target[2] - cam.position[2]) * 40], 1080, 1920);
   const sky = shotB ? coastSky(1.1) : coastSky(clamp01(horizon.behind ? 0.5 : horizon.y / 1920));
 
@@ -98,7 +102,7 @@ export const PlayaShot: React.FC = () => {
           <CoastLights />
           <Coast water={0} t={t} fog={[45, 330]} />
           <GiantShip position={SHIP_SPOT} tilt={1} creak={creak} t={t} sand={1} />
-          {shotB ? null : <Nubi size={2} position={nubiAt} rotationY={shotA ? Math.PI : lerp(Math.PI * 0.95, Math.atan2(cam.position[0] - SHIP_NUBI[0], cam.position[2] - SHIP_NUBI[2]), turn)} pose={pose} shadowOpacity={0.3} />}
+          {shotB ? null : <Nubi size={2} position={nubiAt} rotationY={nubiYaw} pose={pose} shadowOpacity={0.3} />}
           {shotA ? <DustPuff frame={g} at={UP} position={[nubiAt[0], nubiAt[1], nubiAt[2]]} radius={1.1} color="#F1DDB0" count={8} /> : null}
           {shotA ? <HeatShimmer t={t} position={[0, F, -8]} width={60} height={6} rotationY={Math.PI * 0} /> : null}
           {shotA || shotB ? null : <HeatShimmer t={t} position={[30, F, -30]} width={70} height={6} rotationY={1.35} amount={0.7} />}

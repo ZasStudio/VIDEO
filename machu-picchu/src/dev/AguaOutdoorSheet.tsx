@@ -13,7 +13,9 @@ import {
   Farmland,
   GiantShip,
   HeatShimmer,
+  PLAYA_CAM,
   PLAYA_WALK,
+  PLAYA_WIDE,
   SHIP_NUBI,
   SHIP_SPOT,
   coastSky,
@@ -50,9 +52,9 @@ const Panel: React.FC<{ i: number; cam: Cam; background: string; title: string; 
 const T = 2.3;
 const F = COAST_FLAT_Y;
 const AERIAL: Cam = { position: [0, 95, 150], target: [0, -12, -40], fov: 50 };
-const WALK: Cam = { position: [2.5, F + 2.4, -46], target: [-1.5, F + 4.2, -14], fov: 50 };
 const POV: Cam = { position: [SHIP_NUBI[0], F + 1.6, SHIP_NUBI[2]], target: [SHIP_NUBI[0] - 1, F + 15, SHIP_NUBI[2] - 9], fov: 72 };
-const WIDE: Cam = { position: [14, F + 3, 6], target: [3, F + 9, -44], fov: 46 };
+const WIDE: Cam = { position: PLAYA_WIDE, target: [SHIP_NUBI[0] + 8, F + 6, SHIP_NUBI[2] - 4], fov: 46 };
+const WALK_CAM: Cam = { position: PLAYA_CAM, target: [PLAYA_WALK.from[0] + 2, F + 1, PLAYA_WALK.from[2]], fov: 58 };
 
 const Frame0: React.FC = () => (
   <>
@@ -69,11 +71,11 @@ const Frame0: React.FC = () => (
 
 const Frame1: React.FC = () => (
   <>
-    <Panel i={0} cam={WALK} background={coastSky(0.55)} title="PLAYA: walk (PLAYA_WALK)">
+    <Panel i={0} cam={WALK_CAM} background={coastSky(0.4)} title="PLAYA: walk (PLAYA_CAM)">
       <CoastLights />
       <Coast water={0} t={T} fog={[50, 320]} />
       <GiantShip position={SHIP_SPOT} tilt={1} t={T} creak={1} />
-      <Nubi size={2} position={[PLAYA_WALK.from[0] + 1, F, PLAYA_WALK.from[2] - 8]} rotationY={0.1} pose={{ wiggle: 1, wigglePhase: 1.3, hop: 0.6 }} />
+      <Nubi size={2} position={PLAYA_WALK.from} rotationY={2.0} pose={{ wiggle: 1, wigglePhase: 1.3, hop: 0.6 }} />
       <HeatShimmer t={T} position={[0, F, -10]} width={70} height={7} />
     </Panel>
     <Panel i={1} cam={POV} background={coastSky(0.95)} title="POV up at the ship (SHIP_NUBI)">
