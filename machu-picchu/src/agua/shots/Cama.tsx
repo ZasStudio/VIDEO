@@ -10,6 +10,7 @@ import { BOTTLE_HOLD, BOTTLE_HUG, WaterBottle } from "../../three/agua/Bottle";
 import {
   NightCap,
   Pajamas,
+  STUDIO_BASIN,
   STUDIO_BED,
   STUDIO_BED_FLOOR,
   STUDIO_COUNTER_BOTTLE,
@@ -42,8 +43,10 @@ const GRAB_YAW = -0.72;
 const FOV = 38;
 
 const CAM_BED = aim([1.3, 2.6, 7.6], FOV, [1.3, 0.3, -1.2], 540, 1180);
-const CAM_SINK = aim([SINK_AT[0] - 2.3, 2.0, SINK_AT[2] + 8.4], FOV, SINK_AT, 690, 1262);
-const CAM_SINK_IN = aim([SINK_AT[0] - 2.0, 1.9, SINK_AT[2] + 7.4], FOV, SINK_AT, 690, 1262);
+const CAM_SINK = aim([SINK_AT[0] - 6.5, 2.15, SINK_AT[2] + 5.5], FOV, SINK_AT, 612, 1262);
+const CAM_SINK_IN = aim([SINK_AT[0] - 6.2, 2.05, SINK_AT[2] + 5.2], FOV, SINK_AT, 612, 1262);
+/** Looking down into the sink (as in the "grifo" shot): the whip pan lands here on the gush. */
+const POV = { position: [-1.7, 2.55, -0.85] as Vec3, target: [STUDIO_BASIN.x + 0.55, STUDIO_BASIN.floor + 0.3, STUDIO_BASIN.z] as Vec3, fov: 52 };
 const EYES = (at: Vec3): Vec3 => [at[0], 1.1, at[2] + 0.88];
 const CAM_CLOSE = aim([CLOSE_AT[0], 1.12, CLOSE_AT[2] + 0.88 + 3.8], FOV, EYES(CLOSE_AT), 540, 1010);
 const CAM_SQUINT = aim([CLOSE_AT[0], 1.1, CLOSE_AT[2] + 0.88 + 3.35], FOV, EYES(CLOSE_AT), 540, 1010);
@@ -146,7 +149,8 @@ export const CamaShot: React.FC = () => {
 
   // ---- Camera -------------------------------------------------------------------------
   const whip = ramp(g, FALL + 2, after(FALL + 2, ZIP1 + 1), [0, 1], EASE_IN_OUT);
-  const settle = ramp(g, SINK, after(SINK, HOP0), [0, 1], EASE_IN_OUT);
+  const GUSH_END = after(SINK + 6, L17 - 2);
+  const settle = ramp(g, GUSH_END, after(GUSH_END, HOP0), [0, 1], EASE_IN_OUT);
   const closeK = ramp(g, HOP0, CLOSE + 4, [0, 1], EASE_IN_OUT);
   const squintK = ramp(g, MIRANDO - 4, after(MIRANDO - 4, END), [0, 1], EASE_IN_OUT);
   const sinkCam = {
@@ -154,8 +158,14 @@ export const CamaShot: React.FC = () => {
     target: lerp3(CAM_SINK.target, CAM_SINK_IN.target, settle),
   };
   const closeCam = { position: lerp3(CAM_CLOSE.position, CAM_SQUINT.position, squintK), target: lerp3(CAM_CLOSE.target, CAM_SQUINT.target, squintK) };
-  let position = lerp3(CAM_BED.position, sinkCam.position, whip);
-  let target = lerp3(CAM_BED.target, sinkCam.target, whip);
+  let position = lerp3(CAM_BED.position, POV.position, whip);
+  let target = lerp3(CAM_BED.target, POV.target, whip);
+  let fov = mix(FOV, POV.fov, whip);
+  if (g >= GUSH_END) {
+    position = sinkCam.position;
+    target = sinkCam.target;
+    fov = FOV;
+  }
   if (g >= HOP0) {
     position = lerp3(sinkCam.position, closeCam.position, closeK);
     target = lerp3(sinkCam.target, closeCam.target, closeK);
@@ -177,7 +187,7 @@ export const CamaShot: React.FC = () => {
     <AbsoluteFill style={{ background: "#FFE7D1" }}>
       <Shake frame={g} impacts={[{ at: FALL, amp: 26, dur: 14 }, { at: SINK, amp: 8, dur: 10 }]}>
         <AbsoluteFill style={{ filter: blur > 0.4 ? `blur(${blur.toFixed(2)}px)` : undefined }}>
-          <Stage cam={{ position, target, fov: FOV }} near={0.05}>
+          <Stage cam={{ position, target, fov }} near={0.05}>
             <StudioLights />
             <Studio t={t} faucet={{ handle, flow }} pool={pool} blanket={g < JOLT ? 1 : 1 - ramp(g, JOLT, JOLT + 3, [0, 1], EASE_OUT)} lamp={0.35} />
             {!held ? (

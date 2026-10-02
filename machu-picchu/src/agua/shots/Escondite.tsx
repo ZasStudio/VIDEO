@@ -78,7 +78,7 @@ export const EsconditeShot: React.FC = () => {
     const lift = ramp(g, L14 + 12, NO - 4, [0, 1], EASE_IN_OUT);
     const no = ramp(g, NO, NO + 5);
     const flip = ramp(g, HOLE - 6, HOLE + 1, [0, 1], EASE_IN_OUT);
-    const finR = 0.5 + 0.35 * lift - 0.2 * no + 0.45 * flip;
+    const finR = 0.55 + 0.25 * lift - 0.1 * no + 0.2 * flip;
     const shakeZ = no * (1 - flip) * Math.sin(g * 1.4) * 0.35;
     const base: NubiPose = {
       squash: 0.93 + 0.05 * no,
@@ -91,34 +91,35 @@ export const EsconditeShot: React.FC = () => {
     };
     const pose = aguaTalk(g, base, 0.7);
     const rotX = Math.PI * flip;
-    const holdPos: Vec3 = [BOTTLE_HOLD.position[0] - 0.4 * flip, BOTTLE_HOLD.position[1] + 3.94 * flip * 0.85 + 1.2 * flip, BOTTLE_HOLD.position[2] + 0.6 * flip];
+    // The bottle is held up beside Nubi's right eye, above the dumpster's lid (model units, a
+    // child of <Nubi>); at HOLE it is turned over (bottom up) to show the hole.
+    const BS = 4.2;
+    const lifted = 0.5 * lift;
+    const bottlePos: Vec3 = [3.9 - 0.4 * flip, 4.4 + lifted + BS * 0.985 * flip, 5.3];
     const glow = 0.6 * (1 - no);
-    // HOLE: punch in on the bottom of the bottle.
-    const holeLocal: Vec3 = [holdPos[0] + BOTTLE_HOLE[0] * 4, holdPos[1] + 0.2, holdPos[2] - BOTTLE_HOLE[2] * 4];
-    const holeW = finTipWorld(NUBI_AT, NUBI_ROT, 2 * 1, finR, 1, holeLocal);
+    const holeModel: Vec3 = [bottlePos[0] + BOTTLE_HOLE[0] * BS, bottlePos[1], bottlePos[2] - BOTTLE_HOLE[2] * BS];
+    const k = 0.2;
+    const c = Math.cos(NUBI_ROT);
+    const sn = Math.sin(NUBI_ROT);
+    const holeW: Vec3 = [
+      NUBI_AT[0] + (holeModel[0] * c + holeModel[2] * sn) * k,
+      NUBI_AT[1] + holeModel[1] * k * (base.squash ?? 1),
+      NUBI_AT[2] + (-holeModel[0] * sn + holeModel[2] * c) * k,
+    ];
     const zoom = ramp(g, HOLE - 1, HOLE + 4, [0, 1], EASE_IN_OUT);
-    const camA = aim(CAM_A, 50, [NUBI_AT[0], Y + 1.0, NUBI_AT[2]], 540, 820);
-    const cam: Cam = zoom > 0 ? aim([CAM_A[0] - 1.2 * zoom, CAM_A[1] - 0.6 * zoom, CAM_A[2]], 50 - 30 * zoom, holeW, 540, 800) : camA;
+    const camA = aim(CAM_A, 50, [NUBI_AT[0], NUBI_AT[1] + 1.0, NUBI_AT[2]], 540, 820);
+    const cam: Cam = zoom > 0 ? aim([CAM_A[0] - 1.6 * zoom, CAM_A[1] - 0.4 * zoom, CAM_A[2]], 50 - 30 * zoom, holeW, 540, 760) : camA;
     return (
       <AbsoluteFill style={{ background: HOT_SKY }}>
         <Shake frame={g} impacts={[{ at: NO, amp: 8, dur: 10 }]}>
           <Stage cam={cam}>
             <HotLights k={0.92} />
             <DryStreet t={t} />
-            <Nubi
-              size={2}
-              position={NUBI_AT}
-              rotationY={NUBI_ROT}
-              pose={pose}
-              shadowOpacity={0.45}
-              holdR={
-                <Upright raise={finR}>
-                  <group position={holdPos} rotation={[rotX, 0, shakeZ - 0.15 * lift]} scale={BOTTLE_HOLD.scale}>
-                    <WaterBottle fill={0} glow={glow} cap={cap} hole={g >= HOLE - 6} t={t} />
-                  </group>
-                </Upright>
-              }
-            />
+            <Nubi size={2} position={NUBI_AT} rotationY={NUBI_ROT} pose={pose} shadowOpacity={0.45}>
+              <group position={bottlePos} rotation={[0.06 + rotX, 0, shakeZ - 0.12 - 0.25 * lift]} scale={BS}>
+                <WaterBottle fill={0} glow={glow} cap={cap} hole={g >= HOLE - 6} t={t} />
+              </group>
+            </Nubi>
           </Stage>
         </Shake>
       </AbsoluteFill>
@@ -163,8 +164,10 @@ export const EsconditeShot: React.FC = () => {
   const land = ramp(g, DIVE + 56, DIVE + 62);
   // Side view across the alley: the drop falls at DIVE_LAND, Nubi flies in from screen-left (+z)
   // fins out and belly-flops just past it, a beat after it has evaporated.
-  const from: Vec3 = [DIVE_LAND[0], 1.25, 13.3];
-  const to: Vec3 = [DIVE_LAND[0], Y, 10.75];
+  // Nubi flies a little behind the drop (further from the camera) so the falling drop and its
+  // splash stay in sight; its front edge reaches the spot only as it lands.
+  const from: Vec3 = [DIVE_LAND[0] - 0.5, 1.3, 13.75];
+  const to: Vec3 = [DIVE_LAND[0] - 0.5, Y, 12.2];
   const arc = Math.sin(Math.PI * Math.min(1, dive)) * 0.35;
   const diveAt: Vec3 = close ? DROP_NUBI : [from[0], from[1] + (to[1] - from[1]) * dive * dive + arc * (1 - land), from[2] + (to[2] - from[2]) * dive];
   const nubiPose: NubiPose = close
@@ -181,7 +184,7 @@ export const EsconditeShot: React.FC = () => {
         wigglePhase: g * 0.12,
       };
   const camC: Cam = aim([HOLE_W[0] + 1.05, HOLE_W[1] - 0.3, Math.min(13.2, HOLE_W[2] + 0.75)], 40, [HOLE_W[0], HOLE_W[1] - 0.12, HOLE_W[2]], 540, 640);
-  const camD: Cam = aim([-2.0, 0.95, 11.6], 50, [DIVE_LAND[0], 0.55, DIVE_LAND[2]], 560, 1040);
+  const camD: Cam = aim([0.6, 1.1, 11.6], 50, [DIVE_LAND[0], 0.75, DIVE_LAND[2]], 560, 1020);
   const dropAt: Vec3 = close ? HOLE_W : [DIVE_LAND[0], DIVE_DROP_Y, DIVE_LAND[2]];
   return (
     <AbsoluteFill style={{ background: HOT_SKY }}>
@@ -190,7 +193,7 @@ export const EsconditeShot: React.FC = () => {
           <HotLights />
           <DryStreet t={t} far={false} />
           <group position={dropAt}>
-            <BigDrop t={t} fall={fall} splash={splash} height={dropAt[1] - Y} size={close ? DROP_SIZE : DROP_SIZE * 1.6} glow={0.8} />
+            <BigDrop t={t} fall={fall} splash={splash} height={dropAt[1] - Y} size={close ? DROP_SIZE : DROP_SIZE * 2.3} glow={0.9} />
           </group>
           <Nubi
             size={2}

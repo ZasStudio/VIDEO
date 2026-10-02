@@ -731,7 +731,7 @@ export const Faucet: React.FC<FaucetState & { t?: number; floor?: number }> = ({
   const outY = F_OUT[1];
   const L = Math.max(0.05, outY - floor);
   const f = clamp01(flow);
-  const streamR = 0.012 + 0.034 * f;
+  const streamR = 0.012 + 0.05 * f;
   mats.stream.map!.offset.y = t * 2.6;
 
   // Dust puff from the spout.
@@ -1023,9 +1023,9 @@ export const WaterGlass: React.FC<{ fill?: number; vanish?: number; t?: number; 
 // Watering can
 
 /** Can in a fin (inside <Upright raise={finR}>): gripped at its side, the rose ≈ 0.25 above the fin tip. */
-export const CAN_HOLD = { position: [0.45, -0.75, 1.05] as V3, rotation: [0, 0, 0] as V3, scale: 5 };
+export const CAN_HOLD = { position: [0.45, -0.75, 1.05] as V3, rotation: [0, 0, 0] as V3, scale: 6 };
 /** Same for the screen-left fin (spout pointing to screen-left, i.e. away from Nubi). */
-export const CAN_HOLD_L = { position: [-0.45, -0.75, 1.05] as V3, rotation: [0, Math.PI, 0] as V3, scale: 5 };
+export const CAN_HOLD_L = { position: [-0.45, -0.75, 1.05] as V3, rotation: [0, Math.PI, 0] as V3, scale: 6 };
 
 const CAN = { r: 0.16, h: 0.27, pivot: [0, 0.36, 0] as V3, rose: [0.5, 0.36, 0] as V3 };
 
@@ -1449,6 +1449,7 @@ export const NightCap: React.FC<{ flop?: number }> = ({ flop = 0 }) => {
 const WALL_TEX_SIZE = 1.3;
 /** Floor and ceiling run on past the (one-sided) front wall, for cameras standing outside it. */
 const FRONT_APRON = 8;
+const SIDE_APRON = 6;
 
 /** One-sided wall plane (w × h, origin at its bottom-left in local x/y) with rectangular holes. */
 const wallGeometry = (w: number, h: number, holes: { x: number; y: number; w: number; h: number }[]) => {
@@ -1636,8 +1637,8 @@ export const Studio: React.FC<StudioProps> = ({ t = 0, faucet = {}, pool, wilt =
     const counterTop = new THREE.ExtrudeGeometry(topShape, { depth: 0.07, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02, bevelSegments: 2 });
     counterTop.rotateX(-Math.PI / 2);
     return {
-      floor: worldPlane(W, D + FRONT_APRON),
-      ceiling: new THREE.PlaneGeometry(W, D + FRONT_APRON),
+      floor: worldPlane(W + 2 * SIDE_APRON, D + FRONT_APRON),
+      ceiling: new THREE.PlaneGeometry(W + 2 * SIDE_APRON, D + FRONT_APRON),
       back: wallGeometry(W, H, [{ x: KITCHEN_WINDOW.x - x0, y: KITCHEN_WINDOW.y, w: KITCHEN_WINDOW.w, h: KITCHEN_WINDOW.h }]),
       left: wallGeometry(D, H, []),
       right: wallGeometry(D, H, [{ x: PLANT_WINDOW.z - zBack, y: PLANT_WINDOW.y, w: PLANT_WINDOW.w, h: PLANT_WINDOW.h }]),
@@ -1696,6 +1697,7 @@ export const Studio: React.FC<StudioProps> = ({ t = 0, faucet = {}, pool, wilt =
       // Decor.
       poster: new THREE.PlaneGeometry(1.0, 1.25),
       posterFrame: rbox(1.08, 1.33, 0.03, 0.02),
+      posterBack: new THREE.PlaneGeometry(1.1, 1.35),
       wallClock: new THREE.CylinderGeometry(0.33, 0.33, 0.06, 32),
       wallClockFace: new THREE.CircleGeometry(0.28, 32),
       book: rbox(0.07, 0.3, 0.22, 0.01),
@@ -1746,10 +1748,8 @@ export const Studio: React.FC<StudioProps> = ({ t = 0, faucet = {}, pool, wilt =
       <mesh geometry={geos.wainSide} material={wainMat} position={[x1 - 0.01, 0.475, (zBack + zFront) / 2]} rotation={[0, -Math.PI / 2, 0]} />
       <mesh geometry={geos.wainBack} material={wainMat} position={[(x0 + x1) / 2, 0.475, zFront - 0.01]} rotation={[0, Math.PI, 0]} />
       {railRun(W, [(x0 + x1) / 2, 0.97, zBack + 0.03], 0, geos.rail, white, "r0")}
-      {railRun(D, [x0 + 0.03, 0.97, (zBack + zFront) / 2], Math.PI / 2, geos.rail, white, "r1")}
       {railRun(D, [x1 - 0.03, 0.97, (zBack + zFront) / 2], Math.PI / 2, geos.rail, white, "r2")}
       {railRun(W, [(x0 + x1) / 2, 0.065, zBack + 0.03], 0, geos.skirt, white, "s0")}
-      {railRun(D, [x0 + 0.03, 0.065, (zBack + zFront) / 2], Math.PI / 2, geos.skirt, white, "s1")}
       {railRun(D, [x1 - 0.03, 0.065, (zBack + zFront) / 2], Math.PI / 2, geos.skirt, white, "s2")}
 
       {/* Kitchenette: cabinets, counter top with the basin, tiles, faucet, window, shelf, hob and kettle. */}
@@ -1851,8 +1851,9 @@ export const Studio: React.FC<StudioProps> = ({ t = 0, faucet = {}, pool, wilt =
         <mesh geometry={geos.posterFrame} material={white} />
         <mesh geometry={geos.poster} material={texMat("poster-wave", posterWaveTex(), { rough: 0.7, glow: 0.2 })} position={[0, 0, 0.02]} />
       </group>
+      {/* Left wall: one-sided pieces only (cameras look in from outside this wall). */}
       <group position={[x0 + 0.02, 2.15, 0.7]} rotation={[0, Math.PI / 2, 0]}>
-        <mesh geometry={geos.posterFrame} material={white} />
+        <mesh geometry={geos.posterBack} material={white} />
         <mesh geometry={geos.poster} material={texMat("poster-cloud", posterCloudTex(), { rough: 0.7, glow: 0.2 })} position={[0, 0, 0.02]} />
       </group>
 

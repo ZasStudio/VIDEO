@@ -16,10 +16,12 @@ import { SHOTS } from "../shots";
 // on Nubi: it stares down at the sink, deflated, until the cut to the beach.
 
 const FOV = 38;
-const MED = aim([STUDIO_SINK[0] - 2.6, 2.1, STUDIO_SINK[2] + 9.0], FOV, STUDIO_SINK, 700, 1262);
-const MED_IN = aim([STUDIO_SINK[0] - 2.2, 1.95, STUDIO_SINK[2] + 7.8], FOV, STUDIO_SINK, 690, 1262);
-const POV_A = { position: [-1.95, 2.45, -1.0] as Vec3, target: [STUDIO_BASIN.x + 0.38, STUDIO_BASIN.floor + 0.25, STUDIO_BASIN.z] as Vec3, fov: 52 };
-const POV_B = { position: [-2.05, 2.25, -1.15] as Vec3, target: [STUDIO_BASIN.x + 0.33, STUDIO_BASIN.floor + 0.2, STUDIO_BASIN.z] as Vec3, fov: 52 };
+// From ≈ 50° to the left: Nubi (turned towards the front-left) shows its face 3/4 and the faucet,
+// 2 units to its left, comes in close beside it.
+const MED = aim([STUDIO_SINK[0] - 6.5, 2.15, STUDIO_SINK[2] + 5.5], FOV, STUDIO_SINK, 612, 1262);
+const MED_IN = aim([STUDIO_SINK[0] - 6.2, 2.05, STUDIO_SINK[2] + 5.2], FOV, STUDIO_SINK, 612, 1262);
+const POV_A = { position: [-1.7, 2.55, -0.85] as Vec3, target: [STUDIO_BASIN.x + 0.55, STUDIO_BASIN.floor + 0.3, STUDIO_BASIN.z] as Vec3, fov: 52 };
+const POV_B = { position: [-1.8, 2.35, -1.0] as Vec3, target: [STUDIO_BASIN.x + 0.5, STUDIO_BASIN.floor + 0.25, STUDIO_BASIN.z] as Vec3, fov: 52 };
 
 export const GrifoShot: React.FC = () => {
   const g = useCurrentFrame() + SHOTS.grifo.from;

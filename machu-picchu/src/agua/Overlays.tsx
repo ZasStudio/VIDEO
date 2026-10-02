@@ -26,7 +26,8 @@ export const AguaOverlays: React.FC = () => {
       <CommentReply frame={g} at={HOOK.START + 2} out={COMMENT_OUT} x={300} y={330} />
       {/* Drains with the picture (see oceanoWater in shots/Oceano.tsx). */}
       <WaterMeter frame={g} at={HOOK.OCEAN - 4} from={HOOK.AHORA - 9} to={HOOK.AHORA + 11} out={HOOK.L02 - 2} x={770} y={330} />
-      <FreezeLabel frame={g} at={HOOK.FREEZE} out={HOOK.END} x={540} y={690} />
+      {/* The arrow points at the top of Nubi's head in the freeze frame of shots/Flash.tsx. */}
+      <FreezeLabel frame={g} at={HOOK.FREEZE} out={HOOK.END} x={540} y={585} />
 
       <RewindCard frame={g} at={ANTES.START} out={ANTES.END - 4} />
 
@@ -56,7 +57,8 @@ export const AguaOverlays: React.FC = () => {
       <ImpactText frame={g} at={GIRO.NO} out={GIRO.HOLE - 4} text="¡NO!" x={500} y={420} color="#FF4D4D" textColors={["#FFFFFF"]} size={130} />
       <SlowMoBars frame={g} from={GIRO.DIVE} to={FINAL.START} speed="×0.25" />
 
-      <DreamRipple frame={g} at={FINAL.START} />
+      {/* Short and early, so Nubi jolting awake and falling out of bed (FINAL.FALL) stays visible. */}
+      <DreamRipple frame={g} at={FINAL.START - 2} dur={20} />
       <ShareOrSurvive frame={g} at={FINAL.CARD} />
     </AbsoluteFill>
   );

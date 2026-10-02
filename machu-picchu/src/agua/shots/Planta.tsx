@@ -19,8 +19,8 @@ import { SHOTS } from "../shots";
 const AT = STUDIO_PLANT_NUBI;
 const YAW = 0.22;
 const FOV = 38;
-const CAM_A = aim([AT[0] + 0.2, 2.2, AT[2] + 9.6], FOV, AT, 340, 1262);
-const CAM_B = aim([AT[0] + 0.3, 2.05, AT[2] + 8.6], FOV, AT, 345, 1262);
+const CAM_A = aim([AT[0] + 0.6, 2.15, AT[2] + 9.1], FOV, AT, 238, 1262);
+const CAM_B = aim([AT[0] + 0.65, 2.05, AT[2] + 8.6], FOV, AT, 232, 1262);
 
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 /** World position of a point of the can (can units) held in finR (Nubi at AT, turned by YAW). */
@@ -56,7 +56,7 @@ export const PlantaShot: React.FC = () => {
   const back = ramp(g, PASS + 8, PASS + 18, [0, 1], EASE_IN_OUT);
   const droop = ramp(g, COMIENZO + 2, COMIENZO + 14, [0, 1], EASE_OUT);
   const mothSeen = Math.min(follow * 4, 1) * (1 - back);
-  const finR = 1.15 + 0.1 * Math.sin(g * 2.4) * shakeCan - 0.55 * lower;
+  const finR = 1.45 + 0.1 * Math.sin(g * 2.4) * shakeCan - 0.7 * lower;
   const blink = (g > DUST + 10 && g < DUST + 13) || (g > PASS + 2 && g < PASS + 5) ? 1 : 0;
   const pose: NubiPose = {
     finR,

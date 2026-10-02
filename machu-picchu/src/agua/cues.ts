@@ -96,8 +96,11 @@ const giro = (): Cue[] => {
     [NO - 1, "agua/sting", 1.0],
     [HOLE + 6, "agua/drop", 0.55, 30],
     [TRAIL, "agua/stampede", 0.45, DROP - TRAIL],
-    [DROP, "agua/drop", 0.8],
+    [DROP + 6, "agua/drop", 0.35, 30],
     [DIVE, "agua/slowmo", 0.9, AGUA.SCENES.giro.from + AGUA.SCENES.giro.duration - DIVE],
+    // shots/Escondite.tsx: the drop lands at DIVE + 40, Nubi belly-flops onto the spot at DIVE + 58.
+    [DIVE + 40, "agua/drop", 1.0],
+    [DIVE + 42, "agua/thud", 0.6],
   ];
 };
 

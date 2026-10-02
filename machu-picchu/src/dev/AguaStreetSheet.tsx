@@ -134,15 +134,15 @@ const Props: React.FC = () => (
         <ThinPole />
       </group>
     </Panel>
-    <Panel x={640} y={0} w={640} h={540} background={HOT_SKY} title="Dumpster corner (callejón A)" cam={{ position: [-6.2, 2.6, 7.6], target: [-10.4, 0.9, 12.0], fov: 40 }}>
+    <Panel x={640} y={0} w={640} h={540} background={HOT_SKY} title="Dumpster corner (callejón A)" cam={{ position: [-6.6, 4.6, 11.3], target: [-11.5, 1.2, 11.4], fov: 50 }}>
       <HotLights />
       <DryStreet t={T} />
       <DumpsterCorner lid={0.25} />
       <Nubi
         size={2}
         position={HIDE_SPOT}
-        rotationY={Math.PI / 2 - 0.4}
-        pose={{ squash: 0.9, finR: 0.6, eyeScale: 1.2 }}
+        rotationY={Math.PI / 2}
+        pose={{ squash: 0.95, finR: 1.0, eyeScale: 1.2 }}
         holdR={
           <Upright raise={0.6}>
             <group position={[0.45, -1.7, 0.75]} scale={4}>

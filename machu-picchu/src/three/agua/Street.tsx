@@ -88,8 +88,8 @@ export const POLE_SPOT: V3 = [3.85, WALK_Y, 6.6];
 export const POLE_HIDE: V3 = [3.85, WALK_Y, 5.75];
 /** Dumpster in alley A: base centre, turned across the alley (long side along z, front +x). */
 export const DUMPSTER_SPOT: V3 = [-9.6, WALK_Y, 11.65];
-/** Nubi's hiding spot behind the dumpster, in alley A's dead end. */
-export const HIDE_SPOT: V3 = [-11.5, WALK_Y, 11.4];
+/** Nubi's hiding spot behind the dumpster, in alley A's dead end: standing on a crate (top 0.55 up) so it can peek over. */
+export const HIDE_SPOT: V3 = [-11.5, WALK_Y + 0.55, 11.4];
 
 /** Ground height at (x, z): the road is at 0, sidewalks and alleys at the curb height. */
 export const streetGroundY = (x: number, z: number) => (Math.abs(x) > STREET.road && z < AGUA_STREET.blockZ1 ? WALK_Y : 0);
@@ -668,6 +668,9 @@ export const DumpsterCorner: React.FC<{ lid?: number }> = ({ lid = 0 }) => (
   <group>
     <group position={DUMPSTER_SPOT} rotation={[0, Math.PI / 2, 0]}>
       <Dumpster lid={lid} />
+    </group>
+    <group position={[HIDE_SPOT[0], WALK_Y, HIDE_SPOT[2]]}>
+      <CardboardBox size={[1.9, 0.55, 1.7]} color="#B98552" />
     </group>
     <group position={[-12.05, WALK_Y, 12.95]} rotation={[0, 0.15, 0]}>
       <CardboardBox size={[0.95, 0.8, 0.8]} />
