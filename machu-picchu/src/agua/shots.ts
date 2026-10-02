@@ -2,11 +2,15 @@
 // rendered inside <Sequence from={SHOTS.x.from}>: its global frame is useCurrentFrame() + from.
 import { ANTES, FINAL, GIRO, HOOK, PELIGRO, PROBLEMA, SOLUCION } from "./beats";
 
+/** Frames the hook's freeze frame stays on screen after the hook ends. */
+const FREEZE_HOLD = 8;
+
 export const SHOTS = {
   vaso: { from: HOOK.START, to: HOOK.OCEAN },
   oceano: { from: HOOK.OCEAN, to: HOOK.L02 },
-  flash: { from: HOOK.L02, to: HOOK.END },
-  grifo: { from: ANTES.START, to: ANTES.PLAYA },
+  // The freeze frame holds 8 frames into the next scene, under the start of the rewind card.
+  flash: { from: HOOK.L02, to: ANTES.START + FREEZE_HOLD },
+  grifo: { from: ANTES.START + FREEZE_HOLD, to: ANTES.PLAYA },
   playa: { from: ANTES.PLAYA, to: ANTES.END },
   planta: { from: PROBLEMA.START, to: PROBLEMA.L06 },
   campos: { from: PROBLEMA.L06, to: PROBLEMA.CONSEGUIR },

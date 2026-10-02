@@ -648,6 +648,9 @@ export const WaterMeter: React.FC<{
 // =============================================================================================
 // FreezeLabel
 
+/** Frames between the letters of the FreezeLabel as it writes itself. */
+const LETTER_STEP = 0.75;
+
 /**
  * Freeze-frame meme ("SÍ, ESE SOY YO"): a white flash at `at`, then the whole frame underneath
  * turns grayscale with a little extra contrast (backdrop filter) and a soft vignette; a red
@@ -698,10 +701,10 @@ export const FreezeLabel: React.FC<{
     return `${ex - (ux * c - uy * s) * hl} ${ey - (ux * s + uy * c) * hl}`;
   };
   const headD = `M${headPt(0.52)} L${ex} ${ey} L${headPt(-0.48)}`;
-  const ap = ramp(frame, at + 6, at + 14, [0, 1], EASE_IN_OUT);
-  const hp = ramp(frame, at + 14, at + 18, [0, 1], EASE_OUT);
-  const doneAt = at + 3 + chars.length * 1.2;
-  const ul = ramp(frame, doneAt + 2, doneAt + 9, [0, 1], EASE_IN_OUT);
+  const ap = ramp(frame, at + 3, at + 9, [0, 1], EASE_IN_OUT);
+  const hp = ramp(frame, at + 9, at + 12, [0, 1], EASE_OUT);
+  const doneAt = at + 2 + chars.length * LETTER_STEP;
+  const ul = ramp(frame, doneAt + 1, doneAt + 6, [0, 1], EASE_IN_OUT);
   const u0 = lx - estW / 2;
   const uy0 = ly + size * 0.64;
   const ulD = `M${u0} ${uy0 + 6} C${u0 + estW * 0.3} ${uy0 - 4} ${u0 + estW * 0.7} ${uy0 + 12} ${u0 + estW} ${uy0}`;
@@ -749,7 +752,7 @@ export const FreezeLabel: React.FC<{
         }}
       >
         {chars.map((ch, i) => {
-          const la = at + 3 + i * 1.2;
+          const la = at + 2 + i * LETTER_STEP;
           const lp = pop(frame, la, { damping: 12, stiffness: 260 });
           const glyph = ch === " " ? " " : ch;
           return (

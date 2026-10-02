@@ -13,6 +13,7 @@ import {
 } from "../overlay/agua/AguaUI";
 import { ImpactText, SlowMoBars } from "../overlay/thanos/ThanosUI";
 import { ANTES, FINAL, GIRO, HOOK, PROBLEMA, SOLUCION } from "./beats";
+import { SHOTS } from "./shots";
 
 /** The script asks for the comment during the first 6 seconds. */
 const COMMENT_OUT = 6 * 30;
@@ -27,9 +28,9 @@ export const AguaOverlays: React.FC = () => {
       {/* Drains with the picture (see oceanoWater in shots/Oceano.tsx). */}
       <WaterMeter frame={g} at={HOOK.OCEAN - 4} from={HOOK.AHORA - 9} to={HOOK.AHORA + 11} out={HOOK.L02 - 2} x={770} y={330} />
       {/* The arrow points at the top of Nubi's head in the freeze frame of shots/Flash.tsx. */}
-      <FreezeLabel frame={g} at={HOOK.FREEZE} out={HOOK.END} x={540} y={585} />
+      <FreezeLabel frame={g} at={HOOK.FREEZE} out={SHOTS.flash.to} x={540} y={585} />
 
-      <RewindCard frame={g} at={ANTES.START} out={ANTES.END - 4} />
+      <RewindCard frame={g} at={SHOTS.flash.to - 4} out={ANTES.END - 4} dur={20} />
 
       <FactChip
         frame={g}

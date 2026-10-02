@@ -3,6 +3,7 @@
 import type { MusicPart } from "../Soundtrack";
 import type { Bed, Cue } from "../sfx";
 import { ANTES, FINAL, GIRO, HOOK, PELIGRO, PROBLEMA, SOLUCION } from "./beats";
+import { SHOTS } from "./shots";
 import { AGUA } from "./timeline";
 
 const FPS = 30;
@@ -44,9 +45,9 @@ const hook = (): Cue[] => {
 };
 
 const antes = (): Cue[] => {
-  const { START, CARD_OUT, PLAYA, UP, MAL } = ANTES;
+  const { CARD_OUT, PLAYA, UP, MAL } = ANTES;
   return [
-    [START, "agua/rewind", 0.75],
+    [SHOTS.flash.to - 4, "agua/rewind", 0.75],
     [CARD_OUT, "agua/faucet", 0.9],
     [PLAYA - 2, "whoosh-short", 0.3],
     [UP - 2, "agua/creak", 0.85],

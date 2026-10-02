@@ -20,7 +20,7 @@ export const HOOK = {
   /** "error": the crowd floods in behind Nubi. */
   ERROR: wordAt("L02", 8),
   /** Freeze frame ("sí, ese soy yo") until the end of the hook. */
-  FREEZE: lineEnd("L02") + 2,
+  FREEZE: lineEnd("L02") - 2,
 };
 
 export const ANTES = {
