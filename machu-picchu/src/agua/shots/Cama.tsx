@@ -45,10 +45,12 @@ const CAM_BED = aim([1.3, 2.6, 7.6], FOV, [1.3, 0.3, -1.2], 540, 1180);
 const CAM_SINK = aim([SINK_AT[0] - 2.3, 2.0, SINK_AT[2] + 8.4], FOV, SINK_AT, 690, 1262);
 const CAM_SINK_IN = aim([SINK_AT[0] - 2.0, 1.9, SINK_AT[2] + 7.4], FOV, SINK_AT, 690, 1262);
 const EYES = (at: Vec3): Vec3 => [at[0], 1.1, at[2] + 0.88];
-const CAM_CLOSE = aim([CLOSE_AT[0], 1.12, CLOSE_AT[2] + 0.88 + 4.2], FOV, EYES(CLOSE_AT), 540, 1010);
-const CAM_SQUINT = aim([CLOSE_AT[0], 1.1, CLOSE_AT[2] + 0.88 + 3.7], FOV, EYES(CLOSE_AT), 540, 1010);
+const CAM_CLOSE = aim([CLOSE_AT[0], 1.12, CLOSE_AT[2] + 0.88 + 3.8], FOV, EYES(CLOSE_AT), 540, 1010);
+const CAM_SQUINT = aim([CLOSE_AT[0], 1.1, CLOSE_AT[2] + 0.88 + 3.35], FOV, EYES(CLOSE_AT), 540, 1010);
 
 const mix = (a: number, b: number, k: number) => a + (b - a) * k;
+/** A ramp end that stays after its start even if the beats move. */
+const after = (a: number, b: number) => Math.max(a + 1, b);
 
 export const CamaShot: React.FC = () => {
   const g = useCurrentFrame() + SHOTS.cama.from;
@@ -56,16 +58,16 @@ export const CamaShot: React.FC = () => {
   const t = g / 30;
 
   // ---- Timing -------------------------------------------------------------------------
-  const JOLT = START + 1;
+  const JOLT = START;
   const ZIP0 = FALL + 3;
-  const ZIP1 = SINK - 1;
+  const ZIP1 = after(ZIP0 + 2, SINK - 1);
   const OFF = BOTELLA - 22;
   const REACH = BOTELLA - 10;
   const HOP0 = CLOSE - 12;
   const HUG = CLOSE - 4;
 
   // ---- Where Nubi is ------------------------------------------------------------------
-  const tumble = ramp(g, JOLT + 1, FALL, [0, 1], Easing.in(Easing.quad));
+  const tumble = ramp(g, JOLT + 1, after(JOLT + 1, FALL), [0, 1], Easing.in(Easing.quad));
   const zip = ramp(g, ZIP0, ZIP1, [0, 1], EASE_IN_OUT);
   const hop = ramp(g, HOP0, CLOSE, [0, 1], EASE_IN_OUT);
   let at: Vec3;
@@ -90,7 +92,7 @@ export const CamaShot: React.FC = () => {
   at = [at[0], at[1] + lift, at[2]];
 
   // ---- The tap ------------------------------------------------------------------------
-  const handle = ramp(g, ZIP1 - 2, SINK, [0, 1], EASE_OUT) * (1 - ramp(g, OFF, OFF + 6, [0, 1], EASE_IN_OUT));
+  const handle = ramp(g, ZIP1 - 2, after(ZIP1 - 2, SINK), [0, 1], EASE_OUT) * (1 - ramp(g, OFF, OFF + 6, [0, 1], EASE_IN_OUT));
   const flow = ramp(g, SINK, SINK + 3, [0, 1], Easing.linear) * (1 - ramp(g, OFF + 2, OFF + 7, [0, 1], Easing.linear));
   const pool = ramp(g, SINK, SINK + 40, [0, 0.8], EASE_OUT) * (1 - ramp(g, OFF + 6, OFF + 40, [0, 1], EASE_IN_OUT) * 0.6);
 
@@ -143,10 +145,10 @@ export const CamaShot: React.FC = () => {
   const flop = g < JOLT ? 0.4 : g < FALL ? -1 + 1.3 * tumble : hugging ? 0.5 + 0.3 * Math.sin(g * 0.13) : 0.6 + 0.6 * relief - 0.5 * joy;
 
   // ---- Camera -------------------------------------------------------------------------
-  const whip = ramp(g, FALL + 2, ZIP1 + 1, [0, 1], EASE_IN_OUT);
-  const settle = ramp(g, SINK, HOP0, [0, 1], EASE_IN_OUT);
+  const whip = ramp(g, FALL + 2, after(FALL + 2, ZIP1 + 1), [0, 1], EASE_IN_OUT);
+  const settle = ramp(g, SINK, after(SINK, HOP0), [0, 1], EASE_IN_OUT);
   const closeK = ramp(g, HOP0, CLOSE + 4, [0, 1], EASE_IN_OUT);
-  const squintK = ramp(g, MIRANDO - 4, END, [0, 1], EASE_IN_OUT);
+  const squintK = ramp(g, MIRANDO - 4, after(MIRANDO - 4, END), [0, 1], EASE_IN_OUT);
   const sinkCam = {
     position: lerp3(CAM_SINK.position, CAM_SINK_IN.position, settle),
     target: lerp3(CAM_SINK.target, CAM_SINK_IN.target, settle),

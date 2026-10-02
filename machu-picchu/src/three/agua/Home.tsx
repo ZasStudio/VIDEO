@@ -872,10 +872,10 @@ export const Faucet: React.FC<FaucetState & { t?: number; floor?: number }> = ({
 // =======================================================================================
 // Glass of water
 
-/** Glass in a fin (inside <Upright raise={finR}>): standing upright at the tip, a little forward. */
-export const GLASS_HOLD = { position: [0.2, -1.25, 1.2] as V3, rotation: [0, 0, 0] as V3, scale: 7 };
+/** Glass in a fin (inside <Upright raise={finR}>): standing upright at the tip, a little forward; a bit oversized (≈ 0.65 tall) so it reads on a phone. */
+export const GLASS_HOLD = { position: [0.3, -1.6, 1.5] as V3, rotation: [0, 0, 0] as V3, scale: 9 };
 /** Same for the screen-left fin (inside <Upright raise={finL} side="L">). */
-export const GLASS_HOLD_L = { position: [-0.2, -1.25, 1.2] as V3, rotation: [0, 0, 0] as V3, scale: 7 };
+export const GLASS_HOLD_L = { position: [-0.3, -1.6, 1.5] as V3, rotation: [0, 0, 0] as V3, scale: 9 };
 
 const GLASS = { h: 0.36, r0: 0.098, r1: 0.125, base: 0.045, pivot: 0.15 };
 

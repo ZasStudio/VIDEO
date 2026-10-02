@@ -36,7 +36,7 @@ import { aguaTalk } from "../talk";
 
 const Y = 0.16;
 const NUBI_AT: Vec3 = HIDE_SPOT;
-const CAM_A: Vec3 = [-8.05, 2.7, 11.05];
+const CAM_A: Vec3 = [-8.2, 3.45, 11.15];
 const NUBI_ROT = Math.atan2(CAM_A[0] - NUBI_AT[0], CAM_A[2] - NUBI_AT[2]);
 
 /** The trail of leaked drops: alley B → the thin pole → across the road → alley A → the dumpster. */
@@ -53,11 +53,11 @@ const TRAIL: Vec3[] = [
   [-10.6, Y, 13.15],
   [-11.2, Y, 12.4],
 ];
-const ANTS = Array.from({ length: 16 }, (_, i) => ({ look: civilianLook(400 + i), lag: i * 1.15 + ((i * 7) % 5) * 0.08, side: ((i % 3) - 1) * 0.35, phase: i * 1.3 }));
+const ANTS = Array.from({ length: 13 }, (_, i) => ({ look: civilianLook(400 + i), lag: i * 1.35 + ((i * 7) % 5) * 0.08, side: ((i % 3) - 1) * 0.3, phase: i * 1.3 }));
 
-/** The last drop: Nubi on the dumpster holds the bottle up high (upright, hole at the bottom). */
-const DROP_NUBI: Vec3 = [-9.7, Y + 1.62, 11.2];
-const DROP_ROT = Math.PI / 2;
+/** The last drop: Nubi on top of the dumpster holds the bottle out over the alley floor. */
+const DROP_NUBI: Vec3 = [-9.6, Y + 1.62, 12.0];
+const DROP_ROT = 0;
 const DROP_RAISE = 1.0;
 const HOLE_LOCAL: Vec3 = [BOTTLE_HOLD.position[0] + BOTTLE_HOLE[0] * BOTTLE_HOLD.scale, BOTTLE_HOLD.position[1], BOTTLE_HOLD.position[2] + BOTTLE_HOLE[2] * BOTTLE_HOLD.scale];
 const HOLE_W = finTipWorld(DROP_NUBI, DROP_ROT, 2, DROP_RAISE, 1, HOLE_LOCAL);
@@ -80,7 +80,7 @@ export const EsconditeShot: React.FC = () => {
     const finR = 0.5 + 0.35 * lift - 0.2 * no + 0.45 * flip;
     const shakeZ = no * (1 - flip) * Math.sin(g * 1.4) * 0.35;
     const base: NubiPose = {
-      squash: 0.86 + 0.06 * no,
+      squash: 0.93 + 0.05 * no,
       finR,
       finL: 0.25 + 0.5 * no * (1 - flip),
       eyeScale: 1.0 + 0.55 * no,
@@ -127,17 +127,17 @@ export const EsconditeShot: React.FC = () => {
   // ---- B: the drone shot of the trail (TRAIL → DROP)
   if (g < DROP) {
     const u = ramp(g, TRAIL_AT, DROP, [0, 1], (x) => x);
-    const h = 25 - 3 * u;
+    const h = 29 - 3 * u;
     const centre: Vec3 = [-2.2, 0, 8.6 - 0.4 * u];
     const cam: Cam = { position: [centre[0], h, centre[2] + 0.01], target: centre, fov: 50, roll: Math.PI / 2 };
     const pulse = windowIn(g, AGUA - 3, AGUA + 14, 5);
-    const lead = 14.4 + 2.1 * ((g - TRAIL_AT) / 30);
+    const lead = 12.6 + 2.0 * ((g - TRAIL_AT) / 30);
     return (
       <AbsoluteFill style={{ background: HOT_SKY }}>
         <Stage cam={cam} far={300}>
           <HotLights />
           <DryStreet t={t} far={false} />
-          <DropTrail points={TRAIL} t={t} glow={0.9 + 0.8 * pulse} size={1.7 + 0.5 * pulse} spacing={0.5} />
+          <DropTrail points={TRAIL} t={t} glow={1.0 + 0.8 * pulse} size={2.6 + 0.8 * pulse} spacing={0.45} />
           {ANTS.map((a, i) => {
             const { p, yaw } = alongPath(TRAIL, lead - a.lag);
             const x = p[0] + Math.cos(yaw) * a.side;
@@ -161,8 +161,8 @@ export const EsconditeShot: React.FC = () => {
   const dive = ramp(g, DIVE + 2, DIVE + 58, [0, 1], (x) => x);
   const land = ramp(g, DIVE + 58, DIVE + 64);
   // Nubi's dive: from the dumpster's top over the drop's spot, belly-flopping just past it.
-  const from: Vec3 = [DROP_NUBI[0] - 0.6, DROP_NUBI[1], DROP_NUBI[2]];
-  const to: Vec3 = [LAND[0] + 0.55, Y, LAND[2]];
+  const from: Vec3 = [DROP_NUBI[0], DROP_NUBI[1], LAND[2]];
+  const to: Vec3 = [LAND[0] + 0.5, Y, LAND[2]];
   const arc = Math.sin(Math.PI * Math.min(1, dive)) * 0.9;
   const diveAt: Vec3 = close
     ? DROP_NUBI
@@ -179,8 +179,8 @@ export const EsconditeShot: React.FC = () => {
         wiggle: 0.6 * (1 - land),
         wigglePhase: g * 0.12,
       };
-  const camC: Cam = aim([HOLE_W[0] + 1.25, HOLE_W[1] - 0.25, HOLE_W[2] - 0.35], 40, [HOLE_W[0], HOLE_W[1] - 0.12, HOLE_W[2]], 540, 640);
-  const camD: Cam = aim([LAND[0] + 3.4, 0.62, LAND[2] - 0.35], 48, [LAND[0], 0.45, LAND[2]], 540, 1050);
+  const camC: Cam = aim([HOLE_W[0] + 1.05, HOLE_W[1] - 0.3, Math.min(13.2, HOLE_W[2] + 0.75)], 40, [HOLE_W[0], HOLE_W[1] - 0.12, HOLE_W[2]], 540, 640);
+  const camD: Cam = aim([LAND[0] + 3.2, 0.7, LAND[2] + 0.15], 50, [LAND[0], 0.55, LAND[2]], 540, 1000);
   const bottleTumble = close ? 0 : ramp(g, DIVE, DIVE + 50, [0, 1], (x) => x);
   return (
     <AbsoluteFill style={{ background: HOT_SKY }}>

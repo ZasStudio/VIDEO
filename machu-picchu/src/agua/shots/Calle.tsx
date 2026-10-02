@@ -27,6 +27,8 @@ import {
   turnTowards,
 } from "../../three/agua/Street";
 import { PELIGRO } from "../beats";
+
+const AGUA_ALLEY_Z = 11.65;
 import { SHOTS } from "../shots";
 import { aguaTalk } from "../talk";
 
@@ -41,7 +43,16 @@ const Y = 0.16;
 const NUBI_AT: Vec3 = [5.25, Y, 11.5];
 const NUBI_FROM: Vec3 = [8.9, Y, 11.6];
 /** Point-of-view camera (Nubi's eyes, a touch higher so the back rows show). */
-const POV: Vec3 = [5.0, 1.7, 11.5];
+const POV: Vec3 = [5.0, 2.0, 11.5];
+/** People walking by on the sidewalk in the first shot: [x, z at SILENCE, direction]. */
+const WALKERS: [number, number, 1 | -1][] = [
+  [4.3, 10.0, 1],
+  [5.75, 14.2, -1],
+  [2.6, 13.2, -1],
+  [4.7, 15.6, -1],
+  [1.6, 9.0, 1],
+  [5.9, 8.0, 1],
+];
 /** The dash to the thin pole and on (the crowd's trail positions extend past the pole). */
 const DASH: Vec3[] = [
   [5.25, Y, 11.5],
@@ -61,10 +72,10 @@ const ESCAPE: Vec3[] = [
 // The crowd in rows in front of Nubi (distance along −x, z offsets), walking along the street
 // (±z) until the silence.
 const ROWS: [number, number[]][] = [
-  [3.9, [-0.85, 0.9]],
-  [5.3, [-1.7, -0.15, 1.4]],
-  [6.9, [-2.4, -0.9, 0.55, 2.0]],
-  [8.7, [-3.0, -1.6, -0.2, 1.2, 2.6]],
+  [5.1, [-0.95, 1.0]],
+  [6.5, [-1.9, -0.2, 1.5]],
+  [8.0, [-2.6, -1.0, 0.6, 2.2]],
+  [9.7, [-3.3, -1.8, -0.3, 1.2, 2.7]],
 ];
 type Member = { look: ReturnType<typeof civilianLook>; d: number; z: number; dir: 1 | -1; phase: number; r: number; wave: boolean };
 const MEMBERS: Member[] = ROWS.flatMap(([d, zs], ri) =>
@@ -79,19 +90,19 @@ const FAR_SPOTS: [number, number][] = Array.from({ length: 18 }, (_, i) => [-4.3
 /** Around the pole: where each member ends up (relative to POLE_HIDE), member 0 is the tapper. */
 const CIRCLE: [number, number][] = [
   [1.95, -0.1],
-  [-2.1, 1.3],
-  [2.0, 1.7],
-  [-2.8, 2.9],
-  [-1.1, 3.6],
-  [1.1, 4.1],
-  [-3.5, 4.5],
-  [2.3, 3.1],
-  [-2.2, 5.6],
-  [0.3, 5.9],
-  [1.8, 6.4],
-  [-3.6, 6.8],
-  [-1.0, 7.4],
-  [2.2, 7.9],
+  [-2.1, 1.2],
+  [2.05, 1.6],
+  [-2.9, 2.7],
+  [-1.9, 3.9],
+  [1.85, 3.4],
+  [-3.6, 4.6],
+  [-2.6, 5.8],
+  [1.75, 5.6],
+  [-3.4, 7.2],
+  [-1.4, -1.2],
+  [1.6, -1.6],
+  [-2.9, -0.4],
+  [0.2, -2.4],
 ];
 
 const CHASERS: Chaser[] = MEMBERS.map((m, i) => ({
@@ -188,20 +199,20 @@ export const CalleShot: React.FC = () => {
   let shot: "out" | "pov" | "nubi" | "chase" | "pole";
   if (g < TURN) {
     shot = "out";
-    cam = aim([-0.6, 2.2, 18.4], 48, [NUBI_AT[0], 1.1, NUBI_AT[2]], 560, 860);
+    cam = aim([-0.4, 2.0, 14.9], 48, [6.2, 0.95, AGUA_ALLEY_Z], 540, 880);
   } else if (g < MOSTRARLA) {
     shot = "pov";
-    cam = aim(POV, 58, [-4, 1.25, NUBI_AT[2]], 540, 880);
+    cam = aim(POV, 62, [-4, 1.0, NUBI_AT[2]], 540, 900);
   } else if (g < AMIGOS) {
     shot = "nubi";
     const push = ramp(g, MOSTRARLA, AMIGOS, [0, 1], (x) => x);
-    cam = aim([2.2 + push * 0.5, 1.6, 15.0 - push * 0.6], 44, [NUBI_AT[0], Y + 1.05, NUBI_AT[2]], 540, 820);
+    cam = aim([1.3 + push * 0.6, 1.55, 13.5 - push * 0.3], 44, [NUBI_AT[0], Y + 1.05, NUBI_AT[2]], 540, 820);
   } else if (g < CHASE) {
     shot = "pov";
-    cam = aim(POV, 58, [-4, 1.2, NUBI_AT[2]], 540, 900);
+    cam = aim(POV, 62, [-4, 0.95, NUBI_AT[2]], 540, 920);
   } else if (g < POLE) {
     shot = "chase";
-    cam = aim([2.3, 1.4, 1.8], 50, [POLE_HIDE[0], 1.15, POLE_HIDE[2] + 2.2], 540, 880);
+    cam = aim([2.0, 1.45, 0.2], 50, [POLE_HIDE[0], 1.15, POLE_HIDE[2] + 2.0], 540, 900);
   } else {
     shot = "pole";
     cam = aim([3.3, 1.75, 14.6], 46, [POLE_HIDE[0], Y + 1.0, POLE_HIDE[2]], 540, 820);
@@ -210,8 +221,20 @@ export const CalleShot: React.FC = () => {
   // ---- The crowd
   const turnTarget: Vec3 = shot === "pov" ? POV : [nubiAt[0], nubiAt[1] + 1.1, nubiAt[2]];
   const wide = ramp(g, TURN, TURN + 8) * 0.3 + 0.1 * ramp(g, AMIGOS, AMIGOS + 8);
+  const walkers =
+    shot === "out"
+      ? WALKERS.map(([x, z0, dir], i) => {
+          const z = z0 + dir * 1.1 * ((Math.min(g, SILENCE) - SILENCE) / 30);
+          const look = civilianLook(330 + i);
+          const w = civilianWalk(tFrozen, i * 1.9, g < SILENCE ? 1 : 0.85);
+          const at: Vec3 = [x, streetGroundY(x, z), z];
+          const rot = dir > 0 ? 0 : Math.PI;
+          const k = ramp(g, SILENCE + 2 + i, SILENCE + 7 + i);
+          return <Civilian key={`w${i}`} look={look} position={at} rotationY={rot} pose={turnTowards({ ...w, hop: g < SILENCE ? w.hop : 0, eyeScale: 1 + 0.3 * k }, k * 0.35, at, rot, [nubiAt[0], 1.2, nubiAt[2]])} t={tFrozen} />;
+        })
+      : null;
   const crowd =
-    g < CHASE ? (
+    shot === "out" ? null : g < CHASE ? (
       MEMBERS.map((m, i) => {
         const at = memberSpot(m, g);
         const rot = m.dir > 0 ? 0 : Math.PI;
@@ -280,7 +303,8 @@ export const CalleShot: React.FC = () => {
           <HotLights />
           <DryStreet t={t} />
           {crowd}
-          {shot === "pov" || shot === "out" ? (
+          {walkers}
+          {shot === "pov" ? (
             <FarCrowd t={tFrozen} spots={FAR_SPOTS} lookAt={g >= TURN + 4 ? POV : undefined} facing={Math.PI / 2} seed={21} />
           ) : null}
           {shot === "out" && g >= SILENCE - 2 ? (

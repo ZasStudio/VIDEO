@@ -25,7 +25,7 @@ export const GrifoShot: React.FC = () => {
   const g = useCurrentFrame() + SHOTS.grifo.from;
   const { START, CARD_OUT, CORTADO, PLAYA } = ANTES;
   const t = g / 30;
-  const POV_END = Math.min(PLAYA - 14, CORTADO + 40);
+  const POV_END = Math.max(CORTADO + 12, Math.min(PLAYA - 14, CORTADO + 40));
   const pov = g >= CORTADO && g < POV_END;
 
   // Turning the knob: a first try, then more (still nothing), then shaking it.

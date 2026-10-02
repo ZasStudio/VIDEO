@@ -14,13 +14,13 @@ import { SHOTS } from "../shots";
 // glass of water towards its face, eyes half closed. On "desapareciera" (VANISH) the water
 // evaporates in a flash of sparkles (gone by VANISH + 6), Nubi freezes with its eyes wide and
 // turns the glass upside down (by OCEAN): nothing comes out.
-// Medium-close, Nubi in the middle/right with its feet at y ≈ 1270; the top-left (x 60-560,
-// y 230-440) stays free for the viewer's comment.
+// Medium shot, Nubi ≈ 650 px wide centred at x ≈ 560 with its feet at y ≈ 1270, the glass
+// oversized in its raised fin; the top-left (x 60-560, y 230-440) stays free for the comment.
 
 const AT: Vec3 = [-0.75, 0, -0.55];
 const YAW = -0.42;
 const FOV = 34;
-const FEET: [number, number] = [610, 1268];
+const FEET: [number, number] = [560, 1268];
 
 const cam = (offset: Vec3) => aim([AT[0] + offset[0], AT[1] + offset[1], AT[2] + offset[2]], FOV, AT, FEET[0], FEET[1]);
 
@@ -32,7 +32,7 @@ export const VasoShot: React.FC = () => {
   // Sip: the glass keeps tipping towards the face until the water vanishes.
   const sip = ramp(g, START, VANISH, [0.62, 1.08], EASE_IN_OUT);
   const vanish = ramp(g, VANISH, VANISH + 6, [0, 1], Easing.linear);
-  const flip = ramp(g, VANISH + 4, Math.min(OCEAN - 3, VANISH + 12), [0, 1], EASE_IN_OUT);
+  const flip = ramp(g, VANISH + 4, Math.max(VANISH + 6, Math.min(OCEAN - 3, VANISH + 12)), [0, 1], EASE_IN_OUT);
   const shakeOut = clamp01((g - (VANISH + 11)) / 3);
   const tilt = sip + (Math.PI - sip) * flip + 0.16 * Math.sin(g * 2.1) * shakeOut;
   const shock = ramp(g, VANISH, VANISH + 3, [0, 1], EASE_OUT);
@@ -59,9 +59,9 @@ export const VasoShot: React.FC = () => {
   // Slow push-in from the first frame, a punch-in on the vanish.
   const push = ramp(g, START, VANISH, [0, 1], EASE_IN_OUT);
   const punch = ramp(g, VANISH, VANISH + 5, [0, 1], EASE_OUT);
-  const c0 = cam([1.5, 1.85, 8.6]);
-  const c1 = cam([1.3, 1.75, 7.6]);
-  const c2 = cam([1.15, 1.65, 6.9]);
+  const c0 = cam([1.75, 2.1, 10.3]);
+  const c1 = cam([1.6, 2.0, 9.4]);
+  const c2 = cam([1.45, 1.9, 8.6]);
   const position = lerp3(lerp3(c0.position, c1.position, push), c2.position, punch);
   const target = lerp3(lerp3(c0.target, c1.target, push), c2.target, punch);
 

@@ -22,7 +22,7 @@ const PATH: Vec3[] = [
 ];
 const SPEED = 3.3;
 const START = 1.0;
-const CHASERS = makeChasers(14, 200, { lag0: 1.7, lagStep: 0.6, spread: 1.35, fromSide: 4.6 });
+const CHASERS = makeChasers(16, 200, { lag0: 1.6, lagStep: 0.5, spread: 2.1, fromSide: 4.8 });
 const FAR_SPOTS: [number, number][] = Array.from({ length: 26 }, (_, i) => [-3.4 + (i % 7) * 1.15 + ((i * 7) % 5) * 0.12, 9 + Math.floor(i / 7) * 1.7 + ((i * 3) % 4) * 0.3]);
 /** The leak: drops left on the road behind Nubi (foreshadowing the hole). */
 const LEAK: Vec3[] = [alongPath(PATH, START).p, PATH[1]].map((p) => [p[0] + 0.05, 0, p[2]] as Vec3);
