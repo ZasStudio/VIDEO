@@ -5,7 +5,7 @@ import { Shake, Stage } from "../../scenes/common";
 import { Vec3, lerp3, projectToScreen } from "../../three/CameraRig";
 import { Nubi, NubiPose } from "../../three/Nubi";
 import { DustPuff } from "../../three/Effects3D";
-import { Coast, CoastLights, GiantShip, HeatShimmer, PLAYA_CAM, PLAYA_WALK, SHIP_NUBI, SHIP_SPOT, coastSky } from "../../three/agua/Outdoors";
+import { Coast, CoastLights, GiantShip, HeatShimmer, PLAYA_CAM, PLAYA_WALK, PLAYA_WIDE, SHIP_NUBI, SHIP_SPOT, coastSky } from "../../three/agua/Outdoors";
 import { aim } from "../../thanos/camera";
 import { ANTES } from "../beats";
 import { aguaTalk } from "../talk";
@@ -69,7 +69,7 @@ export const PlayaShot: React.FC = () => {
   const creak = 0.6 + 0.4 * windowIn(g, UP + 8, CUT_WIDE, 6) + 0.6 * windowIn(g, MAL + 8, MAL + 40, 6);
 
   // --- Cameras ------------------------------------------------------------------------
-  const camA = aim(lerp3([PLAYA_CAM[0] - 0.4, PLAYA_CAM[1] + 0.3, PLAYA_CAM[2] + 1.2], PLAYA_CAM, ramp(g, S.from, CUT_POV, [0, 1], EASE_OUT)), 50, nubiAt, 530, 1260);
+  const camA = aim(lerp3([PLAYA_CAM[0] - 0.4, PLAYA_CAM[1] + 0.4, PLAYA_CAM[2] + 1.0], PLAYA_CAM, ramp(g, S.from, CUT_POV, [0, 1], EASE_OUT)), 58, nubiAt, 520, 1250);
   const tiltUp = ramp(g, CUT_POV, CUT_WIDE, [0, 1], EASE_IN_OUT);
   const eye: Vec3 = [SHIP_NUBI[0], F + 1.5, SHIP_NUBI[2]];
   const camB = {
@@ -79,7 +79,7 @@ export const PlayaShot: React.FC = () => {
     roll: 0.1 + 0.03 * Math.sin(t * 1.3),
   };
   const push = ramp(g, CUT_WIDE, S.to, [0, 1], EASE_IN_OUT);
-  const camC = aim(lerp3([-36, F + 2.6, -2], [-33, F + 2.3, -5], push), 44, SHIP_NUBI, 500, 1120);
+  const camC = aim(lerp3(PLAYA_WIDE, [PLAYA_WIDE[0] - 4, PLAYA_WIDE[1] - 0.2, PLAYA_WIDE[2] - 1], push), 40, SHIP_NUBI, 600, 1120);
   const cam = shotA ? camA : shotB ? camB : camC;
   const horizon = projectToScreen(cam, [cam.target[0] + (cam.target[0] - cam.position[0]) * 40, F + 2, cam.target[2] + (cam.target[2] - cam.position[2]) * 40], 1080, 1920);
   const sky = shotB ? coastSky(1.1) : coastSky(clamp01(horizon.behind ? 0.5 : horizon.y / 1920));
@@ -101,7 +101,7 @@ export const PlayaShot: React.FC = () => {
           {shotB ? null : <Nubi size={2} position={nubiAt} rotationY={shotA ? Math.PI : lerp(Math.PI * 0.95, Math.atan2(cam.position[0] - SHIP_NUBI[0], cam.position[2] - SHIP_NUBI[2]), turn)} pose={pose} shadowOpacity={0.3} />}
           {shotA ? <DustPuff frame={g} at={UP} position={[nubiAt[0], nubiAt[1], nubiAt[2]]} radius={1.1} color="#F1DDB0" count={8} /> : null}
           {shotA ? <HeatShimmer t={t} position={[0, F, -8]} width={60} height={6} rotationY={Math.PI * 0} /> : null}
-          {shotA ? null : <HeatShimmer t={t} position={[-10, F, -14]} width={90} height={7} rotationY={-0.75} amount={0.7} />}
+          {shotA || shotB ? null : <HeatShimmer t={t} position={[30, F, -30]} width={70} height={6} rotationY={1.35} amount={0.7} />}
         </Stage>
       </Shake>
     </AbsoluteFill>

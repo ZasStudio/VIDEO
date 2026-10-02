@@ -130,11 +130,11 @@ export const STUDIO_MATTRESS_TOP = BED.top;
 export const STUDIO_BED_FLOOR: V3 = [0.0, 0, -1.1];
 const NIGHTSTAND: V3 = [4.15, 0, -2.72];
 
-const PLANT_WINDOW = { z: 1.1, y: 1.62, w: 1.5, h: 1.6 };
-const SILL = { x0: 3.86, top: 0.72, z0: 0.15, z1: 2.05 };
+const PLANT_WINDOW = { z: 1.1, y: 1.5, w: 1.5, h: 1.6 };
+const SILL = { x0: 3.86, top: 0.55, z0: 0.15, z1: 2.05 };
 /** The potted plant on the deep sill of the right-wall window (pot base) and its scale. */
 export const STUDIO_PLANT: V3 = [4.16, SILL.top, 1.1];
-export const STUDIO_PLANT_SCALE = 0.85;
+export const STUDIO_PLANT_SCALE = 0.8;
 /** Where Nubi stands to water the plant (facing the camera, the can in finR over the plant). */
 export const STUDIO_PLANT_NUBI: V3 = [2.25, 0, 1.15];
 /** An open spot in the middle of the room, on the rug. */
@@ -1019,10 +1019,10 @@ export const WaterGlass: React.FC<{ fill?: number; vanish?: number; t?: number; 
 // =======================================================================================
 // Watering can
 
-/** Can in a fin (inside <Upright raise={finR}>): held by its top handle, hanging from the tip. */
-export const CAN_HOLD = { position: [0.55, -1.9, 1.15] as V3, rotation: [0, 0, 0] as V3, scale: 5 };
+/** Can in a fin (inside <Upright raise={finR}>): gripped at its side, the rose ≈ 0.25 above the fin tip. */
+export const CAN_HOLD = { position: [0.45, -0.75, 1.05] as V3, rotation: [0, 0, 0] as V3, scale: 5 };
 /** Same for the screen-left fin (spout pointing to screen-left, i.e. away from Nubi). */
-export const CAN_HOLD_L = { position: [-0.55, -1.9, 1.15] as V3, rotation: [0, Math.PI, 0] as V3, scale: 5 };
+export const CAN_HOLD_L = { position: [-0.45, -0.75, 1.05] as V3, rotation: [0, Math.PI, 0] as V3, scale: 5 };
 
 const CAN = { r: 0.16, h: 0.27, pivot: [0, 0.36, 0] as V3, rose: [0.5, 0.36, 0] as V3 };
 
@@ -1697,7 +1697,6 @@ export const Studio: React.FC<StudioProps> = ({ t = 0, faucet = {}, pool, wilt =
   const floorMat = texMat("floor", withRepeat(floorTex(), 0.5, 0.5), { rough: 0.55, glow: 0.12 });
   const tileMat = texMat("tiles", withRepeat(tilesTex(), 1 / 0.5, 1 / 0.5), { rough: 0.3, glow: 0.14 });
   const white = toy("#FFFFFF", { rough: 0.45, glow: 0.16 });
-  const cream = toy("#FFF6EA", { rough: 0.6, glow: 0.14 });
   const butter = toy("#FFD36E", { rough: 0.45, glow: 0.16 });
   const sky = toy("#7EC8F2", { rough: 0.45, glow: 0.16 });
   const lilac = toy("#B9A4F2", { rough: 0.5, glow: 0.16 });

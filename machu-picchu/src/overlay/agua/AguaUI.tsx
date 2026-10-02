@@ -1749,7 +1749,7 @@ export const DreamRipple: React.FC<{ frame: number; at: number; dur?: number; x?
       const rr = r + (8 + r * 0.02) * Math.sin(th * 7 + tt * 0.35 + i * 1.3);
       d += `${j ? "L" : "M"}${(x + Math.cos(th) * rr).toFixed(1)} ${(y + Math.sin(th) * rr).toFixed(1)} `;
     }
-    rings.push(<path key={`b${i}`} d={`${d}Z`} stroke="#7FCBFF" strokeWidth={6 + 8 * fade} fill="none" opacity={e * fade * 0.75} transform={`translate(0 ${5 + 4 * fade})`} />);
+    rings.push(<path key={`b${i}`} d={`${d}Z`} stroke="#6FC3FF" strokeWidth={8 + 9 * fade} fill="none" opacity={Math.min(1, e * 1.2) * fade * 0.9} transform={`translate(0 ${5 + 4 * fade})`} />);
     rings.push(<path key={`w${i}`} d={`${d}Z`} stroke="#FFFFFF" strokeWidth={4 + 9 * fade} fill="none" opacity={e * fade * 0.9} />);
   }
   const puffs: React.ReactNode[] = [];
@@ -1821,7 +1821,7 @@ const ChoiceBubble: React.FC<{ label: string; bg: string; tail: "left" | "right"
     </svg>
   );
   return (
-    <div style={{ position: "relative", width: 320, height: 180 }}>
+    <div style={{ position: "relative", width: 340, height: 196 }}>
       {tailSvg("outline")}
       <div
         style={{
@@ -1840,7 +1840,7 @@ const ChoiceBubble: React.FC<{ label: string; bg: string; tail: "left" | "right"
       >
         {children}
         <div style={{ paddingTop: 12, marginTop: -2 }}>
-          <HeavyText text={label} size={44} colors={TXT_WHITE} />
+          <HeavyText text={label} size={47} colors={TXT_WHITE} />
         </div>
       </div>
       {tailSvg("fill")}
@@ -1942,8 +1942,8 @@ export const ShareOrSurvive: React.FC<{ frame: number; at: number; out?: number;
         <DropIcon size={128} />
       </div>
       {[
-        { text: "COMPARTIR", bg: "linear-gradient(160deg, #7FD8FF 0%, #2A8CFF 55%, #1650C8 100%)", x: 292, at: at + 18, tail: "left" as const, icon: "share" },
-        { text: "SOBREVIVIR", bg: "linear-gradient(160deg, #FFC46B 0%, #FF8A1F 55%, #E0520C 100%)", x: 708, at: at + 24, tail: "right" as const, icon: "survive" },
+        { text: "COMPARTIR", bg: "linear-gradient(160deg, #7FD8FF 0%, #2A8CFF 55%, #1650C8 100%)", x: 282, at: at + 18, tail: "left" as const, icon: "share" },
+        { text: "SOBREVIVIR", bg: "linear-gradient(160deg, #FFC46B 0%, #FF8A1F 55%, #E0520C 100%)", x: 718, at: at + 24, tail: "right" as const, icon: "survive" },
       ].map((b, i) => {
         const p = pop(frame, b.at, { damping: 9, stiffness: 200 });
         if (p < 0.001) return null;
@@ -1954,12 +1954,12 @@ export const ShareOrSurvive: React.FC<{ frame: number; at: number; out?: number;
             style={{
               position: "absolute",
               left: b.x,
-              top: 548 + bob,
+              top: 552 + bob,
               transform: `translate(-50%, -50%) scale(${p}) rotate(${(i ? 4 : -4) * (0.7 + 0.3 * (1 - p)) + Math.sin(t * 0.07 + i) * 1.6}deg)`,
             }}
           >
             <ChoiceBubble label={b.text} bg={b.bg} tail={b.tail}>
-              {b.icon === "share" ? <FinsDropIcon size={86} frame={frame} /> : <LockBottleIcon size={86} frame={frame} />}
+              {b.icon === "share" ? <FinsDropIcon size={100} frame={frame} /> : <LockBottleIcon size={100} frame={frame} />}
             </ChoiceBubble>
           </div>
         );

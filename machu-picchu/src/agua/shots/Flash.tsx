@@ -58,8 +58,8 @@ export const FlashShot: React.FC = () => {
   const glow = 0.6 + 0.4 * windowIn(g, BOTELLA - 4, BOTELLA + 14, 6);
 
   // Camera dollies back in front of Nubi, pushing in a little towards the freeze.
-  const dist = 5.9 - 0.45 * ramp(g, L02, FREEZE);
-  const cam = aim([at[0] - 0.3, 1.32, at[2] - dist], 46, [at[0], at[1] + 1.12, at[2]], 540, 800);
+  const dist = 9.2 - 0.9 * ramp(g, L02, FREEZE);
+  const cam = aim([at[0] - 0.5, 1.45, at[2] - dist], 50, [at[0], at[1] + 1.12, at[2]], 540, 800);
 
   const flood = ramp(g, ERROR, FREEZE - 2, [0, 1], (x) => x);
   const farIn = ramp(g, ERROR - 2, FREEZE, [14, 0]);

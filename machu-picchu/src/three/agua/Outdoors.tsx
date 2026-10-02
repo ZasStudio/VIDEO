@@ -455,7 +455,7 @@ export type BoatSpec = { kind: BoatKind; x: number; z: number; yaw: number; hull
 export const COAST_BOATS: BoatSpec[] = [
   { kind: "fish", x: -4, z: -20, yaw: 0.35, hull: "#E8443A", trim: "#FFFFFF", roll: 0.45, pitch: 0.05, seed: 1 },
   { kind: "sail", x: 10, z: -26, yaw: -1.25, hull: "#FFFFFF", trim: "#2F7BEA", roll: -0.55, pitch: 0.04, seed: 2 },
-  { kind: "row", x: 7, z: -34, yaw: 2.3, hull: "#2CB7B0", trim: "#FFD23F", roll: 0.32, pitch: -0.05, seed: 3 },
+  { kind: "row", x: 6, z: -31.5, yaw: 2.3, hull: "#2CB7B0", trim: "#FFD23F", roll: 0.32, pitch: -0.05, seed: 3 },
   { kind: "fish", x: -30, z: 2, yaw: -0.3, hull: "#2F7BEA", trim: "#FFD23F", roll: -0.4, pitch: 0.03, seed: 4 },
   { kind: "fish", x: 30, z: -8, yaw: 2.7, hull: "#F7B32B", trim: "#E8443A", roll: 0.42, pitch: -0.04, seed: 5 },
   { kind: "sail", x: -44, z: -40, yaw: 1.2, hull: "#FFFFFF", trim: "#E8443A", roll: 0.5, pitch: 0.02, seed: 6 },
@@ -757,10 +757,21 @@ const lighthouseGeometry = () => {
 // =======================================================================================
 // Coast: seabed props (rocks, shells, starfish, coral, seaweed, fish bones, anchor, chest)
 
+/** Keel centre of the stranded liner on the seabed (it heels towards +z, over SHIP_NUBI). */
+export const SHIP_SPOT: V3 = [8, COAST_FLAT_Y, -60];
+/** Nubi's spot under the overhang (the deck rail is ≈ 7 above, the superstructure ≈ 17-28). */
+export const SHIP_NUBI: V3 = [1, COAST_FLAT_Y, -39];
+/** Nubi's walk on the seabed in the playa shot (from among the stranded boats to SHIP_NUBI). */
+export const PLAYA_WALK = { from: [-1.2, COAST_FLAT_Y, -32] as V3, to: SHIP_NUBI };
+/** Playa shot-A camera: just under the ship's rail, looking back towards the old shore. */
+export const PLAYA_CAM: V3 = [3.2, COAST_FLAT_Y + 3.0, -47.2];
+/** Playa wide camera (bow quarter): sees the bow, the anchor chain and tiny Nubi under the ship. */
+export const PLAYA_WIDE: V3 = [62, COAST_FLAT_Y + 2.4, -25];
+
 /** Spots of the seabed props near the playa walk (for camera framing). */
 export const SEABED_PROPS = {
-  anchor: [-7, COAST_FLAT_Y, -27] as V3,
-  chest: [-5.5, COAST_FLAT_Y, -36] as V3,
+  anchor: [-6, COAST_FLAT_Y, -24] as V3,
+  chest: [-9, COAST_FLAT_Y, -30] as V3,
   fish: [
     [2.5, COAST_FLAT_Y, -22.5],
     [-4, COAST_FLAT_Y, -41],
@@ -864,8 +875,15 @@ const seabedPropsGeometry = () => {
   const rnd = mulberry(9090);
   const geos: THREE.BufferGeometry[] = [];
   const at = (x: number, z: number): V3 => [x, coastBedY(x, z), z];
-  // Keep Nubi's walk (x −6..6 between z −14 and −40) clear of everything but small shells.
-  const clear = (x: number, z: number) => Math.abs(x + (z + 14) * 0.15) < 4.5 && z < -12 && z > -44;
+  // Keep Nubi's walk and the playa sight lines (PLAYA_CAM and PLAYA_WIDE to SHIP_NUBI) clear.
+  const seg = (x: number, z: number, a: V3, b: V3) => {
+    const dx = b[0] - a[0];
+    const dz = b[2] - a[2];
+    const k = clamp01(((x - a[0]) * dx + (z - a[2]) * dz) / (dx * dx + dz * dz));
+    return Math.hypot(x - a[0] - dx * k, z - a[2] - dz * k);
+  };
+  const clear = (x: number, z: number) =>
+    (Math.abs(x + (z + 14) * 0.15) < 4.5 && z < -12 && z > -50) || seg(x, z, PLAYA_WIDE, SHIP_NUBI) < 5.5 || seg(x, z, PLAYA_CAM, SHIP_NUBI) < 4;
   const rocks = ["#B7A188", "#A08B74", "#C9B396", "#8F7C69"];
   for (let i = 0; i < 260; i++) {
     const near = i < 120;
@@ -880,7 +898,7 @@ const seabedPropsGeometry = () => {
   for (let i = 0; i < 70; i++) {
     const x = (rnd() - 0.5) * 50;
     const z = -48 + rnd() * 44;
-    if (coastBedY(x, z) > -1) continue;
+    if (coastBedY(x, z) > -1 || seg(x, z, PLAYA_WIDE, SHIP_NUBI) < 3) continue;
     const c = shellCols[Math.floor(rnd() * shellCols.length)];
     if (i % 5 === 0) geos.push(starfish(at(x, z), rnd() * 6, 0.9 + rnd() * 0.6, i % 2 ? "#FF7A3D" : "#FF5C8A"));
     else if (i % 5 === 1) geos.push(place(new THREE.ConeGeometry(0.22, 0.75, 7), c, [x, coastBedY(x, z) + 0.2, z], [Math.PI / 2, rnd() * 6, 0.3]));
@@ -1025,14 +1043,6 @@ export const Coast: React.FC<{ water?: number; t?: number; rush?: number; fog?: 
 
 /** Liner dimensions (model units = world units): keel origin, bow towards +x, heels towards +z. */
 export const SHIP = { length: 72, beam: 14, hull: 13, top: 31, maxHeel: 0.52 };
-/** Keel centre of the stranded liner on the seabed (it heels towards +z, over SHIP_NUBI). */
-export const SHIP_SPOT: V3 = [8, COAST_FLAT_Y, -60];
-/** Nubi's spot under the overhang (the deck rail is ≈ 7 above, the superstructure ≈ 17-28). */
-export const SHIP_NUBI: V3 = [1, COAST_FLAT_Y, -39];
-/** Nubi's walk on the seabed in the playa shot (from among the stranded boats to SHIP_NUBI). */
-export const PLAYA_WALK = { from: [-0.6, COAST_FLAT_Y, -34.5] as V3, to: SHIP_NUBI };
-/** Shot-A camera of the playa: just under the ship's rail, looking back towards the old shore. */
-export const PLAYA_CAM: V3 = [3.2, COAST_FLAT_Y + 2.4, -47.2];
 
 const halfBeam = (x: number, y: number) => (SHIP.beam / 2) * hullShape(x / SHIP.length + 0.5, y / SHIP.hull, 0.3);
 
@@ -1344,7 +1354,7 @@ const CROP_VS_BODY = /* glsl */ `
   transformed = aBase + rel;
 #ifdef USE_COLOR
   float l = dot(vColor.rgb, vec3(0.3, 0.55, 0.15));
-  vec3 dry = mix(uDry1 * (0.7 + 0.5 * l), uDry2 * (0.75 + 0.4 * l), smoothstep(0.5, 1.0, wk));
+  vec3 dry = mix(uDry1 * (0.8 + 0.4 * l), uDry2 * (0.85 + 0.35 * l), smoothstep(0.5, 1.0, wk));
   vColor.rgb = mix(vColor.rgb, dry, smoothstep(0.08, 0.6, wk));
 #endif
 }
@@ -1356,8 +1366,8 @@ const makeCropMaterial = (droop: number, shrink: number) => {
     uTime: { value: 0 },
     uDroop: { value: droop },
     uShrink: { value: shrink },
-    uDry1: { value: new THREE.Color("#E8C64A") },
-    uDry2: { value: new THREE.Color("#9A6B3C") },
+    uDry1: { value: new THREE.Color("#F2D35A") },
+    uDry2: { value: new THREE.Color("#C29A5C") },
   };
   const material = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.6, side: THREE.DoubleSide, emissive: new THREE.Color("#ffffff"), emissiveIntensity: 0.15 });
   material.onBeforeCompile = (shader) => {

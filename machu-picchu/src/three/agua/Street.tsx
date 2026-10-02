@@ -82,12 +82,14 @@ export const AGUA_STREET = {
 export const ALLEY_B: V3 = [6.4, WALK_Y, AGUA_STREET.alleyZ];
 /** Mouth of alley A (x < 0) on the sidewalk. */
 export const ALLEY_A: V3 = [-6.4, WALK_Y, AGUA_STREET.alleyZ];
-/** The comically thin lamp post (base centre). */
-export const POLE_SPOT: V3 = [-4.6, WALK_Y, 6.2];
-/** Dumpster in alley A: base centre, against the extra block's wall; its front faces -z. */
-export const DUMPSTER_SPOT: V3 = [-8.95, WALK_Y, 12.62];
-/** Nubi's hiding spot behind the dumpster, in alley A's dead-end corner. */
-export const HIDE_SPOT: V3 = [-11.35, WALK_Y, 12.25];
+/** The comically thin lamp post (base centre), on sidewalk B by the curb, 5 units from alley B. */
+export const POLE_SPOT: V3 = [3.85, WALK_Y, 6.6];
+/** Where Nubi "hides" behind the pole (the pole between it and a crowd coming from +z). */
+export const POLE_HIDE: V3 = [3.85, WALK_Y, 5.75];
+/** Dumpster in alley A: base centre, turned across the alley (long side along z, front +x). */
+export const DUMPSTER_SPOT: V3 = [-9.6, WALK_Y, 11.65];
+/** Nubi's hiding spot behind the dumpster, in alley A's dead end. */
+export const HIDE_SPOT: V3 = [-11.5, WALK_Y, 11.4];
 
 /** Ground height at (x, z): the road is at 0, sidewalks and alleys at the curb height. */
 export const streetGroundY = (x: number, z: number) => (Math.abs(x) > STREET.road && z < AGUA_STREET.blockZ1 ? WALK_Y : 0);
@@ -658,24 +660,25 @@ export const TrashBag: React.FC = () => {
 };
 
 /**
- * Alley A's dead-end corner: the dumpster against the block's wall (DUMPSTER_SPOT, front facing
- * -z), boxes stacked around Nubi's hiding spot (HIDE_SPOT) and a rubbish bag. World space.
+ * Alley A's dead end: the dumpster turned across the alley (DUMPSTER_SPOT, front towards the
+ * street) with Nubi's hiding spot behind it (HIDE_SPOT), boxes stacked in the far corner and by
+ * the dumpster, a rubbish bag at the front. World space.
  */
 export const DumpsterCorner: React.FC<{ lid?: number }> = ({ lid = 0 }) => (
   <group>
-    <group position={DUMPSTER_SPOT} rotation={[0, Math.PI, 0]}>
+    <group position={DUMPSTER_SPOT} rotation={[0, Math.PI / 2, 0]}>
       <Dumpster lid={lid} />
     </group>
-    <group position={[-11.85, WALK_Y, 10.55]} rotation={[0, 0.2, 0]}>
-      <CardboardBox size={[1.1, 0.85, 0.95]} />
-      <group position={[0.05, 0.85, 0.05]} rotation={[0, -0.35, 0]}>
-        <CardboardBox size={[0.85, 0.65, 0.75]} color="#D4A56C" />
+    <group position={[-12.05, WALK_Y, 12.95]} rotation={[0, 0.15, 0]}>
+      <CardboardBox size={[0.95, 0.8, 0.8]} />
+      <group position={[0.05, 0.8, 0.02]} rotation={[0, -0.35, 0]}>
+        <CardboardBox size={[0.75, 0.6, 0.65]} color="#D4A56C" />
       </group>
     </group>
-    <group position={[-10.6, WALK_Y, 10.4]} rotation={[0, -0.4, 0]}>
+    <group position={[-8.3, WALK_Y, 13.0]} rotation={[0, -0.4, 0]}>
       <CardboardBox size={[0.7, 0.5, 0.6]} color="#BE8A55" />
     </group>
-    <group position={[-7.2, WALK_Y, 12.85]}>
+    <group position={[-8.15, WALK_Y, 10.3]}>
       <TrashBag />
     </group>
   </group>
