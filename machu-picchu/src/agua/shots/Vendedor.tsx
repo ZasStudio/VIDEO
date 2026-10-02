@@ -117,7 +117,7 @@ export const VendedorShot: React.FC = () => {
     // V3: "La última. Diez millones." — holding the bottle up for Nubi (the camera).
     showNubi = false;
     const u = ramp(g, V2E, V3E, [0, 1], (x) => x);
-    cam = aim(lerp3([1.6, 1.85, 6.8], [1.7, 1.75, 5.9], u), 40, [ALLEY_SELLER[0] + 0.35, 0, ALLEY_SELLER[2]], 540, 1330);
+    cam = aim(lerp3([1.6, 1.85, 6.8], [1.7, 1.75, 5.9], u), 40, [ALLEY_SELLER[0] + 0.35, 0, ALLEY_SELLER[2]], 540, 1375);
     const lift = pop(g, V2E + 2);
     const lean = windowIn(g, MILLONES - 3, V3E + 4, 6);
     sellerYaw = -0.3 - 0.15 * lean;

@@ -883,7 +883,11 @@ const seabedPropsGeometry = () => {
     return Math.hypot(x - a[0] - dx * k, z - a[2] - dz * k);
   };
   const clear = (x: number, z: number) =>
-    (Math.abs(x + (z + 14) * 0.15) < 4.5 && z < -12 && z > -50) || seg(x, z, PLAYA_WIDE, SHIP_NUBI) < 5.5 || seg(x, z, PLAYA_CAM, SHIP_NUBI) < 4;
+    (Math.abs(x + (z + 14) * 0.15) < 4.5 && z < -12 && z > -50) ||
+    seg(x, z, PLAYA_WIDE, SHIP_NUBI) < 5.5 ||
+    seg(x, z, PLAYA_CAM, SHIP_NUBI) < 4 ||
+    seg(x, z, PLAYA_WALK.from, PLAYA_WALK.to) < 3.5 ||
+    seg(x, z, PLAYA_CAM, PLAYA_WALK.from) < 3.5;
   const rocks = ["#B7A188", "#A08B74", "#C9B396", "#8F7C69"];
   for (let i = 0; i < 260; i++) {
     const near = i < 120;
