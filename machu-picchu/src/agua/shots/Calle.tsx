@@ -19,7 +19,6 @@ import {
   StreetChase,
   Tumbleweed,
   alongPath,
-  chaserSpot,
   civilianLook,
   civilianRun,
   civilianWalk,
@@ -90,15 +89,15 @@ const FAR_SPOTS: [number, number][] = Array.from({ length: 18 }, (_, i) => [-4.3
 /** Around the pole: where each member ends up (relative to POLE_HIDE), member 0 is the tapper. */
 const CIRCLE: [number, number][] = [
   [1.95, -0.1],
-  [-2.1, 1.2],
-  [2.05, 1.6],
-  [-2.9, 2.7],
-  [-1.9, 3.9],
-  [1.85, 3.4],
-  [-3.6, 4.6],
-  [-2.6, 5.8],
-  [1.75, 5.6],
-  [-3.4, 7.2],
+  [-2.5, 1.2],
+  [2.6, 1.6],
+  [-3.4, 2.7],
+  [-3.3, 3.9],
+  [3.2, 3.4],
+  [-3.9, 4.6],
+  [-3.0, 5.8],
+  [2.6, 5.6],
+  [-3.6, 7.2],
   [-1.4, -1.2],
   [1.6, -1.6],
   [-2.9, -0.4],
@@ -216,7 +215,9 @@ export const CalleShot: React.FC = () => {
     cam = aim([2.0, 1.45, 0.2], 50, [POLE_HIDE[0], 1.15, POLE_HIDE[2] + 2.0], 540, 900);
   } else {
     shot = "pole";
-    cam = aim([3.3, 1.75, 14.6], 46, [POLE_HIDE[0], Y + 1.0, POLE_HIDE[2]], 540, 820);
+    // Straight down the corridor the crowd leaves open, so Nubi behind a pole far thinner than
+    // itself reads clearly in the middle with the staring crowd at both sides.
+    cam = aim([POLE_HIDE[0], 1.9, POLE_HIDE[2] + 8.85], 46, [POLE_HIDE[0], Y + 1.0, POLE_HIDE[2]], 540, 840);
   }
 
   // ---- The crowd
@@ -264,16 +265,12 @@ export const CalleShot: React.FC = () => {
       />
     ) : (
       MEMBERS.map((m, i) => {
-        const c: Chaser = { ...CHASERS[i], from: memberSpot(m, CHASE) };
-        const from = chaserSpot(c, DASH, DASH_LEN, ramp(POLE, CHASE, POLE + 6, [0, 1], (x) => x), false).p;
+        // Already gathered around the pole when the shot starts: walking in, they crossed the camera.
         const spot = CIRCLE[i % CIRCLE.length];
-        const sx = POLE_HIDE[0] + spot[0];
-        const sz = POLE_HIDE[2] + spot[1];
-        const arrive = ramp(g, POLE + m.r * 8, POLE + 16 + m.r * 12, [0, 1], EASE_IN_OUT);
-        const x = from[0] + (sx - from[0]) * arrive;
-        const z = from[2] + (sz - from[2]) * arrive;
+        const x = POLE_HIDE[0] + spot[0];
+        const z = POLE_HIDE[2] + spot[1];
         const at: Vec3 = [x, streetGroundY(x, z), z];
-        const runAmt = 1 - arrive;
+        const runAmt = 0;
         const look = g >= RUN ? nubiAt : [POLE_HIDE[0], 1.2, POLE_HIDE[2]];
         const isTapper = i === 0;
         const tap = isTapper ? windowIn(g, FIN - 7, FIN + 6, 4) : 0;
@@ -283,7 +280,7 @@ export const CalleShot: React.FC = () => {
           finL: isTapper ? -0.15 + 0.75 * tap : civilianRun(t, m.phase, runAmt).finL,
           pitch: 0.12 * (1 - runAmt),
         };
-        const rot = isTapper && arrive > 0.95 ? -0.2 : Math.atan2(look[0] - x, look[2] - z);
+        const rot = isTapper ? -0.2 : Math.atan2(look[0] - x, look[2] - z);
         const p2 = isTapper ? { ...base, lookX: -0.8, lookY: -0.1 } : turnTowards(base, 1, at, rot, look as Vec3, m.look.size * 0.55);
         return <Civilian key={i} look={m.look} position={at} rotationY={rot} pose={p2} t={t} thirst={0.7} />;
       })
