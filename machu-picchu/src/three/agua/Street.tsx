@@ -1449,3 +1449,111 @@ export const BigDrop: React.FC<{ t?: number; fall?: number; splash?: number; hei
     </group>
   );
 };
+
+// =======================================================================================
+// The chase (shared by the flash-forward and the street shot)
+
+/** Point and heading (yaw, 0 = +z) at distance `d` along a polyline (straight past its ends). */
+export const alongPath = (pts: V3[], d: number): { p: V3; yaw: number } => {
+  let acc = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i];
+    const b = pts[i + 1];
+    const len = Math.hypot(b[0] - a[0], b[2] - a[2]) || 1e-6;
+    const last = i === pts.length - 2;
+    if (d <= acc + len || last) {
+      const k = d < 0 && i === 0 ? d / len : (d - acc) / len;
+      return { p: [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * clamp01(k), a[2] + (b[2] - a[2]) * k], yaw: Math.atan2(b[0] - a[0], b[2] - a[2]) };
+    }
+    acc += len;
+  }
+  return { p: pts[0], yaw: 0 };
+};
+
+/** One member of the chasing crowd: how far behind the runner, how far to the side, and where it pours in from. */
+export type Chaser = { look: CivilianLook; lag: number; side: number; phase: number; delay: number; from: V3 };
+
+/**
+ * Deterministic chasing crowd: `n` civilians following the runner from `lag0` units behind,
+ * each row `lagStep` further back, spread sideways (wider further back). `from` (where each one
+ * pours in from when `flood` < 1) defaults to the sidewalks beside its place; scenes can set it.
+ */
+export const makeChasers = (n: number, seed: number, o: { lag0?: number; lagStep?: number; spread?: number; fromSide?: number } = {}): Chaser[] => {
+  const { lag0 = 1.5, lagStep = 0.55, spread = 1.5, fromSide = 6 } = o;
+  const rnd = mulberry(seed * 17 + 3);
+  return Array.from({ length: n }, (_, i) => {
+    const lag = lag0 + i * lagStep + rnd() * 0.4;
+    const side = (i % 2 ? 1 : -1) * (0.25 + rnd() * 0.75) * spread * (1 + i * 0.05);
+    return {
+      look: civilianLook(seed + i),
+      lag,
+      side,
+      phase: rnd() * Math.PI * 2,
+      delay: rnd() * 0.45,
+      from: [Math.sign(side || 1) * (fromSide + rnd() * 2), 0, lag * 0.6 + rnd() * 3] as V3,
+    };
+  });
+};
+
+/**
+ * Where a chaser is: `lag` behind the runner (at `lead` along `path`) and `side` to its side,
+ * or on its way there from `from` (relative to the runner when `relFrom`) while `flood` < 1.
+ */
+export const chaserSpot = (c: Chaser, path: V3[], lead: number, flood = 1, relFrom = true): { p: V3; k: number } => {
+  const { p, yaw } = alongPath(path, lead - c.lag);
+  const nx = Math.cos(yaw);
+  const nz = -Math.sin(yaw);
+  const tx = p[0] + nx * c.side;
+  const tz = p[2] + nz * c.side;
+  const k = smooth(c.delay, c.delay + 0.5, flood);
+  let x = tx;
+  let z = tz;
+  if (k < 1) {
+    const r = alongPath(path, lead).p;
+    const fx = relFrom ? r[0] + c.from[0] : c.from[0];
+    const fz = relFrom ? r[2] + c.from[2] : c.from[2];
+    x = lerp(fx, tx, k);
+    z = lerp(fz, tz, k);
+  }
+  return { p: [x, streetGroundY(x, z), z], k };
+};
+
+/**
+ * The thirsty crowd chasing a runner (Nubi, drawn by the scene) along `path`: every chaser runs
+ * (hops, paddles, eyes wide) facing the runner, `lead` = the runner's distance along the path.
+ * `flood` 0..1 pours them in from their `from` spots (relative to the runner when `relFrom`).
+ * `t` drives the run cycle (freeze it to freeze them). `amount` 0..1 blends the run in.
+ */
+export const StreetChase: React.FC<{
+  t: number;
+  path: V3[];
+  lead: number;
+  chasers: Chaser[];
+  flood?: number;
+  relFrom?: boolean;
+  amount?: number;
+  target?: V3;
+}> = ({ t, path, lead, chasers, flood = 1, relFrom = true, amount = 1, target }) => {
+  const runner = target ?? alongPath(path, lead).p;
+  return (
+    <group>
+      {chasers.map((c, i) => {
+        const { p, k } = chaserSpot(c, path, lead, flood, relFrom);
+        if (flood < c.delay) return null;
+        const rotY = Math.atan2(runner[0] - p[0], runner[2] - p[2]);
+        const pose = civilianRun(t, c.phase, amount);
+        return (
+          <Civilian
+            key={i}
+            look={c.look}
+            position={p}
+            rotationY={rotY}
+            pose={{ ...pose, eyeScale: 1.3 + 0.1 * Math.sin(t * 3 + i), lookY: 0.1, pitch: (pose.pitch ?? 0) * (0.6 + 0.4 * k) }}
+            t={t}
+            thirst={0.8}
+          />
+        );
+      })}
+    </group>
+  );
+};

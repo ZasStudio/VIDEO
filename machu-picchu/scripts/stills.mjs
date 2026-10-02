@@ -13,6 +13,8 @@ const serveUrl = await bundle({
   webpackOverride: (c) => c,
   rspack: true,
 });
+// Each bundle copies public/ (~270 MB): remove it when done so repeated runs don't fill the disk.
+process.on('exit', () => fs.rmSync(serveUrl, {recursive: true, force: true}));
 const browserExecutable = process.env.REMOTION_BROWSER_EXECUTABLE ?? null;
 const browser = await openBrowser('chrome', {browserExecutable, chromiumOptions: {gl: 'angle'}});
 const composition = await selectComposition({serveUrl, id: process.env.COMP ?? 'MachuPicchu', puppeteerInstance: browser, browserExecutable, chromiumOptions: {gl: 'angle'}});
