@@ -675,10 +675,10 @@ export const DumpsterCorner: React.FC<{ lid?: number }> = ({ lid = 0 }) => (
         <CardboardBox size={[0.75, 0.6, 0.65]} color="#D4A56C" />
       </group>
     </group>
-    <group position={[-6.95, WALK_Y, 13.0]} rotation={[0, -0.4, 0]}>
+    <group position={[-7.85, WALK_Y, 13.1]} rotation={[0, -0.4, 0]}>
       <CardboardBox size={[0.7, 0.5, 0.6]} color="#BE8A55" />
     </group>
-    <group position={[-8.15, WALK_Y, 10.3]}>
+    <group position={[-6.9, WALK_Y, 13.0]}>
       <TrashBag />
     </group>
   </group>

@@ -206,7 +206,8 @@ export const CalleShot: React.FC = () => {
   } else if (g < AMIGOS) {
     shot = "nubi";
     const push = ramp(g, MOSTRARLA, AMIGOS, [0, 1], (x) => x);
-    cam = aim([1.3 + push * 0.6, 1.55, 13.5 - push * 0.3], 44, [NUBI_AT[0], Y + 1.05, NUBI_AT[2]], 540, 820);
+    // High over the crowd's heads (they fill the bottom of the frame), pushing in slowly.
+    cam = aim([-0.4 + push * 0.9, 4.1 - push * 0.3, 12.2], 42, [NUBI_AT[0], Y + 1.05, NUBI_AT[2]], 540, 760);
   } else if (g < CHASE) {
     shot = "pov";
     cam = aim(POV, 62, [-4, 0.95, NUBI_AT[2]], 540, 920);
