@@ -3,6 +3,8 @@ import { AbsoluteFill, Sequence } from "remotion";
 import { Captions } from "../overlay/Captions";
 import { Vignette } from "../overlay/Graphics";
 import { Mix } from "../Soundtrack";
+import { BEDS, CUES, MUSIC_PARTS, musicGain } from "./cues";
+import { AguaOverlays } from "./Overlays";
 import { SAFE } from "./safe";
 import { SHOTS, ShotName } from "./shots";
 import { CalleShot } from "./shots/Calle";
@@ -38,7 +40,17 @@ const SHOT_COMPONENTS: Record<ShotName, React.FC> = {
 };
 
 export const AguaSoundtrack: React.FC = () => (
-  <Mix music="agua/music.wav" duration={AGUA.DURATION} fadeOut={8} cues={[]} beds={[]} lines={AGUA.LINES} voiceDir="agua/voice" ducking={AGUA.ducking} />
+  <Mix
+    music="agua/music.wav"
+    musicParts={MUSIC_PARTS}
+    musicGain={musicGain}
+    duration={AGUA.DURATION}
+    cues={CUES}
+    beds={BEDS}
+    lines={AGUA.LINES}
+    voiceDir="agua/voice"
+    ducking={AGUA.ducking}
+  />
 );
 
 export const AguaShort: React.FC<{ withAudio?: boolean }> = ({ withAudio = true }) => {
@@ -54,6 +66,7 @@ export const AguaShort: React.FC<{ withAudio?: boolean }> = ({ withAudio = true 
         );
       })}
       <Vignette strength={0.25} />
+      <AguaOverlays />
       <Captions chunks={AGUA.CAPTIONS} {...SAFE.captions} />
       {withAudio ? <AguaSoundtrack /> : null}
     </AbsoluteFill>

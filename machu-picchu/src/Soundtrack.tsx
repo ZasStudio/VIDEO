@@ -16,6 +16,9 @@ const SFX_GAIN = 0.7;
 const SFX_DUCK = 0.45;
 const BED_DUCK = 0.45;
 
+/** A piece of the music file: [from, to (global frames), trim (frames into the file), fade-in, fade-out]. */
+export type MusicPart = [number, number, number, number?, number?];
+
 /** Overlapping copies of a short loop with equal-power crossfades. */
 const Bed: React.FC<{
   from: number;
@@ -62,27 +65,39 @@ export const Mix: React.FC<{
   fadeOut?: number;
   /** Frame where the music stops (default: the end of the video); it fades out over `fadeOut` before it. */
   musicTo?: number;
+  /** Plays these pieces of the music file instead of one continuous take (cuts, re-entries). */
+  musicParts?: MusicPart[];
+  /** Extra gain on the music by global frame (dips under a whisper, silences). */
+  musicGain?: (g: number) => number;
   cues: Cue[];
   beds: BedCue[];
   lines: { id: string; start: number }[];
   /** Folder in public/ with <line id>.wav. */
   voiceDir: string;
   ducking: (g: number) => number;
-}> = ({ music, musicTrim = 0, duration, fadeOut = 4, musicTo, cues, beds, lines, voiceDir, ducking }) => {
-  const end = musicTo ?? duration;
+}> = ({ music, musicTrim = 0, duration, fadeOut = 4, musicTo, musicParts, musicGain, cues, beds, lines, voiceDir, ducking }) => {
+  const parts: MusicPart[] = musicParts ?? [[0, musicTo ?? duration, musicTrim, 3, fadeOut]];
   return (
     <>
-      <Sequence name="Música" durationInFrames={end} layout="none">
-        <Audio
-          src={staticFile(music)}
-          trimBefore={musicTrim || undefined}
-          volume={(f) =>
-            MUSIC *
-            (1 - MUSIC_DUCK * ducking(f)) *
-            interpolate(f, [0, 3, end - fadeOut, end], [0, 1, 1, 0], CLAMP)
-          }
-        />
-      </Sequence>
+      {parts.map(([from, to, trim, fadeIn = 3, fade = fadeOut], i) => {
+        const len = to - from;
+        const fin = Math.max(1, fadeIn);
+        const fout = Math.max(1, Math.min(fade, len - fin - 1));
+        return (
+          <Sequence key={`music${i}`} name="Música" from={from} durationInFrames={len} layout="none">
+            <Audio
+              src={staticFile(music)}
+              trimBefore={trim || undefined}
+              volume={(f) =>
+                MUSIC *
+                (1 - MUSIC_DUCK * ducking(from + f)) *
+                (musicGain ? musicGain(from + f) : 1) *
+                interpolate(f, [0, fin, len - fout, len], [0, 1, 1, 0], CLAMP)
+              }
+            />
+          </Sequence>
+        );
+      })}
       {beds.map(([from, to, sfx, volume]) => (
         <Bed key={`${sfx}${from}`} from={from} to={to} sfx={sfx} volume={volume} len={BED_FRAMES[sfx] ?? 60} duck={ducking} />
       ))}
