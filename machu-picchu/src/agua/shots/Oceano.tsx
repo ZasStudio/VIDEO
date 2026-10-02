@@ -15,15 +15,18 @@ import { SHOTS } from "../shots";
 
 const DRAUGHT = 6;
 
-/** Sea state at global frame g: water 1 → 0 with the fastest drop right on AHORA. */
-const waterAt = (g: number) => {
+/**
+ * Sea state at global frame g: water 1 → 0 (a 7 % draw-back, then the big drain from AHORA − 9 to
+ * AHORA + 11, fastest right on AHORA). Exported so the water meter can follow the picture.
+ */
+export const oceanoWater = (g: number) => {
   const { AHORA } = HOOK;
   const drawback = ramp(g, SHOTS.oceano.from + 4, AHORA - 9, [0, 0.07], EASE_IN_OUT);
   const drain = ramp(g, AHORA - 9, AHORA + 11, [0, 1], EASE_IN_OUT);
   return (1 - drawback) * (1 - drain);
 };
 /** The liner's keel height above the seabed while it still floats. */
-const floatAt = (g: number) => Math.max(0, coastLevel(waterAt(g)) - DRAUGHT - SHIP_SPOT[1]);
+const floatAt = (g: number) => Math.max(0, coastLevel(oceanoWater(g)) - DRAUGHT - SHIP_SPOT[1]);
 
 export const OceanoShot: React.FC = () => {
   const frame = useCurrentFrame();
@@ -32,7 +35,7 @@ export const OceanoShot: React.FC = () => {
   const t = g / 30;
   const { AHORA } = HOOK;
 
-  const water = waterAt(g);
+  const water = oceanoWater(g);
   const rush = Math.exp(-(((g - AHORA) / 8) ** 2));
   const dry = ramp(g, AHORA + 6, AHORA + 18, [0, 1], EASE_IN_OUT);
   // The frame the liner touches the bottom, then it keels over.

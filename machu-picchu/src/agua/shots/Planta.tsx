@@ -19,8 +19,8 @@ import { SHOTS } from "../shots";
 const AT = STUDIO_PLANT_NUBI;
 const YAW = 0.22;
 const FOV = 38;
-const CAM_A = aim([AT[0] - 1.25, 1.75, AT[2] + 6.6], FOV, AT, 400, 1262);
-const CAM_B = aim([AT[0] - 1.0, 1.65, AT[2] + 5.8], FOV, AT, 400, 1262);
+const CAM_A = aim([AT[0] + 0.2, 2.2, AT[2] + 9.6], FOV, AT, 340, 1262);
+const CAM_B = aim([AT[0] + 0.3, 2.05, AT[2] + 8.6], FOV, AT, 345, 1262);
 
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 /** World position of a point of the can (can units) held in finR (Nubi at AT, turned by YAW). */

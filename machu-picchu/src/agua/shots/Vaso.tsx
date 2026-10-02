@@ -19,7 +19,7 @@ import { SHOTS } from "../shots";
 
 const AT: Vec3 = [-0.75, 0, -0.55];
 const YAW = -0.42;
-const FOV = 36;
+const FOV = 34;
 const FEET: [number, number] = [610, 1268];
 
 const cam = (offset: Vec3) => aim([AT[0] + offset[0], AT[1] + offset[1], AT[2] + offset[2]], FOV, AT, FEET[0], FEET[1]);
@@ -59,9 +59,9 @@ export const VasoShot: React.FC = () => {
   // Slow push-in from the first frame, a punch-in on the vanish.
   const push = ramp(g, START, VANISH, [0, 1], EASE_IN_OUT);
   const punch = ramp(g, VANISH, VANISH + 5, [0, 1], EASE_OUT);
-  const c0 = cam([1.25, 1.6, 6.3]);
-  const c1 = cam([1.05, 1.5, 5.45]);
-  const c2 = cam([0.9, 1.42, 4.85]);
+  const c0 = cam([1.5, 1.85, 8.6]);
+  const c1 = cam([1.3, 1.75, 7.6]);
+  const c2 = cam([1.15, 1.65, 6.9]);
   const position = lerp3(lerp3(c0.position, c1.position, push), c2.position, punch);
   const target = lerp3(lerp3(c0.target, c1.target, push), c2.target, punch);
 

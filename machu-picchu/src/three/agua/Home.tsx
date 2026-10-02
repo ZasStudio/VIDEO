@@ -1447,6 +1447,8 @@ export const NightCap: React.FC<{ flop?: number }> = ({ flop = 0 }) => {
 // Studio set
 
 const WALL_TEX_SIZE = 1.3;
+/** Floor and ceiling run on past the (one-sided) front wall, for cameras standing outside it. */
+const FRONT_APRON = 8;
 
 /** One-sided wall plane (w × h, origin at its bottom-left in local x/y) with rectangular holes. */
 const wallGeometry = (w: number, h: number, holes: { x: number; y: number; w: number; h: number }[]) => {
@@ -1634,8 +1636,8 @@ export const Studio: React.FC<StudioProps> = ({ t = 0, faucet = {}, pool, wilt =
     const counterTop = new THREE.ExtrudeGeometry(topShape, { depth: 0.07, bevelEnabled: true, bevelSize: 0.02, bevelThickness: 0.02, bevelSegments: 2 });
     counterTop.rotateX(-Math.PI / 2);
     return {
-      floor: worldPlane(W, D),
-      ceiling: new THREE.PlaneGeometry(W, D),
+      floor: worldPlane(W, D + FRONT_APRON),
+      ceiling: new THREE.PlaneGeometry(W, D + FRONT_APRON),
       back: wallGeometry(W, H, [{ x: KITCHEN_WINDOW.x - x0, y: KITCHEN_WINDOW.y, w: KITCHEN_WINDOW.w, h: KITCHEN_WINDOW.h }]),
       left: wallGeometry(D, H, []),
       right: wallGeometry(D, H, [{ x: PLANT_WINDOW.z - zBack, y: PLANT_WINDOW.y, w: PLANT_WINDOW.w, h: PLANT_WINDOW.h }]),
@@ -1732,8 +1734,8 @@ export const Studio: React.FC<StudioProps> = ({ t = 0, faucet = {}, pool, wilt =
   return (
     <group>
       {/* Floor, ceiling and walls (one-sided, facing in). */}
-      <mesh geometry={geos.floor} material={floorMat} rotation={[-Math.PI / 2, 0, 0]} position={[(x0 + x1) / 2, 0, (zBack + zFront) / 2]} />
-      <mesh geometry={geos.ceiling} material={toy("#FFF3E4", { rough: 0.9, glow: 0.75 })} rotation={[Math.PI / 2, 0, 0]} position={[(x0 + x1) / 2, H, (zBack + zFront) / 2]} />
+      <mesh geometry={geos.floor} material={floorMat} rotation={[-Math.PI / 2, 0, 0]} position={[(x0 + x1) / 2, 0, (zBack + zFront + FRONT_APRON) / 2]} />
+      <mesh geometry={geos.ceiling} material={toy("#FFF3E4", { rough: 0.9, glow: 0.75 })} rotation={[Math.PI / 2, 0, 0]} position={[(x0 + x1) / 2, H, (zBack + zFront + FRONT_APRON) / 2]} />
       <mesh geometry={geos.back} material={wallMat} position={[x0, 0, zBack]} />
       <mesh geometry={geos.left} material={wallMat} position={[x0, 0, zFront]} rotation={[0, Math.PI / 2, 0]} />
       <mesh geometry={geos.right} material={wallMat} position={[x1, 0, zBack]} rotation={[0, -Math.PI / 2, 0]} />

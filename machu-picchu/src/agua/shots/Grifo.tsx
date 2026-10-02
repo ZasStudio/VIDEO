@@ -16,10 +16,10 @@ import { SHOTS } from "../shots";
 // on Nubi: it stares down at the sink, deflated, until the cut to the beach.
 
 const FOV = 38;
-const MED = aim([STUDIO_SINK[0] - 1.7, 1.62, STUDIO_SINK[2] + 4.4], FOV, STUDIO_SINK, 700, 1262);
-const MED_IN = aim([STUDIO_SINK[0] - 1.45, 1.55, STUDIO_SINK[2] + 3.7], FOV, STUDIO_SINK, 690, 1262);
-const POV_A = { position: [-1.2, 2.3, -1.15] as Vec3, target: [STUDIO_BASIN.x + 0.25, STUDIO_BASIN.floor + 0.15, STUDIO_BASIN.z] as Vec3, fov: 44 };
-const POV_B = { position: [-1.35, 2.1, -1.35] as Vec3, target: [STUDIO_BASIN.x + 0.3, STUDIO_BASIN.floor + 0.1, STUDIO_BASIN.z] as Vec3, fov: 44 };
+const MED = aim([STUDIO_SINK[0] - 2.6, 2.1, STUDIO_SINK[2] + 9.0], FOV, STUDIO_SINK, 700, 1262);
+const MED_IN = aim([STUDIO_SINK[0] - 2.2, 1.95, STUDIO_SINK[2] + 7.8], FOV, STUDIO_SINK, 690, 1262);
+const POV_A = { position: [-1.95, 2.45, -1.0] as Vec3, target: [STUDIO_BASIN.x + 0.38, STUDIO_BASIN.floor + 0.25, STUDIO_BASIN.z] as Vec3, fov: 52 };
+const POV_B = { position: [-2.05, 2.25, -1.15] as Vec3, target: [STUDIO_BASIN.x + 0.33, STUDIO_BASIN.floor + 0.2, STUDIO_BASIN.z] as Vec3, fov: 52 };
 
 export const GrifoShot: React.FC = () => {
   const g = useCurrentFrame() + SHOTS.grifo.from;
@@ -37,7 +37,7 @@ export const GrifoShot: React.FC = () => {
 
   // Nubi: effort when turning, expectant looks at the spout, then the shake, then deflated.
   const effort = Math.sin(Math.PI * ramp(g, CARD_OUT - 2, CARD_OUT + 8, [0, 1], Easing.linear)) + 0.8 * Math.sin(Math.PI * ramp(g, CARD_OUT + 12, CARD_OUT + 17, [0, 1], Easing.linear));
-  const peek = ramp(g, CARD_OUT + 18, CORTADO - 2, [0, 1], EASE_IN_OUT);
+  const peek = ramp(g, Math.min(CARD_OUT + 14, CORTADO - 4), Math.max(CARD_OUT + 15, CORTADO - 1), [0, 1], EASE_IN_OUT);
   const sad = ramp(g, POV_END - 4, POV_END + 10, [0, 1], EASE_OUT);
   const blink = g > CARD_OUT + 9 && g < CARD_OUT + 12 ? 1 : 0;
   const pose: NubiPose = {

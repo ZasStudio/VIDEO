@@ -24,7 +24,8 @@ export const AguaOverlays: React.FC = () => {
     <AbsoluteFill style={{ pointerEvents: "none" }}>
       {/* The viewer's comment this video answers, small in the top-left corner. */}
       <CommentReply frame={g} at={HOOK.START + 2} out={COMMENT_OUT} x={300} y={330} />
-      <WaterMeter frame={g} at={HOOK.OCEAN - 6} from={HOOK.OCEAN} to={HOOK.AHORA + 14} out={HOOK.L02 + 6} x={770} y={330} />
+      {/* Drains with the picture (see oceanoWater in shots/Oceano.tsx). */}
+      <WaterMeter frame={g} at={HOOK.OCEAN - 4} from={HOOK.AHORA - 9} to={HOOK.AHORA + 11} out={HOOK.L02 - 2} x={770} y={330} />
       <FreezeLabel frame={g} at={HOOK.FREEZE} out={HOOK.END} x={540} y={690} />
 
       <RewindCard frame={g} at={ANTES.START} out={ANTES.END - 4} />

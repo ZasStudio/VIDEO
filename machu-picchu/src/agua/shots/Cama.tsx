@@ -41,12 +41,12 @@ const CLOSE_AT: Vec3 = [-0.55, 0, -0.55];
 const GRAB_YAW = -0.72;
 const FOV = 38;
 
-const CAM_BED = aim([0.35, 2.0, 4.3], FOV, [1.25, 0.25, -1.2], 560, 1180);
-const CAM_SINK = aim([SINK_AT[0] - 1.55, 1.6, SINK_AT[2] + 4.3], FOV, SINK_AT, 690, 1262);
-const CAM_SINK_IN = aim([SINK_AT[0] - 1.3, 1.5, SINK_AT[2] + 3.5], FOV, SINK_AT, 690, 1262);
+const CAM_BED = aim([1.3, 2.6, 7.6], FOV, [1.3, 0.3, -1.2], 540, 1180);
+const CAM_SINK = aim([SINK_AT[0] - 2.3, 2.0, SINK_AT[2] + 8.4], FOV, SINK_AT, 690, 1262);
+const CAM_SINK_IN = aim([SINK_AT[0] - 2.0, 1.9, SINK_AT[2] + 7.4], FOV, SINK_AT, 690, 1262);
 const EYES = (at: Vec3): Vec3 => [at[0], 1.1, at[2] + 0.88];
-const CAM_CLOSE = aim([CLOSE_AT[0], 1.08, CLOSE_AT[2] + 4.05], FOV, EYES(CLOSE_AT), 540, 1010);
-const CAM_SQUINT = aim([CLOSE_AT[0], 1.08, CLOSE_AT[2] + 3.6], FOV, EYES(CLOSE_AT), 540, 1010);
+const CAM_CLOSE = aim([CLOSE_AT[0], 1.12, CLOSE_AT[2] + 0.88 + 4.2], FOV, EYES(CLOSE_AT), 540, 1010);
+const CAM_SQUINT = aim([CLOSE_AT[0], 1.1, CLOSE_AT[2] + 0.88 + 3.7], FOV, EYES(CLOSE_AT), 540, 1010);
 
 const mix = (a: number, b: number, k: number) => a + (b - a) * k;
 

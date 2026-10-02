@@ -79,7 +79,7 @@ export const VendedorShot: React.FC = () => {
   let sellerYaw = SELLER_YAW_NUBI;
   let sellerPose: NubiPose = {};
   let nubiPose: NubiPose = {};
-  let nubiYaw = NUBI_YAW_SELLER;
+  const nubiYaw = NUBI_YAW_SELLER;
   let showNubi = true;
   let fill = 0.9;
   let shakeAt = -100;
