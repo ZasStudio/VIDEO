@@ -16,8 +16,11 @@ const SFX_GAIN = 0.7;
 const SFX_DUCK = 0.45;
 const BED_DUCK = 0.45;
 
-/** A piece of the music file: [from, to (global frames), trim (frames into the file), fade-in, fade-out]. */
-export type MusicPart = [number, number, number, number?, number?];
+/**
+ * A piece of the music: [from, to (global frames), trim (frames into the file), fade-in, fade-out,
+ * other music file (in public/) instead of the main one].
+ */
+export type MusicPart = [number, number, number, number?, number?, string?];
 
 /** Overlapping copies of a short loop with equal-power crossfades. */
 const Bed: React.FC<{
@@ -79,14 +82,14 @@ export const Mix: React.FC<{
   const parts: MusicPart[] = musicParts ?? [[0, musicTo ?? duration, musicTrim, 3, fadeOut]];
   return (
     <>
-      {parts.map(([from, to, trim, fadeIn = 3, fade = fadeOut], i) => {
+      {parts.map(([from, to, trim, fadeIn = 3, fade = fadeOut, file], i) => {
         const len = to - from;
         const fin = Math.max(1, fadeIn);
         const fout = Math.max(1, Math.min(fade, len - fin - 1));
         return (
           <Sequence key={`music${i}`} name="Música" from={from} durationInFrames={len} layout="none">
             <Audio
-              src={staticFile(music)}
+              src={staticFile(file ?? music)}
               trimBefore={trim || undefined}
               volume={(f) =>
                 MUSIC *
