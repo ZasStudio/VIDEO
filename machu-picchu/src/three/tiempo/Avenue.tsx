@@ -191,6 +191,8 @@ const DEPTH = 6;
 const ROOM = 3.6;
 const SHOW_ROOM = 4.4;
 const roomOf = (kind: ShopKind) => (kind === "cars" ? SHOW_ROOM : ROOM);
+/** Top of each shop's window opening: the phone shop and the showroom have tall windows. */
+const topOf = (kind: ShopKind) => (kind === "cars" || kind === "phone" ? SHOWROOM_TOP : kind === "timeco" ? 3.0 : STORE_TOP);
 
 export const AVENUE = {
   /** Sidewalk outer edge (curb) and the line people walk on. */
@@ -202,10 +204,10 @@ export const AVENUE = {
 };
 
 const SHOPS: ShopSpec[] = [
-  { x0: -25, x1: -18.6, h: 8.6, wall: "#F7C8D8", name: "MODA", kind: "fashion", sign: ["#2B2238", "#FFD86B", "#FFD86B"] },
-  { x0: -18.6, x1: -11.8, h: 7.6, wall: "#BFE3F2", name: "RELOJES", kind: "watch", sign: ["#203A5C", "#FFFFFF", "#FFC83D"] },
-  { x0: -11.8, x1: -5.6, h: 9.2, wall: "#FFE0B8", name: "JOYAS", kind: "jewel", sign: ["#6B2E8C", "#FFFFFF", "#FFC83D"] },
-  { x0: -5.6, x1: -0.8, h: 8.0, wall: "#D7CCFF", name: "CELU+", kind: "phone", sign: ["#1E64FF", "#FFFFFF", "#FFFFFF"] },
+  { x0: -24.4, x1: -18, h: 8.6, wall: "#F7C8D8", name: "MODA", kind: "fashion", sign: ["#2B2238", "#FFD86B", "#FFD86B"] },
+  { x0: -18, x1: -11.2, h: 7.6, wall: "#BFE3F2", name: "RELOJES", kind: "watch", sign: ["#203A5C", "#FFFFFF", "#FFC83D"] },
+  { x0: -11.2, x1: -5.0, h: 9.2, wall: "#FFE0B8", name: "JOYAS", kind: "jewel", sign: ["#6B2E8C", "#FFFFFF", "#FFC83D"] },
+  { x0: -5.0, x1: -0.8, h: 8.0, wall: "#D7CCFF", name: "CELU+", kind: "phone", sign: ["#1E64FF", "#FFFFFF", "#FFFFFF"] },
   { x0: -0.8, x1: 7.4, h: 7.4, wall: "#F4F1EA", name: "AUTOLUX", kind: "cars", sign: ["#C8102E", "#FFFFFF", "#FFC83D"] },
   { x0: 7.4, x1: 13.2, h: 8.8, wall: "#FFD0C2", name: "PERFUMES", kind: "perfume", sign: ["#B03A6A", "#FFFFFF", "#FFC83D"] },
   { x0: 13.2, x1: 19, h: 7.8, wall: "#C9F0E4", name: "BOUTIQUE", kind: "fashion", sign: ["#1F6B5C", "#FFFFFF", "#FFC83D"] },
@@ -221,11 +223,11 @@ const TIMECO_SHOP = shop("timeco");
 /** The giant phone on its pedestal (base centre, on the floor of the phone shop's window). */
 export const PHONE_SPOT: V3 = [(PHONE_SHOP.x0 + PHONE_SHOP.x1) / 2, 0, -1.25];
 /** Centre of the turntable in the car showroom. */
-export const CAR_SPOT: V3 = [CAR_SHOP.x0 + 3.24, 0, -1.25];
-/** Where the rich man stands in the showroom (left of the car, a step deeper). */
-export const RICH_SPOT: V3 = [CAR_SHOP.x0 + 1.89, 0, -2.85];
-/** The showroom's price banner (centre). */
-export const PRICE_SPOT: V3 = [CAR_SHOP.x0 + 3.24, 2.62, -0.3];
+export const CAR_SPOT: V3 = [CAR_SHOP.x0 + 4.0, 0, -1.6];
+/** Where the rich man stands in the showroom: beside the car (left of it), close to the glass. */
+export const RICH_SPOT: V3 = [CAR_SHOP.x0 + 2.0, 0, -0.85];
+/** The showroom's price banner (centre), hanging over the car's left half. */
+export const PRICE_SPOT: V3 = [CAR_SHOP.x0 + 3.55, 2.62, -0.3];
 /** TIMECO's billboard (centre of its face) on the TIMECO building. */
 export const BILLBOARD = { center: [(TIMECO_SHOP.x0 + TIMECO_SHOP.x1) / 2, 4.5, 0.32] as V3, w: 5.2, h: 5.2 * (625 / 1536) };
 /** Middle of the TIMECO building's front (for the question shot). */
@@ -423,7 +425,7 @@ const facadeGeometry = () => {
   SHOPS.forEach((s, i) => {
     const W = s.x1 - s.x0 - 0.08;
     const cx = (s.x0 + s.x1) / 2;
-    const top = s.kind === "cars" ? SHOWROOM_TOP : s.kind === "timeco" ? 3.0 : STORE_TOP;
+    const top = topOf(s.kind);
     const wall = s.wall;
     const dark = shadeHex(wall, -0.08);
     const trim = s.kind === "timeco" ? "#FF3B3B" : "#FFFFFF";
@@ -536,12 +538,12 @@ const Topiary: React.FC<{ position: V3 }> = ({ position }) => {
 
 const phoneGeos = once(() => ({
   pedestal: mergeAll([
-    place(new THREE.CylinderGeometry(0.62, 0.7, 0.75, 32), "#FFFFFF", [0, 0.375, 0]),
-    place(new THREE.TorusGeometry(0.64, 0.05, 8, 32).rotateX(Math.PI / 2), "#E8B030", [0, 0.72, 0]),
-    place(new THREE.TorusGeometry(0.7, 0.05, 8, 32).rotateX(Math.PI / 2), "#E8B030", [0, 0.04, 0]),
+    place(new THREE.CylinderGeometry(0.75, 0.82, 0.4, 32), "#FFFFFF", [0, 0.2, 0]),
+    place(new THREE.TorusGeometry(0.77, 0.05, 8, 32).rotateX(Math.PI / 2), "#E8B030", [0, 0.38, 0]),
+    place(new THREE.TorusGeometry(0.82, 0.05, 8, 32).rotateX(Math.PI / 2), "#E8B030", [0, 0.04, 0]),
   ]),
-  body: rbox(1.05, 2.0, 0.16, 0.16, 4),
-  screen: new THREE.PlaneGeometry(0.93, 1.86),
+  body: rbox(1.32, 2.3, 0.18, 0.2, 4),
+  screen: new THREE.PlaneGeometry(1.2, 2.18),
   cam: new THREE.CylinderGeometry(0.06, 0.06, 0.04, 12).rotateX(Math.PI / 2),
   shelf: rbox(0.9, 0.06, 0.4, 0.02),
   mini: rbox(0.2, 0.38, 0.04, 0.04),
@@ -555,15 +557,15 @@ export const GiantPhone: React.FC<{ t?: number; glow?: number }> = ({ t = 0, glo
   return (
     <group>
       <mesh geometry={g.pedestal} material={vertexMat(0.3, false, 0.16)} castShadow />
-      <group position={[0, 1.85 + bob, 0]} rotation={[0, 0.18 * Math.sin(t * 0.9), 0.04]}>
+      <group position={[0, 1.6 + bob, 0]} rotation={[0, 0.12 * Math.sin(t * 0.9), 0.03]}>
         <mesh geometry={g.body} material={toy("#24242E", { rough: 0.25, metal: 0.2, glow: 0.05 })} castShadow />
-        {ready ? <mesh geometry={g.screen} material={screenMat(phoneScreenTexture())} position={[0, 0, 0.085]} /> : null}
-        <mesh geometry={g.cam} material={toy("#111111")} position={[0.3, 0.85, -0.09]} />
+        {ready ? <mesh geometry={g.screen} material={screenMat(phoneScreenTexture())} position={[0, 0, 0.095]} /> : null}
+        <mesh geometry={g.cam} material={toy("#111111")} position={[0.4, 0.95, -0.1]} />
       </group>
-      <Glow color="#7B8CFF" size={3.2} opacity={0.45 * glow} position={[0, 1.8, -0.4]} />
+      <Glow color="#7B8CFF" size={3.6} opacity={0.45 * glow} position={[0, 1.6, -0.5]} />
       {/* Shelves of normal-sized phones on the side walls. */}
       {[-1, 1].map((side) => (
-        <group key={side} position={[side * 1.75, 0, -1.5]}>
+        <group key={side} position={[side * 1.45, 0, -1.6]}>
           {[1.0, 1.65].map((y) => (
             <group key={y} position={[0, y, 0]}>
               <mesh geometry={g.shelf} material={toy("#FFFFFF", { rough: 0.3 })} />
@@ -579,7 +581,7 @@ export const GiantPhone: React.FC<{ t?: number; glow?: number }> = ({ t = 0, glo
 };
 
 const carGeos = once(() => ({
-  body: rbox(2.5, 0.5, 1.22, 0.22, 3),
+  body: rbox(2.4, 0.5, 1.22, 0.22, 3),
   hood: rbox(0.9, 0.12, 1.1, 0.05),
   cabin: rbox(1.3, 0.5, 1.08, 0.2, 3),
   roof: rbox(1.12, 0.1, 1.0, 0.05),
@@ -588,8 +590,8 @@ const carGeos = once(() => ({
   lamp: new THREE.SphereGeometry(0.1, 12, 8),
   bumper: rbox(0.12, 0.14, 1.18, 0.05),
   stripe: new THREE.PlaneGeometry(1.6, 0.06),
-  table: new THREE.CylinderGeometry(1.45, 1.52, 0.2, 48),
-  tableRing: new THREE.TorusGeometry(1.48, 0.05, 8, 64).rotateX(Math.PI / 2),
+  table: new THREE.CylinderGeometry(1.25, 1.32, 0.2, 48),
+  tableRing: new THREE.TorusGeometry(1.28, 0.05, 8, 64).rotateX(Math.PI / 2),
 }));
 
 /** The shiny red toy car (length along x, front +x), standing on y = 0. */
@@ -620,12 +622,12 @@ export const ToyCar: React.FC<{ color?: string }> = ({ color = "#E3242B" }) => {
       ))}
       {[-0.4, 0.4].map((z) => (
         <group key={z}>
-          <mesh geometry={g.lamp} material={toy("#FFF6C8", { glow: 1.2 })} position={[1.24, 0.55, z]} scale={[0.6, 1, 1.4]} />
-          <mesh geometry={g.lamp} material={toy("#FF3030", { glow: 0.9 })} position={[-1.24, 0.58, z]} scale={[0.5, 0.8, 1.6]} />
+          <mesh geometry={g.lamp} material={toy("#FFF6C8", { glow: 1.2 })} position={[1.19, 0.55, z]} scale={[0.6, 1, 1.4]} />
+          <mesh geometry={g.lamp} material={toy("#FF3030", { glow: 0.9 })} position={[-1.19, 0.58, z]} scale={[0.5, 0.8, 1.6]} />
         </group>
       ))}
-      <mesh geometry={g.bumper} material={chrome} position={[1.27, 0.33, 0]} />
-      <mesh geometry={g.bumper} material={chrome} position={[-1.27, 0.33, 0]} />
+      <mesh geometry={g.bumper} material={chrome} position={[1.22, 0.33, 0]} />
+      <mesh geometry={g.bumper} material={chrome} position={[-1.22, 0.33, 0]} />
       {/* Cartoon highlights on the paint. */}
       {[0.62, -0.62].map((z) => (
         <mesh key={z} geometry={g.stripe} material={toy("#FFFFFF", { glow: 0.6 })} position={[0.1, 0.66, z * 1.003]} rotation={[0, z > 0 ? 0 : Math.PI, 0]} />
@@ -760,10 +762,25 @@ const Showroom: React.FC<{ t: number; spin: number; sold: number }> = ({ spin, s
     <group>
       <mesh position={[cx, 0.125, -SHOW_ROOM / 2]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[W, SHOW_ROOM]} />
-        <meshStandardMaterial color="#DCE3EC" roughness={0.12} metalness={0.1} emissive="#DCE3EC" emissiveIntensity={0.18} />
+        <meshStandardMaterial color="#C9D2DE" roughness={0.12} metalness={0.1} emissive="#C9D2DE" emissiveIntensity={0.16} />
       </mesh>
-      <mesh position={[cx, 2.0, -SHOW_ROOM + 0.16]}>
-        <planeGeometry args={[W, 0.25]} />
+      {/* A deep navy back wall and side walls so the red car and the golden rich man pop. */}
+      <mesh position={[cx, SHOWROOM_TOP / 2, -SHOW_ROOM + 0.17]}>
+        <planeGeometry args={[W, SHOWROOM_TOP]} />
+        <meshStandardMaterial color="#1D2B52" roughness={0.6} emissive="#1D2B52" emissiveIntensity={0.25} />
+      </mesh>
+      {[-1, 1].map((side) => (
+        <mesh key={side} position={[cx + side * (W / 2 - 0.02), SHOWROOM_TOP / 2, -SHOW_ROOM / 2]} rotation={[0, -side * (Math.PI / 2), 0]}>
+          <planeGeometry args={[SHOW_ROOM, SHOWROOM_TOP]} />
+          <meshStandardMaterial color="#25356A" roughness={0.6} emissive="#25356A" emissiveIntensity={0.25} />
+        </mesh>
+      ))}
+      <mesh position={[cx, 2.25, -SHOW_ROOM + 0.19]}>
+        <planeGeometry args={[W, 0.14]} />
+        <meshBasicMaterial color="#FFC83D" toneMapped={false} />
+      </mesh>
+      <mesh position={[cx, 0.6, -SHOW_ROOM + 0.19]}>
+        <planeGeometry args={[W, 0.1]} />
         <meshBasicMaterial color="#E3242B" toneMapped={false} />
       </mesh>
       {[-3, -1, 1, 3].map((dx) => (
@@ -778,7 +795,7 @@ const Showroom: React.FC<{ t: number; spin: number; sold: number }> = ({ spin, s
         <group position={[0, 0.12, 0]}>
           <CarTurntable spin={spin} />
         </group>
-        <Glow color="#FFE9A8" size={4.2} opacity={0.3} position={[0, 1.1, -0.8]} />
+        <Glow color="#FFE9A8" size={2.6} opacity={0.18} position={[0, 0.9, -1.2]} />
       </group>
       {/* The price banner hangs from the ceiling just behind the glass. */}
       <group position={PRICE_SPOT}>
@@ -807,12 +824,12 @@ const Showroom: React.FC<{ t: number; spin: number; sold: number }> = ({ spin, s
 
 /** Diagonal glints on the shop glass (cartoon reflections). */
 const glintMat = once(() => additive(new THREE.MeshBasicMaterial({ color: "#FFFFFF", transparent: true, opacity: 0.16, toneMapped: false, side: THREE.DoubleSide })));
-const Glints: React.FC<{ x0: number; x1: number; top: number }> = ({ x0, x1, top }) => {
+const Glints: React.FC<{ x0: number; x1: number; top: number; at?: number[] }> = ({ x0, x1, top, at = [0.22, 0.3, 0.7] }) => {
   const m = glintMat();
   const w = x1 - x0;
   return (
     <group>
-      {[0.22, 0.3, 0.7].map((k, i) => (
+      {at.map((k, i) => (
         <mesh key={k} material={m} position={[x0 + w * k, top / 2 + 0.2, 0.06]} rotation={[0, 0, 0.6]}>
           <planeGeometry args={[i === 1 ? 0.12 : 0.32, top * 1.15]} />
         </mesh>
@@ -857,9 +874,11 @@ export const Avenue: React.FC<{ t?: number; dusk?: number; spin?: number; sold?:
       {SHOPS.map((s, i) => {
         if (!visible(s.x0, s.x1)) return null;
         const cx = (s.x0 + s.x1) / 2;
-        const top = s.kind === "cars" ? SHOWROOM_TOP : s.kind === "timeco" ? 3.0 : STORE_TOP;
+        const top = topOf(s.kind);
         const W = s.x1 - s.x0;
-        const signW = s.kind === "cars" ? 4.4 : s.kind === "timeco" ? 4.2 : Math.min(3.6, W - 1.6);
+        const signW = s.kind === "cars" ? 3.3 : Math.min(3.6, W - 1.6);
+        // The showroom's name sits high on its fascia, right of centre (clear of the counters).
+        const signAt: V3 = s.kind === "cars" ? [s.x0 + 5.0, 5.15, 0.1] : [cx, top + 0.5, 0.1];
         return (
           <group key={i}>
             <ShopInterior spec={s} t={t} dusk={dusk} />
@@ -869,9 +888,9 @@ export const Avenue: React.FC<{ t?: number; dusk?: number; spin?: number; sold?:
               </group>
             ) : null}
             {s.kind === "cars" ? <Showroom t={t} spin={spin} sold={sold} /> : null}
-            <Glints x0={s.x0 + 0.6} x1={s.x1 - 0.6} top={top} />
+            <Glints x0={s.x0 + 0.6} x1={s.x1 - 0.6} top={top} at={s.kind === "cars" ? [0.7, 0.78, 0.95] : s.kind === "phone" ? [0.12, 0.2, 0.9] : undefined} />
             {ready && s.kind !== "timeco" ? (
-              <mesh position={[cx, top + 0.5, 0.1]}>
+              <mesh position={signAt}>
                 <planeGeometry args={[signW, signW * (220 / 1024)]} />
                 <primitive object={texMat(signTexture(s.name, s.sign[0], s.sign[1], s.sign[2]), 0.35 + 0.4 * dusk)} attach="material" />
               </mesh>
@@ -961,7 +980,7 @@ const richGeos = once(() => {
     bridge: new THREE.CylinderGeometry(0.11, 0.11, 2.0, 8).rotateZ(Math.PI / 2),
     arm: rbox(1.6, 0.22, 0.22, 0.08),
     brim: new THREE.CylinderGeometry(4.5, 4.5, 0.38, 36),
-    crown: new THREE.CylinderGeometry(3.05, 2.85, 4.4, 32),
+    crown: new THREE.CylinderGeometry(3.05, 2.85, 3.3, 32),
     band: new THREE.CylinderGeometry(2.92, 2.9, 0.85, 32),
     cane: new THREE.CylinderGeometry(0.2, 0.17, 5.4, 10),
     knob: new THREE.SphereGeometry(0.5, 16, 12),
@@ -980,7 +999,7 @@ const RichGear: React.FC = () => {
       {/* Top hat, tilted a touch for swagger. */}
       <group position={[0.3, 9.95, -0.3]} rotation={[-0.06, 0, -0.12]}>
         <mesh geometry={g.brim} material={black} position={[0, 0.19, 0]} castShadow />
-        <mesh geometry={g.crown} material={black} position={[0, 2.5, 0]} castShadow />
+        <mesh geometry={g.crown} material={black} position={[0, 1.95, 0]} castShadow />
         <mesh geometry={g.band} material={toy("#C8102E", { rough: 0.45, glow: 0.18 })} position={[0, 0.85, 0]} />
       </group>
       {/* Round dark sunglasses with gold rims. */}
@@ -1185,13 +1204,12 @@ export const WorryDrop: React.FC<{ k: number; slide?: number; side?: 1 | -1 }> =
 export const ESTATE = {
   gateHalf: 1.9,
   /** Nubi's spot just outside the gate. */
-  nubi: [-1.1, 0, 1.4] as V3,
-  /** Centre of the "SE VENDE" panel. */
-  sign: [3.9, 3.1, -1.4] as V3,
-  signW: 4.4,
-  hill: [0, 0, -30] as V3,
-  hillTop: 4.5,
-  mansion: [0, 4.5, -33] as V3,
+  nubi: [0.2, 0, 1.8] as V3,
+  /** Centre of the "SE VENDE" panel (planted outside the gate, right of it). */
+  sign: [2.75, 3.0, 1.2] as V3,
+  signW: 3.0,
+  hill: [0, 0, -34] as V3,
+  hillTop: 3.6,
 };
 
 const lawnTexture = () =>
@@ -1212,8 +1230,8 @@ const estateGeos = once(() => {
   const E = ESTATE;
   // Hill: a lathe with a flat top and a soft shoulder.
   const prof: THREE.Vector2[] = [];
-  const R0 = 34;
-  const R1 = 17;
+  const R0 = 30;
+  const R1 = 15;
   for (let i = 0; i <= 24; i++) {
     const k = i / 24;
     const r = lerp(R0, R1, k);
@@ -1237,7 +1255,7 @@ const estateGeos = once(() => {
     m.push(place(new THREE.ConeGeometry(4.3, 2.0, 4, 1).rotateY(Math.PI / 4), roof, [s * 9.0, 6.2, -4.6], [0, 0, 0], [0.9, 1, 1.05]));
     m.push(place(rbox(5.7, 0.3, 6.5, 0.1), cream, [s * 9.0, 5.25, -4.6]));
   }
-  m.push(place(new THREE.ConeGeometry(7.6, 3.0, 4, 1).rotateY(Math.PI / 4), roof, [0, 8.3, -4.5], [0, 0, 0], [1.25, 1, 0.68]));
+  m.push(place(new THREE.ConeGeometry(7.6, 2.2, 4, 1).rotateY(Math.PI / 4), roof, [0, 7.95, -4.5], [0, 0, 0], [1.25, 1, 0.68]));
   m.push(place(rbox(13.4, 0.36, 7.4, 0.1), cream, [0, 6.85, -4.5]));
   // Portico: columns, entablature, pediment.
   for (let i = 0; i < 6; i++) {
@@ -1383,8 +1401,8 @@ export const MansionEstate: React.FC<{ t?: number; signPop?: number }> = ({ t = 
           [8.5, 5.2],
           [-12.5, 1.5],
           [12.5, 1.5],
-          [-14.5, -5],
-          [14.5, -5],
+          [-13.5, -4],
+          [13.5, -4],
         ].map(([x, z], i) => (
           <Palm key={i} position={[x, 0, z]} scale={1.25} yaw={i * 1.3} />
         ))}
