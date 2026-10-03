@@ -40,11 +40,11 @@ export const TorreShot: React.FC = () => {
   let pose: NubiPose;
   let counterMin = 1.0;
   if (g < CUT_B) {
-    // ---- A: zip in, skid, boom up.
+    // ---- A: zip in from the right, skid, boom up.
     const run = ramp(g, START, START + 10, [0, 1], (x) => 1 - Math.pow(1 - x, 2));
     const skid = windowIn(g, START + 7, START + 18, 4);
-    at = [N[0] + 3.2 * (1 - run), 0, N[2] + 3.4 * (1 - run)];
-    rotY = Math.PI + 0.5 * (1 - run);
+    at = [N[0] + 1.7 * (1 - run), 0, N[2] + 2.2 * (1 - run)];
+    rotY = Math.PI + 0.55 * (1 - run);
     const ph = t * 15;
     pose = {
       hop: Math.abs(Math.sin(ph)) * 1.6 * (1 - run),
@@ -58,12 +58,12 @@ export const TorreShot: React.FC = () => {
       lookY: 0.6 * ramp(g, TOWER, TOWER + 10),
     };
     const u = ramp(g, TOWER - 2, CUT_B, [0, 1], SMOOTH);
-    const pos = lerp3([N[0] + 0.7, 0.75, N[2] + 5.2], [N[0] + 1.2, 8.5, N[2] + 10.5], u);
-    const fov = 52 - 18 * u;
-    const low = aim(pos, fov, [N[0], 0.9, N[2]], 560, 1150);
+    const pos = lerp3([N[0] + 0.8, 1.25, N[2] + 7.2], [N[0] + 1.2, 8.5, N[2] + 10.5], u);
+    const fov = 50 - 16 * u;
+    const low = aim(pos, fov, [N[0], 0.9, N[2]], 560, 1120);
     const high = aim(pos, fov, WAIST, 560, 800);
     cam = { position: pos, target: lerp3(low.target, high.target, ramp(g, TOWER - 2, CUT_B, [0, 1], EASE_IN_OUT)), fov };
-    counterMin = 0.8;
+    counterMin = 0.9;
   } else {
     // ---- B (→ SCREEN): Nubi faces the camera and rants, the tower behind it on the right.
     // ---- C (SCREEN → END): still shouting "…y también por trabajar!", now small and low in a
@@ -100,6 +100,8 @@ export const TorreShot: React.FC = () => {
   // From SCREEN the counter stays put over the head (panel top ≥ y 910, under the 2D screen).
   const head: Vec3 = g >= SCREEN ? [at[0], 2.1, at[2]] : [at[0], 2.2 + (pose.hop ?? 0) * 0.2, at[2]];
   const ctr = counterAt(cam, head, { min: counterMin, max: 1.3 });
+  // During the boom Nubi leaves the frame at the bottom: its counter fades before the captions.
+  const counterFade = g < CUT_B ? 1 - ramp(ctr.y, 1060, 1200, [0, 1], (x) => x) : 1;
   return (
     <AbsoluteFill style={{ background: TIMECO_SKY }}>
       <Shake
@@ -121,8 +123,8 @@ export const TorreShot: React.FC = () => {
           <Nubi size={2} position={at} rotationY={rotY} pose={pose} shadowOpacity={0.5} />
           <DustPuff frame={g} at={START + 9} position={[at[0], 0.05, at[2]]} radius={1.3} color="#D9C9B0" />
         </Stage>
-        {!ctr.behind ? (
-          <LifeCounter frame={g} seconds={nubiSeconds(g)} events={NUBI_EVENTS} draining={nubiDraining(g)} frozen={nubiHolding(g)} x={ctr.x} y={ctr.y} scale={ctr.scale} />
+        {!ctr.behind && counterFade > 0 ? (
+          <LifeCounter frame={g} seconds={nubiSeconds(g)} events={NUBI_EVENTS} draining={nubiDraining(g)} frozen={nubiHolding(g)} x={ctr.x} y={ctr.y} scale={ctr.scale} opacity={counterFade} />
         ) : null}
       </Shake>
     </AbsoluteFill>

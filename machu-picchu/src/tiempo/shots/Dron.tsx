@@ -20,7 +20,7 @@ import { TIEMPO } from "../timeline";
 // crashes to 00:00:10: its eyes go huge, it hops back; a small punch-in and a shake.
 // Two-shot cheated to camera: the drone on the left turned right, Nubi on the right turned left.
 
-const NUBI_AT: Vec3 = [DOOR_NUBI[0] + 0.85, 0, DOOR_NUBI[2]];
+const NUBI_AT: Vec3 = [DOOR_NUBI[0] + 0.7, 0, DOOR_NUBI[2]];
 const NUBI_ROT = -0.6;
 const HOVER: Vec3 = [DOOR_NUBI[0] - 1.35, 2.75, DOOR_NUBI[2] + 1.0];
 const DRONE_ROT = 0.85;
@@ -71,12 +71,12 @@ export const DronShot: React.FC = () => {
     wigglePhase: g * 0.8,
     blink: g > DRONE + 10 && g < DRONE + 13 ? 1 : 0,
   };
-  const at: Vec3 = [NUBI_AT[0] + back * 0.55, 0, NUBI_AT[2] - back * 0.55];
+  const at: Vec3 = [NUBI_AT[0] + back * 0.12, 0, NUBI_AT[2] - back * 1.0];
 
   // ---- Camera: a two-shot looking at the closed door; a punch-in on MULTA.
   const punch = ramp(g, MULTA, MULTA + 5, [0, 1], EASE_OUT) * (1 - 0.35 * ramp(g, MULTA + 5, DOOR, [0, 1], (x) => x));
   const pos: Vec3 = [DOOR_NUBI[0] + 0.1, 1.55, DOOR_NUBI[2] + 10.2];
-  const cam = aim(pos, 40 - 5 * punch, [DOOR_NUBI[0] + 0.15, 0, DOOR_NUBI[2]], 540, 1262 + 40 * punch);
+  const cam = aim(pos, 40 - 5 * punch, [DOOR_NUBI[0] + 0.15 + 0.3 * punch, 0, DOOR_NUBI[2] - 0.6 * punch], 540, 1262 + 30 * punch);
 
   const head: Vec3 = [at[0], 2.2 + (pose.hop ?? 0) * 0.2, at[2]];
   const ctr = counterAt(cam, head, { min: 1.0, max: 1.3 });

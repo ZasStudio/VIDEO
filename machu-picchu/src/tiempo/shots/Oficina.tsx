@@ -178,13 +178,13 @@ export const OficinaShot: React.FC = () => {
   let cam: Cam;
   const sweepA = ramp(g, START, A_END, [0, 1], (x) => x);
   if (g < A_END) {
-    cam = aim(lerp3([0.2, 7.3, 10.6], [0, 6.9, 9.5], sweepA), 52, [0, 0.6, -3.6], 520, 1150);
+    cam = aim(lerp3([0.2, 7.6, 10.8], [0.1, 7.2, 9.9], sweepA), 52, [0, 0.6, -3.6], 520, 1135);
   } else if (g < BELL) {
     // Crane up as the day goes by: the spinning clock rises behind the lead's sticker by DIA and
     // the rule lightbox under it comes into view just as it lights up.
     const u = ramp(g, A_END, DIA - 3, [0, 1], EASE_IN_OUT);
     const v = ramp(g, DIA - 3, BELL, [0, 1], (x) => x);
-    const pos = lerp3(lerp3([-1.0, 2.5, 15.0], [-1.0, 5.8, 15.2], u), [-1.0, 5.9, 14.7], v);
+    const pos = lerp3(lerp3([-1.0, 2.5, 15.0], [-1.0, 6.7, 15.2], u), [-1.0, 6.8, 14.7], v);
     cam = aim(pos, 38, [OFFICE_NUBI[0], 1.0, OFFICE_NUBI[2]], 310, 1085);
   } else {
     const u = ramp(g, BELL, END, [0, 1], (x) => x);
@@ -202,10 +202,12 @@ export const OficinaShot: React.FC = () => {
     if (c.behind || c.x < -120 || c.x > 1200 || c.y < 60 || c.y > 1500) return;
     const events: LifeEvent[] = hit ? [{ at: hit.at, text: "+00:05:00", tone: "tiny" }] : [];
     const secs = extraSeconds(w.seed, g) + (hit && g >= hit.at ? 300 : 0);
-    tags.push({ key: `w${i}`, d: dist(p), node: <LifeCounter key={`w${i}`} frame={g} seconds={secs} {...c} events={events} /> });
+    // Behind the two of them (shots B and C) the extras' counters step back a little.
+    const opacity = g < A_END ? 1 : 0.72;
+    tags.push({ key: `w${i}`, d: dist(p), node: <LifeCounter key={`w${i}`} frame={g} seconds={secs} {...c} events={events} opacity={opacity} /> });
   });
   const nubiHead = headTop(OFFICE_NUBI, NUBI_SIZE, nubiPose, 0.12);
-  const cwHead = headTop(OFFICE_COWORKER, COWORKER_SIZE, cwPose, 0.12 + (g < A_END ? 0 : CW_LIFT));
+  const cwHead = headTop(OFFICE_COWORKER, COWORKER_SIZE, cwPose, 0.12 + (g < A_END ? 1.6 : CW_LIFT));
   const mainOpts = { ref: 9, min: 0.85, max: 1.1 };
   const nubiC = counterAt(cam, nubiHead, mainOpts);
   const cwC = counterAt(cam, cwHead, mainOpts);

@@ -909,7 +909,7 @@ export const blinkAt = (g: number, seed: number) => {
 // =======================================================================================
 // OFFICE layout
 
-const DESK = { w: 2.7, d: 1.1, top: 0.6, t: 0.07 };
+const DESK = { w: 2.7, d: 1.1, top: 0.5, t: 0.07 };
 const MON = { w: 0.94, h: 0.66, d: 0.36, stand: 0.2 };
 /** z of a worker behind a desk, relative to the desk centre. */
 const STAND = -0.62;
@@ -1294,10 +1294,10 @@ export const Office: React.FC<{ t?: number; day?: number; hours?: number; ring?:
 /** Office lights; `day` 0 → 1 goes from cool morning to a warm sunset coming through the windows. */
 export const OfficeLights: React.FC<{ day?: number }> = ({ day = 0 }) => (
   <>
-    <hemisphereLight args={[mixHex("#EEF4FF", "#FFD9BE", day), "#68728C", 1.3]} />
-    <directionalLight position={[3, 7, 11]} intensity={1.75 - 0.35 * day} color={mixHex("#F4F7FF", "#FFE6D6", day)} />
-    <directionalLight position={[-6, 6, -12]} intensity={0.8 + 1.5 * day} color={mixHex("#FFF6E2", "#FF8F4A", day)} />
-    <directionalLight position={[8, 4, -4]} intensity={0.45} color="#D4E2FF" />
+    <hemisphereLight args={[mixHex("#EEF4FF", "#FFC08F", day), mixHex("#68728C", "#7A5C66", day), 1.3]} />
+    <directionalLight position={[3, 7, 11]} intensity={1.75 - 0.45 * day} color={mixHex("#F4F7FF", "#FFD2B0", day)} />
+    <directionalLight position={[-6, 5, -12]} intensity={0.8 + 2.2 * day} color={mixHex("#FFF6E2", "#FF7A3A", day)} />
+    <directionalLight position={[8, 4, -4]} intensity={0.45 - 0.2 * day} color="#D4E2FF" />
   </>
 );
 
