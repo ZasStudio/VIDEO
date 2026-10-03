@@ -439,12 +439,14 @@ const BUILDINGS: BuildingSpec[] = [
   { x0: -23, x1: -18.6, h: 9.5, color: "#A887FF", shop: { name: "RELOJES", price: "1 AÑO", bg: "#5B3FB0", awning: ["#FFFFFF", "#7B5CFF"] } },
   { x0: -18.6, x1: -14.6, h: 8, color: "#FFD54A", shop: { name: "FRUTAS", price: "2 H", bg: "#2FAE4E", awning: ["#FFFFFF", "#2FAE4E"] } },
   { x0: -14.6, x1: -7.6, h: 10.5, color: "#FF8FB8", shop: { name: "FLORES", price: "3 H", bg: "#E8457A", awning: ["#FFFFFF", "#FF4F7B"] } },
-  { x0: -7.6, x1: -3.2, h: 8.8, color: "#5EC2FF", shop: { name: "CAFÉ", price: "1 H", bg: "#8A4B2A", awning: ["#FFF3D6", "#C46A2E"] } },
-  { x0: -3.2, x1: 2.4, h: 11.5, color: "#FF9A3D", shop: { name: "PANADERÍA", price: "30 MIN", bg: "#9A5B2C", awning: ["#FFF3D6", "#E0892F"] } },
-  { x0: 2.4, x1: 7.2, h: 9, color: "#4FD1B0", shop: { name: "HELADOS", price: "4 H", bg: "#FF5FA2", awning: ["#FFFFFF", "#FF7EB6"] } },
-  { x0: 7.2, x1: 13.6, h: 10, color: "#FF6F61", shop: { name: "ZAPATOS", price: "2 DÍAS", bg: "#2B2F58", awning: ["#FFFFFF", "#2F6BFF"] } },
+  { x0: -7.6, x1: -4.3, h: 8.8, color: "#5EC2FF", shop: { name: "CAFÉ", price: "1 H", bg: "#8A4B2A", awning: ["#FFF3D6", "#C46A2E"] } },
+  { x0: -4.3, x1: -1.0, h: 11.5, color: "#FF9A3D", shop: { name: "PAN", price: "30 MIN", bg: "#9A5B2C", awning: ["#FFF3D6", "#E0892F"] } },
+  { x0: -1.0, x1: 1.0, h: 9.6, color: "#7FB2FF" },
+  { x0: 1.0, x1: 4.3, h: 9, color: "#4FD1B0", shop: { name: "HELADOS", price: "4 H", bg: "#FF5FA2", awning: ["#FFFFFF", "#FF7EB6"] } },
+  { x0: 4.3, x1: 7.4, h: 10.5, color: "#FFC93C", shop: { name: "JUGUETES", price: "1 DÍA", bg: "#E3262B", awning: ["#FFFFFF", "#E3262B"] } },
+  { x0: 7.4, x1: 13.6, h: 10, color: "#FF6F61", shop: { name: "ZAPATOS", price: "2 DÍAS", bg: "#2B2F58", awning: ["#FFFFFF", "#2F6BFF"] } },
   { x0: 13.6, x1: 18.4, h: 8.5, color: "#7FB2FF", shop: { name: "LIBROS", price: "5 H", bg: "#E0892F", awning: ["#FFFFFF", "#FF8A1F"] } },
-  { x0: 18.4, x1: 23, h: 11, color: "#FFC93C", shop: { name: "JUGUETES", price: "1 DÍA", bg: "#E3262B", awning: ["#FFFFFF", "#E3262B"] } },
+  { x0: 18.4, x1: 23, h: 11, color: "#A887FF", shop: { name: "CINE", price: "2 H", bg: "#2B2F58", awning: ["#FFFFFF", "#7B5CFF"] } },
 ];
 
 const DEPTH = 4;
@@ -462,15 +464,22 @@ const facadeGeometry = once(() => {
     geos.push(place(rbox(W, b.h, DEPTH, 0.22), b.color, [cx, b.h / 2, z - DEPTH / 2]));
     geos.push(place(rbox(W + 0.3, 0.42, DEPTH + 0.3, 0.12), "#FFF6E6", [cx, b.h - 0.1, z - DEPTH / 2]));
     geos.push(place(rbox(W + 0.12, 0.5, DEPTH + 0.12, 0.08), shadeHex(b.color, -0.16), [cx, 0.25, z - DEPTH / 2]));
+    if (!b.shop) {
+      geos.push(place(rbox(1.0, 2.25, 0.12, 0.06), shadeHex(b.color, -0.25), [cx, 1.13, z + 0.06]));
+      geos.push(place(new THREE.SphereGeometry(0.07, 10, 8), "#FFD23F", [cx + 0.32, 1.1, z + 0.15]));
+      geos.push(place(rbox(1.3, 0.16, 0.5, 0.05), "#FFF6E6", [cx, 2.35, z + 0.2]));
+    }
     // Shop front: a big window and a door under the sign band.
-    geos.push(place(rbox(W * 0.56 + 0.2, 2.15, 0.12, 0.08), "#FFF6E6", [cx - W * 0.14, 1.45, z + 0.04]));
-    geos.push(place(rbox(W * 0.56, 1.95, 0.12, 0.06), "#9EDCFF", [cx - W * 0.14, 1.45, z + 0.08]));
-    geos.push(place(rbox(0.06, 1.9, 0.06, 0.02), "#FFF6E6", [cx - W * 0.14, 1.45, z + 0.16]));
-    geos.push(place(rbox(1.0, 2.25, 0.12, 0.06), shadeHex(b.shop?.bg ?? b.color, 0.05), [cx + W * 0.33, 1.13, z + 0.06]));
-    geos.push(place(new THREE.SphereGeometry(0.07, 10, 8), "#FFD23F", [cx + W * 0.33 + 0.32, 1.1, z + 0.15]));
-    // Goods in the window: a row of coloured blobs on a shelf.
-    geos.push(place(rbox(W * 0.5, 0.08, 0.3, 0.03), "#FFFFFF", [cx - W * 0.14, 0.95, z + 0.0]));
-    for (let k = 0; k < 5; k++) {
+    if (b.shop) geos.push(place(rbox(W * 0.56 + 0.2, 2.15, 0.12, 0.08), "#FFF6E6", [cx - W * 0.14, 1.45, z + 0.04]));
+    if (b.shop) {
+      geos.push(place(rbox(W * 0.56, 1.95, 0.12, 0.06), "#9EDCFF", [cx - W * 0.14, 1.45, z + 0.08]));
+      geos.push(place(rbox(0.06, 1.9, 0.06, 0.02), "#FFF6E6", [cx - W * 0.14, 1.45, z + 0.16]));
+      geos.push(place(rbox(1.0, 2.25, 0.12, 0.06), shadeHex(b.shop.bg, 0.05), [cx + W * 0.33, 1.13, z + 0.06]));
+      geos.push(place(new THREE.SphereGeometry(0.07, 10, 8), "#FFD23F", [cx + W * 0.33 + 0.32, 1.1, z + 0.15]));
+      // Goods in the window: a row of coloured blobs on a shelf.
+      geos.push(place(rbox(W * 0.5, 0.08, 0.3, 0.03), "#FFFFFF", [cx - W * 0.14, 0.95, z + 0.0]));
+    }
+    for (let k = 0; k < (b.shop ? 5 : 0); k++) {
       const c = ["#FF4F7B", "#FFD23F", "#2F6BFF", "#FF8A1F", "#1FB35A"][(k + bi) % 5];
       geos.push(place(new THREE.SphereGeometry(0.16, 12, 8), c, [cx - W * 0.14 - W * 0.2 + k * W * 0.1, 1.13, z - 0.02]));
     }
@@ -501,7 +510,7 @@ const facadeGeometry = once(() => {
 const furnitureGeometry = once(() => {
   const geos: THREE.BufferGeometry[] = [];
   const z = MARKET.facadeZ;
-  for (const x of [-16.6, -5.4, 5.0, 15.8]) {
+  for (const x of [-16.6, -3.3, 3.3, 15.8]) {
     // Lamp post.
     geos.push(place(new THREE.CylinderGeometry(0.09, 0.13, 4.2, 12), "#2B3A55", [x, 2.1, z + 1.6]));
     geos.push(place(new THREE.CylinderGeometry(0.2, 0.26, 0.3, 14), "#2B3A55", [x, 0.15, z + 1.6]));
@@ -509,9 +518,9 @@ const furnitureGeometry = once(() => {
     geos.push(place(new THREE.CylinderGeometry(0.36, 0.2, 0.16, 14), "#2B3A55", [x, 4.78, z + 1.6]));
   }
   for (const [x, seed] of [
-    [-12.4, 1],
-    [-1.6, 2],
-    [7.6, 3],
+    [-13.0, 1],
+    [-6.3, 2],
+    [6.0, 3],
     [20.4, 4],
   ]) {
     const rnd = mulberry(seed * 13);
@@ -548,9 +557,9 @@ const buntingGeometry = once(() => {
   };
   const spans: [number, number][] = [
     [-22, -16.6],
-    [-16.6, -5.4],
-    [-5.4, 5.0],
-    [5.0, 15.8],
+    [-16.6, -3.3],
+    [-3.3, 3.3],
+    [3.3, 15.8],
     [15.8, 22],
   ];
   spans.forEach(([a, b], si) => {

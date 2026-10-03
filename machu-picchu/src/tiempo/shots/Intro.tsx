@@ -31,9 +31,9 @@ const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 
 /** Passers-by behind Nubi: [seed, x at frame 0, z, speed (units/s, 0 = standing), facing]. */
 const WALKERS: [number, number, number, number, number][] = [
-  [3, -3.3, -2.3, 0.95, Math.PI / 2],
-  [8, 4.4, -3.4, -0.85, -Math.PI / 2],
-  [12, 2.35, -1.6, 0, -0.5],
+  [3, -3.9, -3.7, 0.55, Math.PI / 2],
+  [8, 4.3, -4.5, -0.5, -Math.PI / 2],
+  [12, 2.7, -2.9, 0, -0.45],
 ];
 
 export const IntroShot: React.FC = () => {
@@ -44,13 +44,13 @@ export const IntroShot: React.FC = () => {
   // ---- Camera: slow push-in; on TIEMPO it rises and pushes so the counter is the hero.
   const push = ramp(g, START, TIEMPO, [0, 1], (x) => x);
   const rise = ramp(g, TIEMPO - 2, TIEMPO + 16, [0, 1], EASE_IN_OUT);
-  const dist = lerp(9.7, 8.9, push) - 1.55 * rise;
-  const position: Vec3 = [0.4 - 0.15 * rise + 0.08 * Math.sin(t * 0.7), 1.45 + 1.05 * rise, NUBI[2] + dist];
-  const cam = aim(position, FOV, EYE, 540, lerp(985, 1128, rise));
+  const dist = lerp(9.7, 8.9, push) - 0.9 * rise;
+  const position: Vec3 = [0.4 - 0.15 * rise + 0.08 * Math.sin(t * 0.7), 1.45 + 1.7 * rise, NUBI[2] + dist];
+  const cam = aim(position, FOV, EYE, 540, lerp(985, 1150, rise));
 
   // ---- The banknote: flutters in from the upper left, crumbles on DINERO + 2.
   const fallU = ramp(g, DINERO - 16, DINERO + 10, [0, 1], (x) => x);
-  const notePos: Vec3 = [lerp(-2.15, -1.0, fallU) + 0.16 * Math.sin(g * 0.24), lerp(2.55, 1.3, fallU), NUBI[2] + 0.95];
+  const notePos: Vec3 = [lerp(-1.75, -0.62, fallU) + 0.14 * Math.sin(g * 0.24), lerp(2.45, 1.25, fallU), NUBI[2] + 1.75];
   const noteRot: Vec3 = [0.35 + 0.45 * Math.sin(g * 0.29), 0.35 * Math.sin(g * 0.21), 0.55 * Math.sin(g * 0.17)];
   const crumbleAt = DINERO + 2;
   const showNote = g >= DINERO - 16 && g < DINERO + 22;
