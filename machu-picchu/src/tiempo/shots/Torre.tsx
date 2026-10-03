@@ -43,7 +43,7 @@ export const TorreShot: React.FC = () => {
     // ---- A: zip in from the right, skid, boom up.
     const run = ramp(g, START, START + 10, [0, 1], (x) => 1 - Math.pow(1 - x, 2));
     const skid = windowIn(g, START + 7, START + 18, 4);
-    at = [N[0] + 1.7 * (1 - run), 0, N[2] + 2.2 * (1 - run)];
+    at = [N[0] + 1.1 * (1 - run), 0, N[2] + 2.0 * (1 - run)];
     rotY = Math.PI + 0.55 * (1 - run);
     const ph = t * 15;
     pose = {
