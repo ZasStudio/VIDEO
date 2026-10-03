@@ -187,8 +187,10 @@ type ShopSpec = { x0: number; x1: number; h: number; wall: string; name: string;
 const STORE_TOP = 2.75;
 const SHOWROOM_TOP = 3.3;
 const DEPTH = 6;
-/** How far the window rooms go back behind the facade. */
+/** How far the window rooms go back behind the facade (the showroom is deeper). */
 const ROOM = 3.6;
+const SHOW_ROOM = 4.4;
+const roomOf = (kind: ShopKind) => (kind === "cars" ? SHOW_ROOM : ROOM);
 
 export const AVENUE = {
   /** Sidewalk outer edge (curb) and the line people walk on. */
@@ -200,15 +202,15 @@ export const AVENUE = {
 };
 
 const SHOPS: ShopSpec[] = [
-  { x0: -26, x1: -19.6, h: 8.6, wall: "#F7C8D8", name: "MODA", kind: "fashion", sign: ["#2B2238", "#FFD86B", "#FFD86B"] },
-  { x0: -19.6, x1: -12.4, h: 7.6, wall: "#BFE3F2", name: "RELOJES", kind: "watch", sign: ["#203A5C", "#FFFFFF", "#FFC83D"] },
-  { x0: -12.4, x1: -6.4, h: 9.2, wall: "#FFE0B8", name: "JOYAS", kind: "jewel", sign: ["#6B2E8C", "#FFFFFF", "#FFC83D"] },
-  { x0: -6.4, x1: -1.0, h: 8.0, wall: "#D7CCFF", name: "CELU+", kind: "phone", sign: ["#1E64FF", "#FFFFFF", "#FFFFFF"] },
-  { x0: -1.0, x1: 8.6, h: 7.4, wall: "#F4F1EA", name: "AUTOLUX", kind: "cars", sign: ["#C8102E", "#FFFFFF", "#FFC83D"] },
-  { x0: 8.6, x1: 14.4, h: 8.8, wall: "#FFD0C2", name: "PERFUMES", kind: "perfume", sign: ["#B03A6A", "#FFFFFF", "#FFC83D"] },
-  { x0: 14.4, x1: 20.2, h: 7.8, wall: "#C9F0E4", name: "BOUTIQUE", kind: "fashion", sign: ["#1F6B5C", "#FFFFFF", "#FFC83D"] },
-  { x0: 20.2, x1: 30.6, h: 10.5, wall: "#2A2A36", name: "TIMECO", kind: "timeco", sign: [TIMECO_COLORS.charcoal, TIMECO_COLORS.red, TIMECO_COLORS.red] },
-  { x0: 30.6, x1: 37, h: 8.2, wall: "#FFE8A8", name: "RELOJES", kind: "watch", sign: ["#203A5C", "#FFFFFF", "#FFC83D"] },
+  { x0: -25, x1: -18.6, h: 8.6, wall: "#F7C8D8", name: "MODA", kind: "fashion", sign: ["#2B2238", "#FFD86B", "#FFD86B"] },
+  { x0: -18.6, x1: -11.8, h: 7.6, wall: "#BFE3F2", name: "RELOJES", kind: "watch", sign: ["#203A5C", "#FFFFFF", "#FFC83D"] },
+  { x0: -11.8, x1: -5.6, h: 9.2, wall: "#FFE0B8", name: "JOYAS", kind: "jewel", sign: ["#6B2E8C", "#FFFFFF", "#FFC83D"] },
+  { x0: -5.6, x1: -0.8, h: 8.0, wall: "#D7CCFF", name: "CELU+", kind: "phone", sign: ["#1E64FF", "#FFFFFF", "#FFFFFF"] },
+  { x0: -0.8, x1: 7.4, h: 7.4, wall: "#F4F1EA", name: "AUTOLUX", kind: "cars", sign: ["#C8102E", "#FFFFFF", "#FFC83D"] },
+  { x0: 7.4, x1: 13.2, h: 8.8, wall: "#FFD0C2", name: "PERFUMES", kind: "perfume", sign: ["#B03A6A", "#FFFFFF", "#FFC83D"] },
+  { x0: 13.2, x1: 19, h: 7.8, wall: "#C9F0E4", name: "BOUTIQUE", kind: "fashion", sign: ["#1F6B5C", "#FFFFFF", "#FFC83D"] },
+  { x0: 19, x1: 29.4, h: 10.5, wall: "#2A2A36", name: "TIMECO", kind: "timeco", sign: [TIMECO_COLORS.charcoal, TIMECO_COLORS.red, TIMECO_COLORS.red] },
+  { x0: 29.4, x1: 36, h: 8.2, wall: "#FFE8A8", name: "RELOJES", kind: "watch", sign: ["#203A5C", "#FFFFFF", "#FFC83D"] },
 ];
 
 const shop = (kind: ShopKind) => SHOPS.find((s) => s.kind === kind) ?? SHOPS[0];
@@ -219,11 +221,11 @@ const TIMECO_SHOP = shop("timeco");
 /** The giant phone on its pedestal (base centre, on the floor of the phone shop's window). */
 export const PHONE_SPOT: V3 = [(PHONE_SHOP.x0 + PHONE_SHOP.x1) / 2, 0, -1.25];
 /** Centre of the turntable in the car showroom. */
-export const CAR_SPOT: V3 = [CAR_SHOP.x0 + 5.6, 0, -1.6];
-/** Where the rich man stands in the showroom (behind-left of the car, leaning on it). */
-export const RICH_SPOT: V3 = [CAR_SHOP.x0 + 3.55, 0, -1.25];
+export const CAR_SPOT: V3 = [CAR_SHOP.x0 + 3.24, 0, -1.25];
+/** Where the rich man stands in the showroom (left of the car, a step deeper). */
+export const RICH_SPOT: V3 = [CAR_SHOP.x0 + 1.89, 0, -2.85];
 /** The showroom's price banner (centre). */
-export const PRICE_SPOT: V3 = [CAR_SHOP.x0 + 5.6, 2.62, -0.25];
+export const PRICE_SPOT: V3 = [CAR_SHOP.x0 + 3.24, 2.62, -0.3];
 /** TIMECO's billboard (centre of its face) on the TIMECO building. */
 export const BILLBOARD = { center: [(TIMECO_SHOP.x0 + TIMECO_SHOP.x1) / 2, 6.25, 0.32] as V3, w: 8.6, h: 3.5 };
 /** Middle of the TIMECO building's front (for the question shot). */
@@ -425,15 +427,16 @@ const facadeGeometry = () => {
     const wall = s.wall;
     const dark = shadeHex(wall, -0.08);
     const trim = s.kind === "timeco" ? "#FF3B3B" : "#FFFFFF";
-    const pier = s.kind === "cars" ? 0.45 : 0.6;
+    const pier = s.kind === "cars" ? 0.3 : 0.6;
     // Upper body sits on top of the store opening.
     geos.push(place(rbox(W, s.h - top, DEPTH, 0.12), wall, [cx, top + (s.h - top) / 2, -DEPTH / 2]));
     // Piers at both sides and the room's back wall.
     for (const side of [-1, 1]) geos.push(place(rbox(pier, top, DEPTH, 0.08), wall, [cx + side * (W / 2 - pier / 2), top / 2, -DEPTH / 2]));
-    geos.push(place(rbox(W - 2 * pier, top, 0.3, 0.05), s.kind === "timeco" ? "#3A2030" : shadeHex(wall, 0.06), [cx, top / 2, -ROOM]));
+    const room = roomOf(s.kind);
+    geos.push(place(rbox(W - 2 * pier, top, 0.3, 0.05), s.kind === "timeco" ? "#3A2030" : shadeHex(wall, 0.06), [cx, top / 2, -room]));
     // Window floor (a raised plinth) and its gold sill.
     const plinth = s.kind === "cars" ? 0.12 : 0.4;
-    geos.push(place(rbox(W - 2 * pier + 0.05, plinth, ROOM, 0.04), shadeHex(wall, -0.14), [cx, plinth / 2, -ROOM / 2]));
+    geos.push(place(rbox(W - 2 * pier + 0.05, plinth, room, 0.04), shadeHex(wall, -0.14), [cx, plinth / 2, -room / 2]));
     geos.push(place(rbox(W - 2 * pier + 0.1, 0.07, 0.16, 0.03), "#E8B030", [cx, plinth, -0.05]));
     // Frame around the opening.
     geos.push(place(rbox(W - 2 * pier + 0.2, 0.12, 0.14, 0.04), trim, [cx, top - 0.02, 0.05]));
@@ -503,7 +506,7 @@ const StreetLamp: React.FC<{ position: V3; lit: number }> = ({ position, lit }) 
     <group position={position}>
       <mesh geometry={g.pole} material={vertexMat(0.4, false, 0.1, 0.3)} castShadow />
       <mesh geometry={g.globe} material={toy(lit > 0.5 ? "#FFE9B0" : "#FFFFFF", { rough: 0.2, glow: 0.3 + lit * 1.6 })} position={[0, 3.95, 0]} />
-      {lit > 0.05 ? <Glow color="#FFC870" size={2.2} opacity={0.55 * lit} position={[position[0] * 0, 3.95, 0]} /> : null}
+      {lit > 0.05 ? <Glow color="#FFC870" size={2.2} opacity={0.55 * lit} position={[0, 3.95, 0]} /> : null}
     </group>
   );
 };
@@ -585,8 +588,8 @@ const carGeos = once(() => ({
   lamp: new THREE.SphereGeometry(0.1, 12, 8),
   bumper: rbox(0.12, 0.14, 1.18, 0.05),
   stripe: new THREE.PlaneGeometry(1.6, 0.06),
-  table: new THREE.CylinderGeometry(1.75, 1.85, 0.2, 48),
-  tableRing: new THREE.TorusGeometry(1.8, 0.05, 8, 64).rotateX(Math.PI / 2),
+  table: new THREE.CylinderGeometry(1.45, 1.52, 0.2, 48),
+  tableRing: new THREE.TorusGeometry(1.48, 0.05, 8, 64).rotateX(Math.PI / 2),
 }));
 
 /** The shiny red toy car (length along x, front +x), standing on y = 0. */
@@ -755,11 +758,11 @@ const Showroom: React.FC<{ t: number; spin: number; sold: number }> = ({ spin, s
   const W = s.x1 - s.x0 - 0.9;
   return (
     <group>
-      <mesh position={[cx, 0.125, -ROOM / 2]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[W, ROOM]} />
+      <mesh position={[cx, 0.125, -SHOW_ROOM / 2]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[W, SHOW_ROOM]} />
         <meshStandardMaterial color="#DCE3EC" roughness={0.12} metalness={0.1} emissive="#DCE3EC" emissiveIntensity={0.18} />
       </mesh>
-      <mesh position={[cx, 2.0, -ROOM + 0.16]}>
+      <mesh position={[cx, 2.0, -SHOW_ROOM + 0.16]}>
         <planeGeometry args={[W, 0.25]} />
         <meshBasicMaterial color="#E3242B" toneMapped={false} />
       </mesh>
@@ -879,10 +882,10 @@ export const Avenue: React.FC<{ t?: number; dusk?: number; spin?: number; sold?:
         );
       })}
       {billboard ? <TimecoBillboard t={t} dusk={dusk} /> : null}
-      {[-23.6, -12.4, -1.0, 8.6, 20.2, 30.6].map((x) => (
+      {[-18.6, -11.8, 7.4, 13.2, 19, 29.4].map((x) => (
         <Topiary key={x} position={[x, 0, 0.75]} />
       ))}
-      {[-18, -6, 4.6, 16, 25.4, 36].map((x) => (
+      {[-15.2, 16.1, 26.5, 33].map((x) => (
         <StreetLamp key={x} position={[x, 0, AVENUE.curbZ - 0.55]} lit={dusk} />
       ))}
     </group>
