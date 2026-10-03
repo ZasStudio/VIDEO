@@ -28,7 +28,7 @@ const CUT = TIEMPO.wordEnd("L15", 6) + 4;
 const DOOR_Z = GATE.front;
 
 /** The door's opening 0..1 (slow, heavy). */
-export const puertaOpen = (g: number) => ramp(g, FINAL.DOOR + 2, FINAL.DOOR + 105, [0, 1], EASE_IN_OUT);
+export const puertaOpen = (g: number) => ramp(g, FINAL.DOOR + 2, FINAL.DOOR + 84, [0, 1], (x) => 0.5 - 0.5 * Math.cos(Math.PI * x));
 
 export const PuertaShot: React.FC = () => {
   const frame = useCurrentFrame();

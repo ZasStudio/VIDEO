@@ -181,7 +181,7 @@ export const PLAZA_NUBI: V3 = [0.4, 0, 2];
 /** The glowing ZONA PREMIUM threshold across the plaza (Nubi crosses it as the alarm starts). */
 export const PREMIUM_LINE_Z = 2.7;
 /** The "ZONA PREMIUM" monument sign beside the walk. */
-export const SIGN_AT: V3 = [3.7, 0, 9.0];
+export const SIGN_AT: V3 = [2.9, 0, 13.0];
 /** The fountain of liquid gold. */
 export const FOUNTAIN_AT: V3 = [-5.2, 0, 17];
 /** Torre: Nubi at the plaza's edge, facing the tower. */
@@ -232,7 +232,7 @@ export const TimecoLights: React.FC<{ k?: number; red?: number; warm?: number }>
   <>
     <hemisphereLight args={["#5A63A8", "#1C0F16", 1.15 * k]} />
     <directionalLight position={[-18, 30, 14]} intensity={1.0 * k} color="#AFC0FF" />
-    <directionalLight position={[6, 14, -60]} intensity={1.1 * red * k} color="#FF4646" />
+    <directionalLight position={[6, 34, -60]} intensity={1.1 * red * k} color="#FF4646" />
     <directionalLight position={[12, 9, 40]} intensity={0.75 * warm * k} color="#FFC977" />
   </>
 );
@@ -1102,7 +1102,7 @@ export const PremiumPlaza: React.FC<{ t?: number; line?: number; alarm?: number;
     tex.repeat.set((PLAZA.x * 2) / 5.2, (PLAZA.z1 - PLAZA.z0) / 5.2);
     tex.needsUpdate = true;
     return {
-      floor: new THREE.MeshStandardMaterial({ map: tex, emissiveMap: tex, emissive: new THREE.Color("#FFFFFF"), emissiveIntensity: 0.3, roughness: 0.34, metalness: 0.2 }),
+      floor: new THREE.MeshStandardMaterial({ map: tex, emissiveMap: tex, emissive: new THREE.Color("#FFFFFF"), emissiveIntensity: 0.3, roughness: 0.4, metalness: 0.2 }),
       pool: additive(new THREE.MeshBasicMaterial({ map: glowTexture(), color: "#FFB548", transparent: true, opacity: 0.4, toneMapped: false })),
       streak: additive(new THREE.MeshBasicMaterial({ map: glowTexture(), color: "#FFD08A", transparent: true, opacity: 0.32, toneMapped: false })),
       shopStreak: additive(new THREE.MeshBasicMaterial({ map: glowTexture(), color: "#FFB65A", transparent: true, opacity: 0.22, toneMapped: false })),
@@ -1145,7 +1145,7 @@ export const PremiumPlaza: React.FC<{ t?: number; line?: number; alarm?: number;
         <GoldFountain t={t} />
       </group>
       {sign ? (
-        <group position={SIGN_AT} rotation={[0, 0.28, 0]}>
+        <group position={SIGN_AT} rotation={[0, 0.1, 0]}>
           <PremiumSign />
         </group>
       ) : null}
@@ -1472,11 +1472,13 @@ const GATE_GEO = once(() => {
   neon.push(xform(new THREE.BoxGeometry(doorW + 5.5, 0.35, 0.35), [0, doorH + 3.35, z + 0.55]));
   // The lit corridor behind the door: floor, ceiling, walls (inner faces) and the back wall.
   const L = 26;
+  // (Inset a little from the blocks' faces so they never z-fight.)
+  const e = 0.08;
   const inner = mergeUV([
     new THREE.PlaneGeometry(doorW, L).rotateX(-Math.PI / 2).translate(0, 0.02, z - L / 2 - 0.6),
-    new THREE.PlaneGeometry(doorW, L).rotateX(Math.PI / 2).translate(0, doorH, z - L / 2 - 0.6),
-    new THREE.PlaneGeometry(L, doorH).rotateY(Math.PI / 2).translate(-doorW / 2, doorH / 2, z - L / 2 - 0.6),
-    new THREE.PlaneGeometry(L, doorH).rotateY(-Math.PI / 2).translate(doorW / 2, doorH / 2, z - L / 2 - 0.6),
+    new THREE.PlaneGeometry(doorW, L).rotateX(Math.PI / 2).translate(0, doorH - e, z - L / 2 - 0.6),
+    new THREE.PlaneGeometry(L, doorH).rotateY(Math.PI / 2).translate(-doorW / 2 + e, doorH / 2, z - L / 2 - 0.6),
+    new THREE.PlaneGeometry(L, doorH).rotateY(-Math.PI / 2).translate(doorW / 2 - e, doorH / 2, z - L / 2 - 0.6),
   ]);
   const back = new THREE.PlaneGeometry(doorW, doorH).translate(0, doorH / 2, z - L - 0.6);
   return { body: mergeAll(body), neon: mergeUV(neon), inner, back, panel: new THREE.BoxGeometry(doorW / 2, doorH, 1.2) };
@@ -1578,7 +1580,7 @@ const Esplanade: React.FC<{ t: number }> = ({ t }) => {
     const tex = stoneTexture().clone();
     tex.repeat.set(130 / 8, (PLAZA.z0 - GATE.front) / 8);
     tex.needsUpdate = true;
-    return new THREE.MeshStandardMaterial({ map: tex, roughness: 0.48, metalness: 0.15, emissiveMap: tex, emissive: new THREE.Color("#FFFFFF"), emissiveIntensity: 0.14 });
+    return new THREE.MeshStandardMaterial({ map: tex, roughness: 0.68, metalness: 0.1, emissiveMap: tex, emissive: new THREE.Color("#FFFFFF"), emissiveIntensity: 0.16 });
   }, []);
   const pulse = 0.75 + 0.25 * Math.sin(t * 2.4);
   return (
@@ -1675,7 +1677,7 @@ export const DoorSpill: React.FC<{ open: number; t: number; fog?: number }> = ({
           uniforms: { uColor: { value: new THREE.Color(color) }, uOpacity: { value: 0 }, uTime: { value: 0 } },
         }),
       );
-    const puffs = Array.from({ length: FOG_PUFFS }, () => new THREE.SpriteMaterial({ map: glowTexture(), color: "#FFE9C8", transparent: true, depthWrite: false, fog: false }));
+    const puffs = Array.from({ length: FOG_PUFFS }, () => new THREE.SpriteMaterial({ map: glowTexture(), color: "#FFF1DC", transparent: true, depthWrite: false, fog: false }));
     return { volume: mk("#FFD9A0"), pool: mk("#FFE7B8"), puffs };
   }, []);
   const k = smooth(0, 0.45, open);
@@ -1698,7 +1700,7 @@ export const DoorSpill: React.FC<{ open: number; t: number; fog?: number }> = ({
             const reach = p * 30 * (0.3 + 0.7 * fk);
             const side = (hash(i * 3.3) - 0.5) * (GATE.doorW * 0.8 + reach * 1.1);
             const s = 5 + 14 * p + 4 * hash(i * 1.9);
-            m.opacity = fk * 0.42 * Math.sin(Math.PI * Math.min(1, p * 1.15)) * (0.6 + 0.4 * hash(i * 7.7));
+            m.opacity = fk * 0.62 * Math.sin(Math.PI * Math.min(1, p * 1.15)) * (0.6 + 0.4 * hash(i * 7.7));
             return <sprite key={i} material={m} position={[side, 0.6 + s * 0.16, 1 + reach]} scale={[s * 1.4, s * 0.55, 1]} renderOrder={8} />;
           })
         : null}
@@ -1889,8 +1891,20 @@ export const ScanRing: React.FC<{ position: V3; width?: number; depth?: number; 
 // =======================================================================================
 // Small effects
 
-/** A burst of air puffs flying out of a point (`at` = frame it bursts), with speed streaks. */
-export const AirBurst: React.FC<{ frame: number; at: number; position: V3; radius?: number; color?: string }> = ({ frame, at, position, radius = 1.8, color = "#E8F7FF" }) => {
+/**
+ * A burst of air puffs flying out of a point (`at` = frame it bursts), with speed streaks.
+ * `toward` is the direction (yaw, 0 = +x, π/2 = +z) the puffs favour (aim it away from the camera
+ * so they don't hide the face); `spread` the half-angle of the fan.
+ */
+export const AirBurst: React.FC<{ frame: number; at: number; position: V3; radius?: number; color?: string; toward?: number; spread?: number }> = ({
+  frame,
+  at,
+  position,
+  radius = 1.8,
+  color = "#E8F7FF",
+  toward = Math.PI / 2,
+  spread = Math.PI,
+}) => {
   const geo = useMemo(() => new THREE.IcosahedronGeometry(1, 1), []);
   const mats = useMemo(
     () => ({
@@ -1902,20 +1916,20 @@ export const AirBurst: React.FC<{ frame: number; at: number; position: V3; radiu
   const d = frame - at;
   if (d < 0 || d > 22) return null;
   const k = d / 22;
-  mats.puff.opacity = 0.85 * (1 - k * k);
+  mats.puff.opacity = 0.7 * (1 - k * k);
   mats.streak.opacity = 0.9 * (1 - smooth(0, 0.5, k));
   const N = 14;
   return (
     <group position={position}>
       {Array.from({ length: N }).map((_, i) => {
-        const a = (i / N) * Math.PI * 2 + hash(i) * 0.5;
+        const a = toward + ((i + 0.5) / N - 0.5) * 2 * spread + (hash(i) - 0.5) * 0.3;
         const e = (hash(i * 3.1) - 0.3) * 1.1;
-        const r = radius * (0.3 + (1 - Math.pow(1 - k, 3)) * (0.8 + hash(i + 4) * 0.5));
-        const s = radius * 0.2 * (1 - 0.6 * k) * (0.7 + hash(i + 9) * 0.6);
+        const r = radius * (0.55 + (1 - Math.pow(1 - k, 3)) * (0.8 + hash(i + 4) * 0.5));
+        const s = radius * 0.14 * (1 - 0.6 * k) * (0.7 + hash(i + 9) * 0.6);
         return <mesh key={i} geometry={geo} material={mats.puff} position={[Math.cos(a) * Math.cos(e) * r, Math.sin(e) * r * 0.7, Math.sin(a) * Math.cos(e) * r]} scale={s} />;
       })}
       {Array.from({ length: 8 }).map((_, i) => {
-        const a = (i / 8) * Math.PI * 2 + 0.3;
+        const a = toward + ((i + 0.5) / 8 - 0.5) * 2 * Math.min(Math.PI, spread + 0.4);
         const r = radius * (0.6 + 1.4 * k);
         return (
           <mesh key={`s${i}`} material={mats.streak} position={[Math.cos(a) * r, 0.1 + 0.3 * Math.sin(i * 2.1), Math.sin(a) * r]} rotation={[0, -a, 0]} renderOrder={6}>

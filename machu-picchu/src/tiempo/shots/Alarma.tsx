@@ -21,7 +21,8 @@ import { tiempoTalk } from "../talk";
 // NOTIF): "…respirar en zona premium" — on INHALE Nubi takes a huge breath and holds it (puffed
 // up 1.25×, bluish purple, eyes squeezed, trembling; the counter freezes) until EXHALE, when the
 // air bursts out (a quick deflate, a little spin) and the counter drains again.
-// Medium shot: the counter's bottom anchor stays at y ≈ 720 (feet ≈ y 1262 at the start).
+// Medium shot, Nubi right of centre (the ZONA PREMIUM sign reads on the left): the counter's
+// bottom anchor stays at y ≈ 720 (feet ≈ y 1262 at the start).
 
 const WALK = 2.4; // units per second
 const HAPPY = NUBI_GREEN;
@@ -124,7 +125,7 @@ export const AlarmaShot: React.FC = () => {
   // counter stays under the TIMECO notification band (y 240-485); feet ≈ y 1262 at the start.
   const push = ramp(g, START, INHALE, [0, 0.35], (x) => x) + ramp(g, INHALE, INHALE + 10, [0, 0.15]) - ramp(g, INHALE, INHALE + 8, [0, 0.6]);
   const camPos: Vec3 = [PLAZA_NUBI[0] + 1.0, 1.5, PLAZA_NUBI[2] - 9.3 + push];
-  const cam = aim(camPos, 46, [at[0], 2.1 * sy + 0.12, at[2]], 560, 720);
+  const cam = aim(camPos, 46, [at[0], 2.1 * sy + 0.12, at[2]], 640, 720);
 
   // Alarm light over Nubi: red pulses while draining, icy while frozen.
   const draining = nubiDraining(g);
@@ -152,7 +153,7 @@ export const AlarmaShot: React.FC = () => {
           <group position={nubiAt} scale={[sx, sy, sx]}>
             <Nubi size={2} position={[0, 0, 0]} rotationY={Math.PI} pose={pose} palette={tinted ? { body } : undefined} shadowOpacity={0.5} />
           </group>
-          <AirBurst frame={g} at={EXHALE + 1} position={[nubiAt[0], 1.1, nubiAt[2] - 0.4]} radius={1.9} />
+          <AirBurst frame={g} at={EXHALE + 1} position={[nubiAt[0], 1.1, nubiAt[2] + 0.3]} radius={1.9} toward={Math.PI / 2} spread={1.75} />
         </Stage>
         {!ctr.behind && g < END ? (
           <LifeCounter frame={g} seconds={nubiSeconds(g)} events={NUBI_EVENTS} draining={draining} frozen={frozen} x={ctr.x} y={ctr.y} scale={ctr.scale} />

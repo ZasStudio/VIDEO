@@ -51,9 +51,9 @@ const FPS = 30;
 const NUBI_SIZE = 2;
 /** Workers who stamp a paper in the wide shot (index into OFFICE_WORKERS, frames after START). */
 const STAMPERS: [number, number][] = [
-  [5, 7],
-  [6, 15],
-  [9, 23],
+  [12, 7],
+  [22, 15],
+  [13, 23],
 ];
 /** The coworker's counter floats a little higher than Nubi's (they stand side by side). */
 const CW_LIFT = 0.9;
@@ -178,7 +178,7 @@ export const OficinaShot: React.FC = () => {
   let cam: Cam;
   const sweepA = ramp(g, START, A_END, [0, 1], (x) => x);
   if (g < A_END) {
-    cam = aim(lerp3([-0.3, 7.4, 10.8], [-0.3, 6.8, 9.6], sweepA), 46, [0, 0.6, -3.6], 510, 1150);
+    cam = aim(lerp3([0.2, 7.3, 10.6], [0, 6.9, 9.5], sweepA), 52, [0, 0.6, -3.6], 520, 1150);
   } else if (g < BELL) {
     // Crane up as the day goes by: the spinning clock rises behind the lead's sticker by DIA and
     // the rule lightbox under it comes into view just as it lights up.
