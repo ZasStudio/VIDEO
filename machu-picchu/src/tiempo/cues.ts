@@ -116,7 +116,7 @@ const timeco = (): Cue[] => {
   return [
     [START, "tiempo/run", 0.75],
     [TOWER - 2, "tiempo/reveal", 0.85],
-    [SCREEN - 1, "tiempo/redalert", 0.8],
+    [SCREEN - 1, "tiempo/redalert", 0.45],
   ];
 };
 

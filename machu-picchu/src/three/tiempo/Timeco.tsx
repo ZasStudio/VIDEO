@@ -169,7 +169,7 @@ const usePoints = (count: number, color: string, core: string) => {
 // Layout
 
 /** Centre of the tower's base. Its door faces +z (towards the plaza). */
-export const TOWER_AT: V3 = [0, 0, -150];
+export const TOWER_AT: V3 = [0, 0, -400];
 /** The hourglass: plates (top and bottom), glass bulbs, waist, posts. Heights above the ground. */
 export const HG = { plateR: 37, plateH: 6, bulbR: 31, waistR: 4, waistY: 75, top: 150, postR: 34.5 };
 /** The gatehouse at the tower's base and its gigantic door (front face at z = front). */
@@ -179,7 +179,7 @@ export const PLAZA = { x: 13, z0: -40, z1: 36 };
 /** Alarma: where Nubi ends its happy walk on the plaza (camera looking +z). */
 export const PLAZA_NUBI: V3 = [0.4, 0, 2];
 /** The glowing ZONA PREMIUM threshold across the plaza (Nubi crosses it as the alarm starts). */
-export const PREMIUM_LINE_Z = 3.6;
+export const PREMIUM_LINE_Z = 2.7;
 /** The "ZONA PREMIUM" monument sign beside the walk. */
 export const SIGN_AT: V3 = [-3.9, 0, 9.5];
 /** The fountain of liquid gold. */
@@ -475,7 +475,7 @@ const towerGlassTexture = () =>
 type Bldg = { x: number; z: number; w: number; d: number; h: number };
 
 const inPlazaZone = (x: number, z: number, r: number) => Math.abs(x) < PLAZA.x + 9 + r && z > PLAZA.z0 - 6 - r && z < PLAZA.z1 + 8 + r;
-const inEsplanade = (x: number, z: number, r: number) => Math.abs(x) < 46 + r && z < PLAZA.z0 + r && z > TOWER_AT[2] - 10;
+const inEsplanade = (x: number, z: number, r: number) => Math.abs(x) < 40 + r && z < PLAZA.z0 + r && z > TOWER_AT[2] - 10;
 const nearTower = (x: number, z: number, r: number) => Math.hypot(x - TOWER_AT[0], z - TOWER_AT[2]) < 52 + r;
 
 const CITY = once(() => {
@@ -499,10 +499,10 @@ const CITY = once(() => {
     if (!fits(x, z, Math.max(w, d) * 0.62)) continue;
     list.push({ x, z, w, d, h });
   }
-  // The blocks behind and beside the plaza (the backdrop of the alarm shot).
-  for (let i = 0; i < 900 && list.length < 230; i++) {
-    const x = (rnd() - 0.5) * 300;
-    const z = -40 + rnd() * 270;
+  // The blocks along the boulevard to the tower and behind and beside the plaza.
+  for (let i = 0; i < 2400 && list.length < 330; i++) {
+    const x = (rnd() - 0.5) * 320;
+    const z = -340 + rnd() * 570;
     const w = 8 + rnd() * 12;
     const d = 8 + rnd() * 12;
     const h = 14 + rnd() * 40 + (Math.abs(x) < 40 && z > 50 && z < 110 ? 18 : 0);

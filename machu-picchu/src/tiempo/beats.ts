@@ -115,8 +115,8 @@ export const TIMECO = {
   DORMIR: wordAt("L13", 5),
   RESPIRAR: wordAt("L13", 6),
   TRABAJAR: wordAt("L13", 10),
-  /** The extraction screen: "45 SEGUNDOS DE CADA PERSONA". */
-  SCREEN: lineEnd("L13") + 2,
+  /** "…y también por trabajar!": the extraction screen ("45 SEGUNDOS DE CADA PERSONA") lights up. */
+  SCREEN: wordAt("L13", 7),
 };
 
 export const FINAL = {

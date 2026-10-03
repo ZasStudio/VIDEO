@@ -10,6 +10,7 @@ import {
   JuiceCup,
   JuiceKiosk,
   KIOSK,
+  KIOSK_TERMINAL,
   KIOSK_VENDOR,
   MARKET,
   MARKET_SKY,
@@ -36,8 +37,8 @@ const FPS = 30;
 const FOV = 38;
 const K = MARKET.juice;
 const at = (v: Vec3): Vec3 => [K[0] + v[0], K[1] + v[1], K[2] + v[2]];
-const NUBI: Vec3 = at([-1.22, 0, 1.55]);
-const NUBI_YAW = 0.46;
+const NUBI: Vec3 = at([-1.55, 0, 1.6]);
+const NUBI_YAW = 0.36;
 const VENDOR: Vec3 = at(KIOSK_VENDOR);
 const VENDOR_YAW = -0.3;
 const VENDOR_SEED = 41;
@@ -99,8 +100,8 @@ export const JugoShot: React.FC = () => {
 
   // ---- The juice cup: on the counter, slid to its left end, taken, lifted to Nubi's face.
   const counterTop = KIOSK.h + 0.08;
-  const p0 = at([0.55, counterTop, -0.05]);
-  const p1 = at([0.12, counterTop, 0.3]);
+  const p0 = at([0.35, counterTop, -0.05]);
+  const p1 = at([-0.45, counterTop, 0.3]);
   const pHold = nubiLocal([1.3, 0.95, 0.45], hopY);
   const pFace = nubiLocal([0.28, 0.62, 1.12], hopY);
   const slide = ramp(g, SEIS - 3, SEIS + 8, [0, 1], EASE_IN_OUT);
@@ -111,10 +112,13 @@ export const JugoShot: React.FC = () => {
   const fill = g < SLURP ? 0.92 : Math.max(0.06, 0.92 - 0.86 * ramp(g, SLURP, SLURP + 13, [0, 1], (x) => x));
   const showCup = g >= SEIS - 3;
 
-  // ---- Camera: front-left, slow push-in.
-  const push = ramp(g, START, PIZZA, [0, 1], (x) => x);
-  const position: Vec3 = at([lerp(-0.5, -0.65, push), lerp(2.0, 1.9, push), lerp(15.2, 14.4, push)]);
-  const cam = aim(position, FOV, NUBI, 380, 1262);
+  // ---- Camera: the two-shot, pushing in on the terminal for the tap and the charge, then
+  // easing back a little for the juice.
+  const push = ramp(g, TAP - 14, TAP - 1, [0, 1], EASE_IN_OUT) * (1 - 0.45 * ramp(g, SEIS + 8, SEIS + 22, [0, 1], EASE_IN_OUT));
+  const drift = ramp(g, START, PIZZA, [0, 1], (x) => x);
+  const wide = aim(at([-0.55 - 0.1 * drift, 2.0, 15.4 - 0.5 * drift]), FOV, NUBI, 375, 1262);
+  const close = aim(at([-0.45, 1.85, 11.2]), FOV, at([KIOSK_TERMINAL[0], 1.1, KIOSK_TERMINAL[2]]), 610, 960);
+  const cam = { ...wide, position: lerp3(wide.position, close.position, push), target: lerp3(wide.target, close.target, push) };
 
   const nubiC = counterAt(cam, [NUBI[0], NUBI[1] + 1.98 + 0.1 + hopY, NUBI[2]]);
   const vendorHead: Vec3 = [VENDOR[0], VENDOR[1] + (VENDOR_SIZE / 10) * (12.2 + (vendorPose.hop ?? 0)) + 0.06, VENDOR[2]];

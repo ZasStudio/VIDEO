@@ -1250,10 +1250,11 @@ const Odometer: React.FC<{ value: number; digits: number; size: number }> = ({ v
  * screen: "● EN VIVO" blinking, "TIEMPO EXTRAÍDO HOY", a huge "45 SEGUNDOS" (blinks in),
  * "DE CADA PERSONA"; at `totalAt` (default at + 25) a gold total rolls up like an odometer to
  * "TOTAL: 11 407 AÑOS" with the sum in small print (45 s × 8 000 millones de personas ≈ 11 407
- * años). Scanlines, a rolling bright band, bloom, flicker and now and then a dropout. Powers on
- * like a CRT at `at`, collapses to a line at `out`. Suggested: at TIMECO.SCREEN.
+ * años; the roll takes `rollDur` frames, 42). Scanlines, a rolling bright band, bloom, flicker
+ * and now and then a dropout. Powers on like a CRT at `at`, collapses to a line at `out`.
+ * Suggested: at TIMECO.SCREEN (only ~32 frames to the cut: totalAt at + 10, rollDur 16).
  */
-export const ExtractionScreen: React.FC<{ frame: number; at: number; out: number; totalAt?: number }> = ({ frame, at, out, totalAt }) => {
+export const ExtractionScreen: React.FC<{ frame: number; at: number; out: number; totalAt?: number; rollDur?: number }> = ({ frame, at, out, totalAt, rollDur = 42 }) => {
   if (frame < at || frame > out + 14) return null;
   const t = frame - at;
   const tAt = totalAt ?? at + 25;
@@ -1265,8 +1266,8 @@ export const ExtractionScreen: React.FC<{ frame: number; at: number; out: number
   const flick = (0.88 + 0.12 * rand(frame * 1.71)) * (dropout ? 0.55 : 1);
   const bigOn = t < 6 ? 0 : t < 16 ? (Math.floor((t - 6) / 3) % 2 === 0 ? 1 : 0.12) : 1;
   const totalIn = frame < tAt ? 0 : (frame - tAt) < 2 ? 1 : (frame - tAt) < 4 ? 0.2 : 1;
-  const value = 11407 * ramp(frame, tAt + 3, tAt + 45, [0, 1], EASE_OUT);
-  const done = frame >= tAt + 45;
+  const value = 11407 * ramp(frame, tAt + 3, tAt + 3 + rollDur, [0, 1], EASE_OUT);
+  const done = frame >= tAt + 3 + rollDur;
   const scrY = 0.02 + 0.98 * on * (1 - off);
   const bandY = ((t * 9) % 760) - 140;
   const W = 880;
@@ -1659,7 +1660,7 @@ export const CrashGlitch: React.FC<{ frame: number; at: number; dur?: number }> 
     const by = rand(sd) * 1920;
     const bh = 10 + rand(sd + 1.1) * 150 * env;
     const kind = rand(sd + 2.3);
-    const filter = kind < 0.4 ? "invert(1) saturate(1.6)" : kind < 0.75 ? "hue-rotate(300deg) saturate(3) brightness(1.35)" : "brightness(2.2) contrast(2)";
+    const filter = kind < 0.4 ? "invert(1) hue-rotate(180deg) saturate(1.8)" : kind < 0.75 ? "hue-rotate(300deg) saturate(3) brightness(1.35)" : "brightness(2.2) contrast(2)";
     const dx = (rand(sd + 3.9) - 0.5) * 120 * env;
     bands.push(
       <div key={`b${i}`} style={{ position: "absolute", left: 0, top: by, width: 1080, height: bh, backdropFilter: filter, WebkitBackdropFilter: filter }} />,

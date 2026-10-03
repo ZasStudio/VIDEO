@@ -708,11 +708,11 @@ const VendorGear: React.FC<{ chef?: boolean }> = ({ chef = false }) => {
         <group>
           <mesh geometry={g.hatBand} material={white} position={[0, 10.75, -0.2]} />
           {[
-            [0, 13.0, -0.2, 2.6],
-            [-1.9, 12.3, -0.2, 2.0],
-            [1.9, 12.3, -0.2, 2.0],
-            [0, 12.3, 1.7, 2.0],
-            [0, 12.3, -2.0, 2.0],
+            [0, 12.5, -0.2, 2.4],
+            [-1.9, 12.0, -0.2, 1.9],
+            [1.9, 12.0, -0.2, 1.9],
+            [0, 12.0, 1.6, 1.9],
+            [0, 12.0, -2.0, 1.9],
           ].map(([x, y, z, r], i) => (
             <mesh key={i} geometry={g.puff} material={white} position={[x, y, z]} scale={r} />
           ))}
@@ -756,10 +756,9 @@ export const KIOSK = { w: 2.7, d: 0.95, h: 1.0, platform: 0.32 };
 /** Where the vendor stands (kiosk space, on his platform). */
 export const KIOSK_VENDOR: V3 = [0.35, KIOSK.platform, -0.75];
 /** The payment terminal stand (kiosk space): its base, and its yaw (faces the customer). */
-export const KIOSK_TERMINAL: V3 = [0.02, 0, 0.92];
-export const KIOSK_TERMINAL_YAW = -0.35;
-/** Top of the terminal head (kiosk space), where a fin taps. */
-export const TERMINAL_TOP_Y = 1.18;
+export const KIOSK_TERMINAL: V3 = [-0.12, 0, 1.0];
+export const KIOSK_TERMINAL_YAW = -0.12;
+export const KIOSK_TERMINAL_SIZE = 1.7;
 
 const fruitGeometry = once(() => {
   const geos: THREE.BufferGeometry[] = [];
@@ -886,7 +885,7 @@ export const JuiceKiosk: React.FC<{ t?: number; screen?: ScreenState; beep?: num
         </mesh>
       </group>
       <group position={KIOSK_TERMINAL} rotation={[0, KIOSK_TERMINAL_YAW, 0]}>
-        <PayTerminal screen={screen} beep={beep} />
+        <PayTerminal screen={screen} beep={beep} size={KIOSK_TERMINAL_SIZE} />
       </group>
     </group>
   );
@@ -894,9 +893,9 @@ export const JuiceKiosk: React.FC<{ t?: number; screen?: ScreenState; beep?: num
 
 /**
  * The contactless payment terminal on a stand (origin: the stand's base; the screen faces +z,
- * tilted up). Its top is at TERMINAL_TOP_Y. `beep` 0..1 flashes a green glow.
+ * tilted up); `size` scales its head (big toy terminal). `beep` 0..1 flashes a green glow.
  */
-export const PayTerminal: React.FC<{ screen?: ScreenState; beep?: number }> = ({ screen = "idle", beep = 0 }) => {
+export const PayTerminal: React.FC<{ screen?: ScreenState; beep?: number; size?: number }> = ({ screen = "idle", beep = 0, size = 1 }) => {
   const ready = useFontsReady();
   const g = useMemo(
     () => ({
@@ -912,7 +911,7 @@ export const PayTerminal: React.FC<{ screen?: ScreenState; beep?: number }> = ({
       <BlobShadow radius={0.3} opacity={0.3} />
       <mesh geometry={g.base} material={toy("#2B3A55", { rough: 0.4 })} position={[0, 0.025, 0]} />
       <mesh geometry={g.pole} material={toy("#C9D2DC", { rough: 0.3, metal: 0.5 })} position={[0, 0.5, 0]} />
-      <group position={[0, 1.0, 0]} rotation={[-0.55, 0, 0]}>
+      <group position={[0, 1.0, 0]} rotation={[-0.55, 0, 0]} scale={size}>
         <mesh geometry={g.head} material={toy("#2B2F38", { rough: 0.35, glow: 0.1 })} position={[0, 0.12, 0]} />
         {ready ? (
           <mesh position={[0, 0.22, 0.047]}>
@@ -972,11 +971,13 @@ export const JuiceCup: React.FC<{ fill?: number; t?: number }> = ({ fill = 0.9, 
 // The pizzeria
 
 /** Pizzeria counter size and the chef's spot (counter space, on a hidden platform). */
-export const PIZZERIA = { w: 3.0, d: 1.0, h: 1.0, platform: 0.3 };
-export const PIZZERIA_CHEF: V3 = [-0.05, PIZZERIA.platform, -0.85];
+export const PIZZERIA = { w: 3.0, d: 1.0, h: 0.95, platform: 0.22 };
+export const PIZZERIA_CHEF: V3 = [0.95, PIZZERIA.platform, -0.72];
 /** Where the big pizza sits on the counter (counter space, its centre on the board). */
-export const PIZZERIA_PIZZA: V3 = [0.62, PIZZERIA.h + 0.07, 0.08];
+export const PIZZERIA_PIZZA: V3 = [0.25, PIZZERIA.h + 0.16, 0.12];
 export const PIZZA_R = 0.62;
+/** The dome oven (counter space, base centre), raised so its glowing mouth shows over the counter. */
+export const PIZZERIA_OVEN: V3 = [-0.2, 0, -1.75];
 
 /**
  * The pizzeria counter (origin: floor centre, open to +z): a red counter with a "PIZZERÍA"
@@ -990,8 +991,6 @@ export const Pizzeria: React.FC<{ t?: number; fire?: number }> = ({ t = 0, fire 
     () => ({
       body: rbox(PIZZERIA.w, PIZZERIA.h, PIZZERIA.d, 0.08),
       top: rbox(PIZZERIA.w + 0.16, 0.08, PIZZERIA.d + 0.16, 0.03),
-      board: new THREE.CylinderGeometry(PIZZA_R + 0.12, PIZZA_R + 0.12, 0.05, 40),
-      handle: rbox(0.5, 0.05, 0.16, 0.02),
       base: rbox(1.9, 0.9, 1.6, 0.1),
       dome: new THREE.SphereGeometry(1.0, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2),
       mouth: new THREE.CircleGeometry(0.42, 28, 0, Math.PI),
@@ -1002,6 +1001,7 @@ export const Pizzeria: React.FC<{ t?: number; fire?: number }> = ({ t = 0, fire 
       shelf: rbox(1.4, 0.06, 0.3, 0.02),
       jar: new THREE.CylinderGeometry(0.09, 0.09, 0.24, 12),
       roof: rbox(PIZZERIA.w + 1.9, 0.06, 2.4, 0.03),
+      stand: new THREE.CylinderGeometry(0.05, 0.12, 0.24, 12),
     }),
     [],
   );
@@ -1017,11 +1017,11 @@ export const Pizzeria: React.FC<{ t?: number; fire?: number }> = ({ t = 0, fire 
         <mesh key={i} geometry={g.jar} material={toy(c, { rough: 0.4, glow: 0.2 })} position={[-1.85 + i * 0.27, 2.2, -2.3]} />
       ))}
       {/* The dome oven behind, right. */}
-      <group position={[0.95, 0, -1.6]}>
-        <mesh geometry={g.base} material={toy("#9A5B2C", { rough: 0.7 })} position={[0, 0.45, 0]} />
-        <mesh geometry={g.dome} material={brick} position={[0, 0.9, 0]} scale={[0.95, 1.0, 0.8]} />
-        <mesh geometry={g.chimney} material={toy("#7A4B2A", { rough: 0.6 })} position={[0.3, 2.1, -0.25]} />
-        <group position={[0, 0.95, 0.8]}>
+      <group position={PIZZERIA_OVEN}>
+        <mesh geometry={g.base} material={toy("#9A5B2C", { rough: 0.7 })} position={[0, 0.65, 0]} scale={[1, 1.45, 1]} />
+        <mesh geometry={g.dome} material={brick} position={[0, 1.3, 0]} scale={[0.95, 1.0, 0.8]} />
+        <mesh geometry={g.chimney} material={toy("#7A4B2A", { rough: 0.6 })} position={[0.3, 2.5, -0.25]} />
+        <group position={[0, 1.35, 0.8]}>
           <mesh geometry={g.arch} material={toy("#E9B872", { rough: 0.6 })} />
           <mesh geometry={g.mouth} material={toy("#3A1408", { rough: 0.9, glow: 0 })} position={[0, 0, -0.01]} />
           <mesh geometry={g.mouthIn} position={[0, 0, 0.005]}>
@@ -1039,8 +1039,8 @@ export const Pizzeria: React.FC<{ t?: number; fire?: number }> = ({ t = 0, fire 
           <primitive object={texMat(bandTexture("PIZZERÍA", "#FFFFFF", "#E3262B", "#1FA35B"), 0.5, 0.25)} attach="material" />
         </mesh>
       ) : null}
-      <mesh geometry={g.board} material={toy("#C98B4E", { rough: 0.7 })} position={[PIZZERIA_PIZZA[0], PIZZERIA.h + 0.105, PIZZERIA_PIZZA[2]]} />
-      <mesh geometry={g.handle} material={toy("#C98B4E", { rough: 0.7 })} position={[PIZZERIA_PIZZA[0] + PIZZA_R + 0.35, PIZZERIA.h + 0.105, PIZZERIA_PIZZA[2]]} />
+      {/* The display stand the big pizza leans on. */}
+      <mesh geometry={g.stand} material={toy("#C9D2DC", { rough: 0.3, metal: 0.5 })} position={[PIZZERIA_PIZZA[0], PIZZERIA.h + 0.12, PIZZERIA_PIZZA[2] - 0.1]} />
       {/* Awning: green, white and red. */}
       <group position={[0, 3.25, -1.1]} rotation={[0.16, 0, 0]}>
         <mesh geometry={g.roof}>
@@ -1094,7 +1094,7 @@ const wedgeGeos = (R: number, droop: number) => {
 };
 
 /**
- * The big pizza on its board (origin: its centre on the board): sauce, cheese, pepperoni and
+ * The big pizza on its wooden board (origin: the top of the board, its centre): sauce, cheese, pepperoni and
  * basil, with one wedge missing (on the +z side: the slice the chef holds) unless `whole`.
  */
 export const BigPizza: React.FC<{ whole?: boolean }> = ({ whole = false }) => {
@@ -1108,10 +1108,12 @@ export const BigPizza: React.FC<{ whole?: boolean }> = ({ whole = false }) => {
       base: new THREE.CylinderGeometry(R, R, 0.07, 48, 1, false, th0, len),
       top: new THREE.CircleGeometry(R * 0.93, 48, th0 - Math.PI / 2, len).rotateX(-Math.PI / 2),
       crust: new THREE.TorusGeometry(R * 0.96, 0.055, 10, 48, len).rotateZ(th0 - Math.PI / 2).rotateX(-Math.PI / 2),
+      board: new THREE.CylinderGeometry(R + 0.1, R + 0.1, 0.05, 40),
     };
   }, [R, whole]);
   return (
     <group>
+      <mesh geometry={g.board} material={toy("#C98B4E", { rough: 0.7 })} position={[0, -0.075, 0]} />
       <mesh geometry={g.base} material={toy("#EFB45E", { rough: 0.7, glow: 0.16, side: THREE.DoubleSide })} position={[0, -0.03, 0]} />
       <mesh geometry={g.top} position={[0, 0.008, 0]}>
         <primitive object={texMat(pizzaTopTexture(), 0.55, 0.22)} attach="material" />
@@ -1121,41 +1123,61 @@ export const BigPizza: React.FC<{ whole?: boolean }> = ({ whole = false }) => {
   );
 };
 
+/** The slice frame: crust middle at the origin, tip along +z, then tilted about x by `tilt`. */
+const sliceMatrix = (R: number, tilt: number) =>
+  new THREE.Matrix4().makeRotationX(tilt).multiply(new THREE.Matrix4().makeTranslation(0, 0, R * 0.96)).multiply(new THREE.Matrix4().makeRotationY(Math.PI));
+
 /**
- * The huge gooey slice (origin: the middle of its crust; the tip points +z and droops),
- * `R` long, with cheese drips that stretch and wobble with `t`. `goo` 0..1 scales the drips.
+ * A point on the top of the slice (its centre line), `u` 0 at the crust … 1 at the tip, in the
+ * PizzaSlice's own space (for sticking a price flag in it).
  */
-export const PizzaSlice: React.FC<{ R?: number; droop?: number; t?: number; goo?: number }> = ({ R = 0.95, droop = 0.16, t = 0, goo = 1 }) => {
+export const slicePoint = (u: number, R = 0.95, droop = 0.16, tilt = 0): V3 => {
+  const r = R * 0.96 * (1 - u);
+  const k = 1 - Math.min(1, r / R);
+  const v = new THREE.Vector3(0, 0.02 - droop * k * k, r).applyMatrix4(sliceMatrix(R, tilt));
+  return [v.x, v.y, v.z];
+};
+
+/**
+ * The huge gooey slice (origin: the middle of its crust; the tip points +z and droops), `R`
+ * long. `tilt` turns it about x (≈ 1: crust up, tip down, the top facing +z: presented to the
+ * camera). Cheese drips hang straight down from its edges and stretch and wobble with `t`;
+ * `goo` 0..1 scales them.
+ */
+export const PizzaSlice: React.FC<{ R?: number; droop?: number; t?: number; goo?: number; tilt?: number }> = ({ R = 0.95, droop = 0.16, t = 0, goo = 1, tilt = 0 }) => {
   const g = useMemo(() => wedgeGeos(R, droop), [R, droop]);
-  const drip = useMemo(() => new THREE.CapsuleGeometry(0.03, 1, 4, 8), []);
-  // Drips hang from the two cut edges and the tip (slice space before the flip).
+  const drip = useMemo(() => new THREE.CapsuleGeometry(0.035, 1, 4, 8), []);
+  // Drip roots on the two cut edges and at the tip (wedge space), mapped to the slice's space.
   const drips = useMemo(() => {
     const a0 = Math.PI / 2 - SLICE_ANGLE / 2;
-    const out: { x: number; z: number; y: number; len: number; ph: number }[] = [];
-    [0.25, 0.55, 0.8].forEach((u, i) => {
+    const m = sliceMatrix(R, tilt);
+    const out: { p: THREE.Vector3; len: number; ph: number }[] = [];
+    [0.2, 0.45, 0.7].forEach((u, i) => {
       for (const side of [0, 1]) {
         const a = side ? a0 + SLICE_ANGLE : a0;
         const r = u * R * 0.95;
-        const x = Math.cos(a) * r;
-        const z = Math.sin(a) * r;
         const k = 1 - Math.min(1, r / R);
-        out.push({ x, z, y: -droop * k * k - 0.04, len: 0.1 + 0.12 * hash(i * 2 + side), ph: hash(i * 5 + side * 3) * 6 });
+        out.push({ p: new THREE.Vector3(Math.cos(a) * r, -droop * k * k - 0.03, Math.sin(a) * r).applyMatrix4(m), len: 0.12 + 0.16 * hash(i * 2 + side), ph: hash(i * 5 + side * 3) * 6 });
       }
     });
-    out.push({ x: 0, z: 0.03, y: -droop - 0.05, len: 0.2, ph: 1.3 });
+    out.push({ p: new THREE.Vector3(0, -droop - 0.04, 0.05).applyMatrix4(m), len: 0.26, ph: 1.3 });
     return out;
-  }, [R, droop]);
+  }, [R, droop, tilt]);
   return (
-    // Flip so the crust is at the origin side and the tip points to +z.
-    <group rotation={[0, Math.PI, 0]} position={[0, 0, R * 0.96]}>
-      <mesh geometry={g.dough} material={toy("#EFB45E", { rough: 0.7, glow: 0.16 })} position={[0, 0.0, 0]} />
-      <mesh geometry={g.top} position={[0, 0.0, 0]}>
-        <primitive object={texMat(pizzaTopTexture(), 0.55, 0.22)} attach="material" />
-      </mesh>
-      <mesh geometry={g.crust} material={toy("#DE9A4C", { rough: 0.7, glow: 0.16 })} />
+    <group>
+      <group rotation={[tilt, 0, 0]}>
+        {/* Flip so the crust is at the origin side and the tip points to +z. */}
+        <group rotation={[0, Math.PI, 0]} position={[0, 0, R * 0.96]}>
+          <mesh geometry={g.dough} material={toy("#EFB45E", { rough: 0.7, glow: 0.16 })} />
+          <mesh geometry={g.top}>
+            <primitive object={texMat(pizzaTopTexture(), 0.55, 0.26)} attach="material" />
+          </mesh>
+          <mesh geometry={g.crust} material={toy("#DE9A4C", { rough: 0.7, glow: 0.16 })} />
+        </group>
+      </group>
       {drips.map((d, i) => {
-        const len = Math.max(0.02, (d.len + 0.05 * Math.sin(t * 3.1 + d.ph)) * goo);
-        return <mesh key={i} geometry={drip} material={toy("#FFD45A", { rough: 0.3, glow: 0.3 })} position={[d.x, d.y - len / 2, d.z]} scale={[1, len, 1]} />;
+        const len = Math.max(0.02, (d.len + 0.06 * Math.sin(t * 3.1 + d.ph)) * goo);
+        return <mesh key={i} geometry={drip} material={toy("#FFD45A", { rough: 0.3, glow: 0.3 })} position={[d.p.x, d.p.y - len / 2, d.p.z]} scale={[1, len, 1]} />;
       })}
     </group>
   );
