@@ -1,0 +1,23 @@
+{
+  "_title": "¿Qué pasaría si el dinero fuera tiempo de vida?",
+  "_voices": "Magnific TTS, ElevenLabs v3. nubi = Nerea Escudero (Nubi's usual voice: stability 0.45, similarity 0.75, speed 0.95); companero = Gonzalo Bermúdez (a tired office worker, dry); senora = Carmen Rosales (an old cleaning lady); timeco = Norah Salgado (the company's polite, smiling system voice, given a speaker filter in post). L16 plays over the black end card.",
+  "_captions": "Same syntax as src/narration.json. Nubi: white with highlights; the coworker cyan (^c), the old lady orange (^o), TIMECO red (^r).",
+  "lines": [
+    {"id": "L01", "voice": "nubi", "scene": "hook", "tts": "[mysterious] En mi mundo no existe el dinero… [serious] todo se paga con el tiempo que te queda de vida.", "captions": "EN MI MUNDO / NO EXISTE EL DINERO…^y / TODO SE PAGA / CON EL TIEMPO^c / QUE TE QUEDA / DE VIDA.^c"},
+    {"id": "L02", "voice": "nubi", "scene": "compras", "tts": "Un jugo cuesta seis horas. [pause 0.3s] Una pizza… [shocked] ¡tres días!", "captions": "UN JUGO CUESTA / 6^r HORAS.^r / UNA PIZZA… / ¡3^r DÍAS!^r"},
+    {"id": "L03", "voice": "nubi", "scene": "escala", "tts": "Un celular cuesta un mes. Un auto, cinco años. [pause 0.3s] Y una casa…", "captions": "UN CELULAR CUESTA / 1^y MES.^y / UN AUTO, / 5^o AÑOS.^o / Y UNA CASA…"},
+    {"id": "L04", "voice": "nubi", "scene": "escala", "tts": "[sad] Una vida entera.", "captions": "UNA VIDA^r ENTERA.^r"},
+    {"id": "L05", "voice": "nubi", "scene": "pregunta", "tts": "[worried] Entonces… ¿cómo consigue tiempo la gente?", "captions": "ENTONCES… / ¿CÓMO CONSIGUE / TIEMPO^c LA GENTE?"},
+    {"id": "L06", "voice": "nubi", "scene": "oficina", "tts": "Trabajando. [pause 0.2s] Ocho horas de trabajo te dan un día extra de vida.", "captions": "TRABAJANDO.^y / 8^o HORAS^o DE TRABAJO / TE DAN 1^g DÍA^g / EXTRA^g DE VIDA."},
+    {"id": "L07", "voice": "companero", "scene": "oficina", "tts": "[tired] [sighs] Bueno… si la empresa considera que hoy fuiste productivo.", "captions": "BUENO…^c / SI^c LA^c EMPRESA^c / CONSIDERA^c QUE^c HOY^c / FUISTE^c PRODUCTIVO.^c"},
+    {"id": "L08", "voice": "nubi", "scene": "senora", "tts": "[shocked] ¡Señora, le quedan dieciocho segundos!", "captions": "¡SEÑORA, / LE QUEDAN / 18^r SEGUNDOS!^r"},
+    {"id": "L09", "voice": "senora", "scene": "senora", "tts": "[tired] Lo sé… [sad] pero debo tres meses de alquiler.", "captions": "LO^o SÉ…^o / PERO^o DEBO^o 3^o MESES^o / DE^o ALQUILER.^o"},
+    {"id": "L10", "voice": "nubi", "scene": "senora", "tts": "[tender] Tome… un año. [happy] ¡Invito yo!", "captions": "TOME…^g / 1^g AÑO.^g / ¡INVITO YO!^y"},
+    {"id": "L11", "voice": "nubi", "scene": "cargo", "tts": "[panicked] ¡Un momento! ¡Yo no he comprado nada!", "captions": "¡UN MOMENTO! / ¡YO NO HE / COMPRADO NADA!^r"},
+    {"id": "L12", "voice": "timeco", "scene": "cargo", "tts": "[cheerful] Cargo automático: respirar en zona premium. [pause 0.3s] ¡Gracias por respirar con Timeco!", "captions": "CARGO^r AUTOMÁTICO:^r / RESPIRAR^r EN^r ZONA^r PREMIUM.^r / ¡GRACIAS^r POR^r RESPIRAR^r / CON^r TIMECO!^r"},
+    {"id": "L13", "voice": "nubi", "scene": "timeco", "tts": "[angry] ¡Timeco nos cobra por comer, dormir, respirar… [shouting] y también por trabajar!", "captions": "¡TIMECO^r NOS COBRA / POR COMER,^y DORMIR,^y / RESPIRAR…^y / ¡Y TAMBIÉN / POR TRABAJAR!^r"},
+    {"id": "L14", "voice": "timeco", "scene": "final", "tts": "[cheerful] Queja detectada. Le dejamos diez segundos… por cortesía.", "captions": "QUEJA^r DETECTADA.^r / LE^r DEJAMOS^r / 10^r SEGUNDOS…^r / POR^r CORTESÍA.^r"},
+    {"id": "L15", "voice": "nubi", "scene": "final", "tts": "[serious] Si tuvieras solo un año de vida… ¿lo gastarías en ser feliz… o en trabajar para conseguir más?", "captions": "SI TUVIERAS SOLO / 1^y AÑO^y DE VIDA… / ¿LO GASTARÍAS / EN SER FELIZ…^g / ¿O EN TRABAJAR^o / PARA CONSEGUIR MÁS?^o"},
+    {"id": "L16", "voice": "timeco", "scene": "final", "tts": "[whispers] Pase, Nubi… lo estábamos esperando.", "captions": "PASE,^r NUBI…^r / LO^r ESTÁBAMOS^r / ESPERANDO.^r"}
+  ]
+}

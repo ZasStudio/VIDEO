@@ -14,7 +14,8 @@ Everything goes to the timing JSON.
     python3 scripts/voice_timing.py <raw_dir> --standin  # first synthesise stand-ins with eSpeak
 
 Options (paths relative to the project): --narration src/narration.json,
---out src/voice-timing.json, --voice-dir public/voice, --tempo 1 (speed factor, pitch kept).
+--out src/voice-timing.json, --voice-dir public/voice, --tempo 1 (speed factor, pitch kept),
+--max-pause 1.4 (longest pause kept inside a line), --max-tail S (cut a trailing breath to S seconds).
 Nubi's short uses --narration src/nubi/narration.json --out src/nubi/voice-timing.json
 --voice-dir public/nubi/voice; the Inca-phone short --narration src/inca/narration.json
 --out src/inca/voice-timing.json --voice-dir public/inca/voice --tempo 1.06
@@ -442,6 +443,18 @@ def peak_limit(x, sr, ceil_db, look_s=0.002, release_s=0.06, peak=None):
     return x * (out if x.ndim == 1 else out[:, None])
 
 
+def cap_tail(x, sr, max_s=0.2, fade_s=0.03):
+    """Cuts a trailing breath or room noise: keeps at most max_s after the last stretch of speech."""
+    segs = speech_segments(x, sr, rel_db=35, min_gap_s=0.2)
+    if not segs:
+        return x
+    end = int(min(len(x), (segs[-1][1] + max_s) * sr))
+    y = x[:end].copy()
+    fade = int(fade_s * sr)
+    y[-fade:] *= np.linspace(1, 0, fade)
+    return y
+
+
 def level(x, sr):
     x = x * 10 ** ((SPEECH_DB - active_level_db(x, sr)) / 20)
     return peak_limit(x, sr, CEIL_DB)
@@ -483,7 +496,10 @@ def main():
             raise SystemExit(f"{lid}: captions cover {caption_word_count(line['captions'])} words, text has {len(words)}")
         x, sr = load_clip(raw_dir, lid, tmp_dir, float(option("--tempo", "1")))
         a, b = trim_bounds(x, sr)
-        x = level(cap_pauses(x[a:b].copy(), sr, max_s=float(option("--max-pause", "1.4"))), sr)
+        x = cap_pauses(x[a:b].copy(), sr, max_s=float(option("--max-pause", "1.4")))
+        if "--max-tail" in sys.argv:
+            x = cap_tail(x, sr, float(option("--max-tail", "0.2")))
+        x = level(x, sr)
         fade = int(0.01 * sr)
         x[:fade] *= np.linspace(0, 1, fade)
         x[-fade:] *= np.linspace(1, 0, fade)

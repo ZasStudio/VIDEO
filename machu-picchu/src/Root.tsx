@@ -10,6 +10,8 @@ import { ThanosShort, ThanosSoundtrack } from "./thanos/ThanosShort";
 import { THANOS, THANOS_HEIGHT, THANOS_WIDTH } from "./thanos/timeline";
 import { AguaShort, AguaSoundtrack } from "./agua/AguaShort";
 import { AGUA, AGUA_HEIGHT, AGUA_WIDTH } from "./agua/timeline";
+import { TiempoShort, TiempoSoundtrack } from "./tiempo/TiempoShort";
+import { TIEMPO, TIEMPO_HEIGHT, TIEMPO_WIDTH } from "./tiempo/timeline";
 import { OXI, OXI_HEIGHT, OXI_WIDTH } from "./oxigeno/timeline";
 import { INCA, INCA_HEIGHT, INCA_WIDTH } from "./inca/timeline";
 import { NubiShort, NubiSoundtrack } from "./nubi/NubiShort";
@@ -36,6 +38,7 @@ import { AGUA_OUTDOOR_SHEET_FRAMES, AguaOutdoorSheet } from "./dev/AguaOutdoorSh
 import { AGUA_SHOP_SHEET_FRAMES, AguaShopSheet } from "./dev/AguaShopSheet";
 import { AGUA_STREET_SHEET_FRAMES, AguaStreetSheet } from "./dev/AguaStreetSheet";
 import { AGUA_UI_SHEET_DURATION, AguaUISheet } from "./dev/AguaUISheet";
+import { TIEMPO_UI_SHEET_DURATION, TiempoUISheet } from "./dev/TiempoUISheet";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -165,6 +168,24 @@ export const RemotionRoot: React.FC = () => {
         fps={FPS}
         width={AGUA_WIDTH}
         height={AGUA_HEIGHT}
+      />
+      {/* Nubi's vertical short: what if money were time of life? (70 s). */}
+      <Composition
+        id="TiempoShort"
+        component={TiempoShort}
+        durationInFrames={TIEMPO.DURATION}
+        fps={FPS}
+        width={TIEMPO_WIDTH}
+        height={TIEMPO_HEIGHT}
+        defaultProps={{ withAudio: true }}
+      />
+      <Composition
+        id="TiempoShortAudio"
+        component={TiempoSoundtrack}
+        durationInFrames={TIEMPO.DURATION}
+        fps={FPS}
+        width={TIEMPO_WIDTH}
+        height={TIEMPO_HEIGHT}
       />
       <Folder name="Dev">
         <Composition
@@ -315,6 +336,14 @@ export const RemotionRoot: React.FC = () => {
           id="AguaUISheet"
           component={AguaUISheet}
           durationInFrames={AGUA_UI_SHEET_DURATION}
+          fps={30}
+          width={1080}
+          height={1920}
+        />
+        <Composition
+          id="TiempoUISheet"
+          component={TiempoUISheet}
+          durationInFrames={TIEMPO_UI_SHEET_DURATION}
           fps={30}
           width={1080}
           height={1920}
