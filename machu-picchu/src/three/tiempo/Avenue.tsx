@@ -223,11 +223,13 @@ const TIMECO_SHOP = shop("timeco");
 /** The giant phone on its pedestal (base centre, on the floor of the phone shop's window). */
 export const PHONE_SPOT: V3 = [(PHONE_SHOP.x0 + PHONE_SHOP.x1) / 2, 0, -1.25];
 /** Centre of the turntable in the car showroom. */
-export const CAR_SPOT: V3 = [CAR_SHOP.x0 + 4.0, 0, -1.6];
+export const CAR_SPOT: V3 = [CAR_SHOP.x0 + 4.25, 0, -1.8];
 /** Where the rich man stands in the showroom: beside the car (left of it), close to the glass. */
-export const RICH_SPOT: V3 = [CAR_SHOP.x0 + 2.0, 0, -0.85];
-/** The showroom's price banner (centre), hanging over the car's left half. */
-export const PRICE_SPOT: V3 = [CAR_SHOP.x0 + 3.55, 2.62, -0.3];
+export const RICH_SPOT: V3 = [CAR_SHOP.x0 + 2.15, 0, -0.75];
+/** The showroom's price banner (centre), hanging over the car. */
+export const PRICE_SPOT: V3 = [CAR_SHOP.x0 + 3.8, 2.62, -0.3];
+/** The car and its turntable are built at this scale (2.65 long). */
+const CAR_SCALE = 1.1;
 /** TIMECO's billboard (centre of its face) on the TIMECO building. */
 export const BILLBOARD = { center: [(TIMECO_SHOP.x0 + TIMECO_SHOP.x1) / 2, 4.5, 0.32] as V3, w: 5.2, h: 5.2 * (625 / 1536) };
 /** Middle of the TIMECO building's front (for the question shot). */
@@ -792,7 +794,7 @@ const Showroom: React.FC<{ t: number; spin: number; sold: number }> = ({ spin, s
         </group>
       ))}
       <group position={CAR_SPOT}>
-        <group position={[0, 0.12, 0]}>
+        <group position={[0, 0.12, 0]} scale={CAR_SCALE}>
           <CarTurntable spin={spin} />
         </group>
         <Glow color="#FFE9A8" size={2.6} opacity={0.18} position={[0, 0.9, -1.2]} />
@@ -1206,8 +1208,8 @@ export const ESTATE = {
   /** Nubi's spot just outside the gate. */
   nubi: [0.2, 0, 1.8] as V3,
   /** Centre of the "SE VENDE" panel (planted outside the gate, right of it). */
-  sign: [2.75, 3.0, 1.2] as V3,
-  signW: 3.0,
+  sign: [3.15, 3.1, 1.2] as V3,
+  signW: 2.6,
   hill: [0, 0, -34] as V3,
   hillTop: 3.6,
 };

@@ -918,15 +918,25 @@ const ROWS = [0, -3.6, -7.2, -10.8];
 
 /** The office: side walls at x0/x1, back wall at zBack, ceiling at `height`, desk tops at deskTop. */
 export const OFFICE = { x0: -10, x1: 10, zBack: -13.6, height: 9, deskTop: DESK.top };
-export type Desk = { x: number; z: number; side: 1 | -1 };
-/** Every desk (centre x/z) and the corner its monitor stands on (−1 left, +1 right). */
-export const OFFICE_DESKS: Desk[] = ROWS.flatMap((z) => COLS.map((x, i) => ({ x, z, side: (i % 2 === 0 ? -1 : 1) as 1 | -1 })));
-/** Where Nubi (size 2) and the coworker stand at their desks in the front row, facing +z. */
-export const OFFICE_NUBI: V3 = [-1.5, 0, STAND];
-export const OFFICE_COWORKER: V3 = [1.5, 0, STAND];
+export type Desk = { x: number; z: number; side: 1 | -1; hero?: boolean };
+/** Nubi and the coworker share the double desk at the front-row centre: half-width of its stations. */
+const PAIR = 1.15;
+/**
+ * Every desk (centre x/z) and the corner its monitor stands on (−1 left, +1 right). The two front
+ * desks in the middle are the double desk of Nubi and the coworker (`hero`).
+ */
+export const OFFICE_DESKS: Desk[] = ROWS.flatMap((z) =>
+  COLS.map((x, i) => {
+    const side = (i % 2 === 0 ? -1 : 1) as 1 | -1;
+    return z === 0 && Math.abs(x) < 2 ? { x: Math.sign(x) * PAIR, z, side, hero: true } : { x, z, side };
+  }),
+);
+/** Where Nubi (size 2) and the coworker stand at their double desk in the front row, facing +z. */
+export const OFFICE_NUBI: V3 = [-PAIR, 0, STAND];
+export const OFFICE_COWORKER: V3 = [PAIR, 0, STAND];
 /** Nubi's and the coworker's desk centres. */
-export const OFFICE_NUBI_DESK: V3 = [-1.5, 0, 0];
-export const OFFICE_COWORKER_DESK: V3 = [1.5, 0, 0];
+export const OFFICE_NUBI_DESK: V3 = [-PAIR, 0, 0];
+export const OFFICE_COWORKER_DESK: V3 = [PAIR, 0, 0];
 /** The giant wall clock (centre of its face), the rule lightbox and the PRODUCTIVIDAD screen. */
 export const OFFICE_CLOCK: V3 = [0, 5.35, OFFICE.zBack + 0.22];
 export const CLOCK_R = 1.75;
@@ -935,12 +945,10 @@ export const OFFICE_PROD: V3 = [3.4, 5.0, OFFICE.zBack + 0.12];
 const POSTER_AT: V3 = [-3.4, 5.0, OFFICE.zBack + 0.04];
 const LOGO_AT: V3 = [0, 7.95, OFFICE.zBack + 0.04];
 const WIN = { x: 4.8, y0: 0.75, y1: 7.4 };
-/** The big red ENVIAR button on the coworker's desk (base centre on the desk top). */
-export const OFFICE_ENVIAR: V3 = [OFFICE_COWORKER_DESK[0] - 0.62, DESK.top, 0.18];
 
 const monitorMatrix = (d: Desk) =>
   new THREE.Matrix4().compose(
-    new THREE.Vector3(d.x + d.side * 0.98, DESK.top, d.z + 0.2),
+    new THREE.Vector3(d.x + d.side * (d.hero ? 0.82 : 0.98), DESK.top, d.z + 0.2),
     new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -d.side * 2.29),
     new THREE.Vector3(1, 1, 1),
   );
@@ -952,12 +960,15 @@ const deskGeos = once(() => {
   const logos: THREE.BufferGeometry[] = [];
   for (const d of OFFICE_DESKS) {
     const T = new THREE.Matrix4().makeTranslation(d.x, 0, d.z);
+    // The double desk: each half is 2·PAIR wide and they meet in the middle (no inner side panel).
+    const w = d.hero ? 2 * PAIR + 0.02 : DESK.w;
+    const cx = d.hero ? -Math.sign(d.x) * 0.01 : 0;
     const local = [
-      place(rbox(DESK.w, DESK.t, DESK.d, 0.03), "#EEF2F8", [0, DESK.top - DESK.t / 2, 0]),
-      place(rbox(DESK.w - 0.04, 0.045, 0.05, 0.015), TIMECO_RED, [0, DESK.top - 0.05, DESK.d / 2]),
-      place(rbox(DESK.w - 0.3, DESK.top - 0.16, 0.05, 0.02), "#7D8BA6", [0, (DESK.top - 0.16) / 2 + 0.05, DESK.d / 2 - 0.12]),
-      place(rbox(0.07, DESK.top - DESK.t, DESK.d - 0.08, 0.02), "#C6CFDC", [-(DESK.w / 2 - 0.09), (DESK.top - DESK.t) / 2, 0]),
-      place(rbox(0.07, DESK.top - DESK.t, DESK.d - 0.08, 0.02), "#C6CFDC", [DESK.w / 2 - 0.09, (DESK.top - DESK.t) / 2, 0]),
+      place(rbox(w, DESK.t, DESK.d, 0.03), "#EEF2F8", [cx, DESK.top - DESK.t / 2, 0]),
+      place(rbox(w - 0.04, 0.045, 0.05, 0.015), TIMECO_RED, [cx, DESK.top - 0.05, DESK.d / 2]),
+      place(rbox(w - 0.3, DESK.top - 0.16, 0.05, 0.02), "#7D8BA6", [cx, (DESK.top - 0.16) / 2 + 0.05, DESK.d / 2 - 0.12]),
+      place(rbox(0.07, DESK.top - DESK.t, DESK.d - 0.08, 0.02), "#C6CFDC", [d.side * (w / 2 - 0.09), (DESK.top - DESK.t) / 2, 0]),
+      place(rbox(0.07, DESK.top - DESK.t, DESK.d - 0.08, 0.02), "#C6CFDC", [d.hero ? d.side * (w / 2 - 0.09) : -d.side * (w / 2 - 0.09), (DESK.top - DESK.t) / 2, 0]),
       place(rbox(1.0, 0.045, 0.3, 0.02), "#3A4152", [0, DESK.top + 0.022, -0.1]),
       place(rbox(0.9, 0.02, 0.22, 0.008), "#66708A", [0, DESK.top + 0.05, -0.1]),
       place(rbox(0.44, 0.07, 0.32, 0.01), "#FFFFFF", [d.side * 0.25, DESK.top + 0.035, 0.28], [0, 0.18 * d.side, 0]),
@@ -1399,7 +1410,7 @@ const TIES = [TIMECO_RED, "#2F4A8A", TIMECO_GOLD, "#2B2F38", "#1FA67A", "#8E3BD1
 export const OFFICE_WORKERS: OfficeWorker[] = (() => {
   const out: OfficeWorker[] = [];
   OFFICE_DESKS.forEach((d, k) => {
-    if (d.z === 0 && Math.abs(d.x) < 2) return;
+    if (d.hero) return;
     const seed = 300 + k;
     const r = mulberry(seed * 13 + 5);
     const body = CIVILIAN_COLORS[(k * 5 + 3) % CIVILIAN_COLORS.length];

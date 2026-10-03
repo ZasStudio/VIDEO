@@ -122,7 +122,7 @@ export const AlarmaShot: React.FC = () => {
   // ---- Camera: medium shot from the plaza's near side, slowly pushing in; a nudge on INHALE.
   // It keeps the counter's anchor (just over the head, hops aside) at y 720, so the whole
   // counter stays under the TIMECO notification band (y 240-485); feet ≈ y 1262 at the start.
-  const push = ramp(g, START, INHALE, [0, 0.35], (x) => x) + ramp(g, INHALE, INHALE + 10, [0, 0.3]);
+  const push = ramp(g, START, INHALE, [0, 0.35], (x) => x) + ramp(g, INHALE, INHALE + 10, [0, 0.15]) - ramp(g, INHALE, INHALE + 8, [0, 0.6]);
   const camPos: Vec3 = [PLAZA_NUBI[0] + 1.0, 1.5, PLAZA_NUBI[2] - 9.3 + push];
   const cam = aim(camPos, 46, [at[0], 2.1 * sy + 0.12, at[2]], 560, 720);
 

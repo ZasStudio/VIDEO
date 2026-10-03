@@ -103,7 +103,7 @@ export const JugoShot: React.FC = () => {
   const p0 = at([0.35, counterTop, -0.05]);
   const p1 = at([-0.45, counterTop, 0.3]);
   const pHold = nubiLocal([1.3, 0.95, 0.45], hopY);
-  const pFace = nubiLocal([0.28, 0.62, 1.12], hopY);
+  const pFace = nubiLocal([0.3, 0.45, 1.2], hopY);
   const slide = ramp(g, SEIS - 3, SEIS + 8, [0, 1], EASE_IN_OUT);
   let cupAt = lerp3(p0, p1, slide);
   if (grab > 0) cupAt = lerp3(cupAt, pHold, grab);
@@ -117,7 +117,7 @@ export const JugoShot: React.FC = () => {
   const push = ramp(g, TAP - 14, TAP - 1, [0, 1], EASE_IN_OUT) * (1 - 0.45 * ramp(g, SEIS + 8, SEIS + 22, [0, 1], EASE_IN_OUT));
   const drift = ramp(g, START, PIZZA, [0, 1], (x) => x);
   const wide = aim(at([-0.55 - 0.1 * drift, 2.0, 15.4 - 0.5 * drift]), FOV, NUBI, 375, 1262);
-  const close = aim(at([-0.45, 1.85, 11.2]), FOV, at([KIOSK_TERMINAL[0], 1.1, KIOSK_TERMINAL[2]]), 610, 960);
+  const close = aim(at([-0.4, 1.85, 11.4]), FOV, at([KIOSK_TERMINAL[0], 1.1, KIOSK_TERMINAL[2]]), 600, 1075);
   const cam = { ...wide, position: lerp3(wide.position, close.position, push), target: lerp3(wide.target, close.target, push) };
 
   const nubiC = counterAt(cam, [NUBI[0], NUBI[1] + 1.98 + 0.1 + hopY, NUBI[2]]);
@@ -142,7 +142,7 @@ export const JugoShot: React.FC = () => {
           <Vendor position={VENDOR} rotationY={VENDOR_YAW} pose={vendorPose} shadow={false} />
           <Nubi size={2} position={NUBI} rotationY={NUBI_YAW} pose={pose} shadowOpacity={0.4} />
           {showCup ? (
-            <group position={cupAt} rotation={[cupTilt, NUBI_YAW, 0]}>
+            <group position={cupAt} rotation={[cupTilt, NUBI_YAW, 0]} scale={1.35}>
               <JuiceCup fill={fill} t={t} />
             </group>
           ) : null}

@@ -20,7 +20,7 @@ import { tiempoTalk } from "../talk";
 // the right of frame, its screen reading "1 MES"; on "cinco años" the AUTOLUX showroom slides in:
 // the red toy car on its turntable under the "5 AÑOS" banner, the golden rich man beside it.
 // Nubi stops and stares; at RICH_BUY he taps the car (confetti, "VENDIDO"), his golden counter
-// barely moves (999 → 994 AÑOS). Final layout: Nubi x ≈ 245 (feet y ≈ 1262), the rich man x ≈ 560
+// barely moves (999 → 994 AÑOS). Final layout: Nubi x ≈ 285 (feet y ≈ 1262), the rich man x ≈ 550
 // against the showroom's navy wall, the car x ≈ 800 under the price banner; y 260-460 stays plain
 // upper facade for the 2D stickers.
 
@@ -30,7 +30,7 @@ const Z = AVENUE.walkZ;
 const SPEED = 3.0;
 const STOP = ESCALA.ANOS + 4;
 const DECEL = 12;
-const END_X = RICH_SPOT[0] - 2.19;
+const END_X = RICH_SPOT[0] - 1.7;
 /** Camera: 17 units in front of the walk line, 2.8 up (wide enough for Nubi, the rich man and the car). */
 const CAM_DIST = 17;
 const CAM_Y = 2.8;
@@ -75,7 +75,7 @@ export const VitrinasShot: React.FC = () => {
   const nubiRot = 0.78 + 0.22 * stare;
 
   // ---- Camera: tracks Nubi (it drifts from x ≈ 470 to 245 as the showroom takes the right).
-  const sx = keyframes(g, [START, MES, ANOS, CASA_CUT], [470, 420, 265, 245]);
+  const sx = keyframes(g, [START, MES, ANOS, CASA_CUT], [470, 420, 300, 285]);
   const camPos: Vec3 = [x + (540 - sx) / PX_PER_UNIT, CAM_Y, Z + CAM_DIST];
   const cam = aim(camPos, FOV, [x, 0, Z], sx, 1262);
 
@@ -92,9 +92,9 @@ export const VitrinasShot: React.FC = () => {
   };
   const age = (g - RICH_BUY) / 30;
   // The car's nose points at the rich man and the camera (3/4) when he buys it.
-  const spin = -2.3 + (t - RICH_BUY / 30) * 0.35;
+  const spin = -0.75 + (t - RICH_BUY / 30) * 0.2;
   const sold = ramp(g, RICH_BUY + 3, RICH_BUY + 9);
-  const carTop: Vec3 = [CAR_SPOT[0] - 0.3, 1.7, CAR_SPOT[2]];
+  const carTop: Vec3 = [CAR_SPOT[0] - 0.2, 1.8, CAR_SPOT[2]];
 
   const nubiCounter = counterAt(cam, [x, 2.2 + (pose.hop ?? 0) * 0.2 * 0.5, Z]);
   const richCounter = counterAt(cam, [RICH_SPOT[0] + 0.1, 3.2, RICH_SPOT[2]]);
@@ -113,7 +113,7 @@ export const VitrinasShot: React.FC = () => {
       </Stage>
       {!richCounter.behind ? <LifeCounter frame={g} seconds={richSeconds(g)} events={RICH_EVENTS} gold x={richCounter.x} y={richCounter.y} scale={0.7} /> : null}
       {!nubiCounter.behind ? (
-        <LifeCounter frame={g} seconds={nubiSeconds(g)} events={NUBI_EVENTS} draining={nubiDraining(g)} frozen={nubiHolding(g)} x={nubiCounter.x} y={nubiCounter.y} scale={0.86} />
+        <LifeCounter frame={g} seconds={nubiSeconds(g)} events={NUBI_EVENTS} draining={nubiDraining(g)} frozen={nubiHolding(g)} x={nubiCounter.x} y={nubiCounter.y} scale={0.84} />
       ) : null}
     </AbsoluteFill>
   );

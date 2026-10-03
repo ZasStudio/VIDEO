@@ -6,7 +6,7 @@ import { Shake, Stage } from "../../scenes/common";
 import { aim } from "../../thanos/camera";
 import { Vec3 } from "../../three/CameraRig";
 import { Nubi, NubiPose } from "../../three/Nubi";
-import { Civilian, civilianLook, civilianWalk } from "../../three/agua/Street";
+import { Civilian, civilianIdle, civilianLook, civilianWalk } from "../../three/agua/Street";
 import { Banknote, MARKET, MARKET_SKY, MarketLights, MarketStreet, SandGlints } from "../../three/tiempo/Market";
 import { HOOK } from "../beats";
 import { NUBI_EVENTS, extraSeconds, nubiDraining, nubiHolding, nubiSeconds } from "../clock";
@@ -20,8 +20,8 @@ import { tiempoTalk } from "../talk";
 // 650) while the top band (y 230-470) stays free for the title sticker. Passers-by walk behind
 // with their own small counters. On DINERO a banknote flutters down past Nubi's left side and
 // crumbles into golden sand (gone by DINERO + 20); Nubi glances at it. On TIEMPO the camera rises
-// and pushes in: the counter becomes the hero (scale → 1.25, bottom ≈ y 790) with Nubi's eyes
-// still above the captions; Nubi glances up at it.
+// and pushes in a little: the counter becomes the hero (scale → 1.25, lower in the frame, under
+// the title band) with Nubi's eyes still above the captions; Nubi glances up at it.
 
 const FPS = 30;
 const FOV = 36;
@@ -31,8 +31,8 @@ const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 
 /** Passers-by behind Nubi: [seed, x at frame 0, z, speed (units/s, 0 = standing), facing]. */
 const WALKERS: [number, number, number, number, number][] = [
-  [3, -3.1, -3.9, 0.42, Math.PI / 2 - 0.75],
-  [8, 3.4, -4.7, -0.4, -Math.PI / 2 + 0.75],
+  [3, -1.9, -3.9, 0, 0.35],
+  [8, 1.75, -4.4, 0.1, Math.PI / 2 - 0.9],
 ];
 
 export const IntroShot: React.FC = () => {
@@ -43,8 +43,8 @@ export const IntroShot: React.FC = () => {
   // ---- Camera: slow push-in; on TIEMPO it rises and pushes so the counter is the hero.
   const push = ramp(g, START, TIEMPO, [0, 1], (x) => x);
   const rise = ramp(g, TIEMPO - 2, TIEMPO + 16, [0, 1], EASE_IN_OUT);
-  const dist = lerp(9.7, 8.9, push) - 0.9 * rise;
-  const position: Vec3 = [0.4 - 0.15 * rise + 0.08 * Math.sin(t * 0.7), 1.45 + 1.7 * rise, NUBI[2] + dist];
+  const dist = lerp(9.7, 8.9, push) - 0.3 * rise;
+  const position: Vec3 = [0.4 - 0.15 * rise + 0.08 * Math.sin(t * 0.7), 1.45 + 1.2 * rise, NUBI[2] + dist];
   const cam = aim(position, FOV, EYE, 540, lerp(975, 1105, rise));
 
   // ---- The banknote: flutters in from the upper left, crumbles on DINERO + 2.
@@ -79,10 +79,11 @@ export const IntroShot: React.FC = () => {
     const look = civilianLook(seed, { held: "none", glasses: i === 1 ? "round" : "none" });
     const x = x0 + speed * t;
     const at: Vec3 = [x, 0, z];
-    const p: NubiPose = { ...civilianWalk(t, i * 1.7, 1), lookX: (i ? 0.35 : -0.35) * (0.5 + 0.5 * Math.sin(t * 0.9 + i)) };
+    const p: NubiPose = speed !== 0 ? { ...civilianWalk(t, i * 1.7, 0.7), lookX: -0.35 } : { ...civilianIdle(t, i), finR: 0.15 + 0.1 * Math.sin(t * 1.6), lookX: 0.45, blink: (t % 3.1) < 0.12 ? 1 : 0 };
     const c = counterAt(cam, [x, look.size * 0.99 + 0.12 + (look.size / 10) * (p.hop ?? 0), z]);
     // Fade a passer-by's counter while it passes behind Nubi's own, or nears the frame edges.
-    const fade = clamp01((Math.abs(c.x - nubiC.x) - 200) / 90) * clamp01((c.x - 120) / 60) * clamp01((960 - c.x) / 60);
+    // Also keep them out of the title band (y 230-470) when the camera rises.
+    const fade = clamp01((Math.abs(c.x - nubiC.x) - 200) / 90) * clamp01((c.x - 165) / 45) * clamp01((915 - c.x) / 45) * clamp01((c.y - 575) / 40);
     return { look, at, rot: facing, pose: p, c, fade, seed };
   });
 

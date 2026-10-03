@@ -181,9 +181,9 @@ export const PLAZA_NUBI: V3 = [0.4, 0, 2];
 /** The glowing ZONA PREMIUM threshold across the plaza (Nubi crosses it as the alarm starts). */
 export const PREMIUM_LINE_Z = 2.7;
 /** The "ZONA PREMIUM" monument sign beside the walk. */
-export const SIGN_AT: V3 = [-3.9, 0, 9.5];
+export const SIGN_AT: V3 = [3.7, 0, 9.0];
 /** The fountain of liquid gold. */
-export const FOUNTAIN_AT: V3 = [4.6, 0, 18];
+export const FOUNTAIN_AT: V3 = [-5.2, 0, 17];
 /** Torre: Nubi at the plaza's edge, facing the tower. */
 export const EDGE_NUBI: V3 = [0, 0, -34];
 /** Dron / puerta: Nubi in front of the gigantic door. */
@@ -830,6 +830,25 @@ const shopSignTexture = (k: number) =>
     neonText(ctx, shop.name, W / 2 + 6, H / 2 + 3, "900 46px Montserrat", "#FFC83D", 14, "#FFF4C8");
   });
 
+const upperWindowTexture = () =>
+  canvasTexture("tc-upper-window", 64, 96, (ctx, W, H) => {
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, "#FFE2A8");
+    g.addColorStop(1, "#C9782E");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "#6A1C22";
+    ctx.fillRect(0, 0, 12, H);
+    ctx.fillRect(W - 12, 0, 12, H);
+    ctx.fillStyle = "#1B1A22";
+    ctx.fillRect(0, 0, W, 5);
+    ctx.fillRect(0, H - 5, W, 5);
+    ctx.fillRect(0, 0, 4, H);
+    ctx.fillRect(W - 4, 0, 4, H);
+    ctx.fillRect(W / 2 - 2, 0, 4, H);
+    ctx.fillRect(0, H * 0.45, W, 4);
+  });
+
 const premiumSignTexture = () =>
   canvasTexture("tc-zona-premium", 1024, 512, (ctx, W, H) => {
     const g = ctx.createLinearGradient(0, 0, 0, H);
@@ -1083,10 +1102,12 @@ export const PremiumPlaza: React.FC<{ t?: number; line?: number; alarm?: number;
     tex.repeat.set((PLAZA.x * 2) / 5.2, (PLAZA.z1 - PLAZA.z0) / 5.2);
     tex.needsUpdate = true;
     return {
-      floor: new THREE.MeshStandardMaterial({ map: tex, emissiveMap: tex, emissive: new THREE.Color("#FFFFFF"), emissiveIntensity: 0.22, roughness: 0.16, metalness: 0.35 }),
+      floor: new THREE.MeshStandardMaterial({ map: tex, emissiveMap: tex, emissive: new THREE.Color("#FFFFFF"), emissiveIntensity: 0.3, roughness: 0.34, metalness: 0.2 }),
       pool: additive(new THREE.MeshBasicMaterial({ map: glowTexture(), color: "#FFB548", transparent: true, opacity: 0.4, toneMapped: false })),
+      streak: additive(new THREE.MeshBasicMaterial({ map: glowTexture(), color: "#FFD08A", transparent: true, opacity: 0.32, toneMapped: false })),
+      shopStreak: additive(new THREE.MeshBasicMaterial({ map: glowTexture(), color: "#FFB65A", transparent: true, opacity: 0.22, toneMapped: false })),
       line: additive(new THREE.MeshBasicMaterial({ color: "#FFC83D", transparent: true, opacity: 1, toneMapped: false })),
-      upper: new THREE.MeshBasicMaterial({ color: "#C99A5A", toneMapped: false }),
+      upper: new THREE.MeshBasicMaterial({ map: upperWindowTexture(), toneMapped: false }),
     };
   }, []);
   const lineCol = new THREE.Color("#FFC83D").lerp(new THREE.Color("#FF2A2A"), clamp01(alarm));
@@ -1112,13 +1133,19 @@ export const PremiumPlaza: React.FC<{ t?: number; line?: number; alarm?: number;
         <Halo key={i} color="#FFC060" size={2.6} opacity={0.55} position={p} />
       ))}
       {LAMPS.map((p, i) => (
-        <mesh key={i} geometry={geos.pool} material={mats.pool} position={[p[0], 0.03, p[2]]} scale={[3.2, 1, 3.2]} renderOrder={2} />
+        <React.Fragment key={i}>
+          <mesh geometry={geos.pool} material={mats.pool} position={[p[0], 0.03, p[2]]} scale={[3.2, 1, 3.2]} renderOrder={2} />
+          <mesh geometry={geos.pool} material={mats.streak} position={[p[0], 0.035, p[2]]} scale={[0.9, 1, 7.5]} renderOrder={2} />
+        </React.Fragment>
       ))}
+      {SHOP_ROWS[2] ? (
+        <mesh geometry={geos.pool} material={mats.shopStreak} position={[0, 0.032, PLAZA.z1 - 7]} scale={[13, 1, 9]} renderOrder={2} />
+      ) : null}
       <group position={FOUNTAIN_AT}>
         <GoldFountain t={t} />
       </group>
       {sign ? (
-        <group position={SIGN_AT} rotation={[0, -0.32, 0]}>
+        <group position={SIGN_AT} rotation={[0, 0.28, 0]}>
           <PremiumSign />
         </group>
       ) : null}
@@ -1197,6 +1224,17 @@ const TOWER_GEO = once(() => {
     neon.push(xform(new THREE.BoxGeometry(0.55, H1 - H0 - 2, 0.55), [Math.sin(a) * (HG.postR + 1.75), (H0 + H1) / 2, Math.cos(a) * (HG.postR + 1.75)], [0, a, 0]));
   }
   for (const dy of [-2.1, 2.1]) neon.push(xform(new THREE.TorusGeometry(HG.waistR + 1.4, 0.22, 6, 48), [0, HG.waistY + dy, 0], [Math.PI / 2, 0, 0]));
+  // Meridians along the glass that draw the hourglass's outline from any side.
+  for (let k = 0; k < 8; k++) {
+    const a = Math.PI / 8 + (k * Math.PI) / 4;
+    const pts: THREE.Vector3[] = [];
+    for (let i = 0; i <= 40; i++) {
+      const y = H0 + ((H1 - H0) * i) / 40;
+      const r = bulbRadius(y) + 0.35;
+      pts.push(new THREE.Vector3(Math.sin(a) * r, y, Math.cos(a) * r));
+    }
+    neon.push(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 80, 0.3, 5, false));
+  }
   // Aviation lights on the top plate (two groups that blink in turn).
   const avA: THREE.BufferGeometry[] = [];
   const avB: THREE.BufferGeometry[] = [];
@@ -1359,6 +1397,7 @@ export const TimecoTower: React.FC<{ t?: number; screen?: number; door?: number;
       <mesh geometry={G.sand} material={mats.sand} />
       <mesh geometry={G.stream} material={mats.stream} />
       <SandFall t={t} />
+      <Halo color="#FF2A40" size={420} opacity={0.2} position={[0, 85, -90]} />
       <Halo color="#FFB02A" size={34} opacity={0.55} position={[0, HG.waistY, 0]} />
       <Halo color="#FF9A1A" size={60} opacity={0.3} position={[0, 32, 0]} />
       <mesh geometry={G.metal} material={vertexMat(0.35, false, 0.12, 0.45)} />
@@ -1446,13 +1485,13 @@ const GATE_GEO = once(() => {
 const corridorTexture = () =>
   canvasTexture("tc-corridor", 64, 256, (ctx, W, H) => {
     const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, "#FFF6DE");
-    g.addColorStop(0.5, "#FFD98A");
-    g.addColorStop(1, "#7A4A18");
+    g.addColorStop(0, "#FFFFFF");
+    g.addColorStop(0.6, "#FFF1CF");
+    g.addColorStop(1, "#FFD58A");
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = "rgba(255,255,255,0.35)";
-    for (let y = 0; y < H; y += 32) ctx.fillRect(0, y, W, 6);
+    ctx.fillStyle = "rgba(255,200,120,0.35)";
+    for (let y = 0; y < H; y += 32) ctx.fillRect(0, y, W, 4);
   });
 
 const Gatehouse: React.FC<{ t: number; door: number; doorGlow: number }> = ({ t, door, doorGlow }) => {
@@ -1539,7 +1578,7 @@ const Esplanade: React.FC<{ t: number }> = ({ t }) => {
     const tex = stoneTexture().clone();
     tex.repeat.set(130 / 8, (PLAZA.z0 - GATE.front) / 8);
     tex.needsUpdate = true;
-    return new THREE.MeshStandardMaterial({ map: tex, roughness: 0.2, metalness: 0.4, emissiveMap: tex, emissive: new THREE.Color("#FFFFFF"), emissiveIntensity: 0.12 });
+    return new THREE.MeshStandardMaterial({ map: tex, roughness: 0.48, metalness: 0.15, emissiveMap: tex, emissive: new THREE.Color("#FFFFFF"), emissiveIntensity: 0.14 });
   }, []);
   const pulse = 0.75 + 0.25 * Math.sin(t * 2.4);
   return (

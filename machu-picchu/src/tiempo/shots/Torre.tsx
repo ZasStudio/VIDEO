@@ -58,10 +58,10 @@ export const TorreShot: React.FC = () => {
       lookY: 0.6 * ramp(g, TOWER, TOWER + 10),
     };
     const u = ramp(g, TOWER - 2, CUT_B, [0, 1], SMOOTH);
-    const pos = lerp3([N[0] + 0.7, 0.75, N[2] + 5.2], [N[0] + 1.2, 6.5, N[2] + 9.5], u);
+    const pos = lerp3([N[0] + 0.7, 0.75, N[2] + 5.2], [N[0] + 1.2, 8.5, N[2] + 10.5], u);
     const fov = 52 - 18 * u;
     const low = aim(pos, fov, [N[0], 0.9, N[2]], 560, 1150);
-    const high = aim(pos, fov, [WAIST[0], WAIST[1] - 6, WAIST[2]], 600, 560);
+    const high = aim(pos, fov, WAIST, 560, 800);
     cam = { position: pos, target: lerp3(low.target, high.target, ramp(g, TOWER - 2, CUT_B, [0, 1], EASE_IN_OUT)), fov };
     counterMin = 0.8;
   } else {
@@ -87,8 +87,8 @@ export const TorreShot: React.FC = () => {
     pose = tiempoTalk(g, { ...anger, yaw: Math.PI * 0.9 * (1 - turn) + 2.2 * lookBack, lookY: (anger.lookY ?? 0) + 1.1 * lookBack, eyeScale: (anger.eyeScale ?? 1) + 0.4 * lookBack }, 1.2);
     if (!wide) {
       const push = ramp(g, CUT_B, SCREEN, [0, 0.9], (x) => x) + 0.4 * stomp;
-      const pos: Vec3 = [N[0] + 1.35, 0.65, N[2] + 8.6 - push];
-      cam = aim(pos, 44, [N[0], 0, N[2]], 420, 1262);
+      const pos: Vec3 = [N[0] + 1.75, 0.8, N[2] + 10.4 - push];
+      cam = aim(pos, 44, [N[0], 0, N[2]], 470, 1262);
     } else {
       const k = ramp(g, SCREEN, END, [0, 1], (x) => x);
       const pos: Vec3 = [N[0] + 0.5, 1.1, N[2] + 52 - 1.5 * k];

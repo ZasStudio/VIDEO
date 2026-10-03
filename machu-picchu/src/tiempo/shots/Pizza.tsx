@@ -31,7 +31,7 @@ import { tiempoTalk } from "../talk";
 
 // Shot 3 "pizza" (COMPRAS.PIZZA → COMPRAS.END). "Una pizza… ¡tres días!" Two-shot at the
 // pizzeria counter. The blue chef (white hat, his counter) lifts a huge gooey slice off the big
-// pizza and holds it out, crust up, its top to the camera, in the middle of the frame (x ≈ 420-700),
+// pizza and holds it out, crust up, its top to the camera, in the middle of the frame (x ≈ 480-760),
 // the dome oven glowing behind it; Nubi, on the left, leans in excited. At TRES the "3 DÍAS" flag
 // pops up out of the slice, Nubi recoils in shock (eyes huge, hop back to the left), pushes the
 // slice away and shakes its whole body "no".
@@ -41,13 +41,13 @@ const FPS = 30;
 const FOV = 36;
 const P = MARKET.pizza;
 const at = (v: Vec3): Vec3 => [P[0] + v[0], P[1] + v[1], P[2] + v[2]];
-const NUBI: Vec3 = at([-1.55, 0, 1.3]);
-const NUBI_YAW = 0.38;
+const NUBI: Vec3 = at([-2.15, 0, 1.0]);
+const NUBI_YAW = 0.42;
 const CHEF: Vec3 = at(PIZZERIA_CHEF);
 const CHEF_YAW = -0.32;
 const CHEF_SEED = 57;
 const PIZZA_AT: Vec3 = at(PIZZERIA_PIZZA);
-const SLICE = { R: 1.2, droop: 0.12 };
+const SLICE = { R: 1.5, droop: 0.14 };
 const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 
 export const PizzaShot: React.FC = () => {
@@ -60,10 +60,10 @@ export const PizzaShot: React.FC = () => {
   const offer = ramp(g, PIZZA, PIZZA + 14, [0, 1], EASE_IN_OUT);
   const closer = ramp(g, PIZZA + 14, TRES - 2, [0, 1], EASE_IN_OUT);
   const pushed = ramp(g, TRES + 7, TRES + 15, [0, 1], EASE_OUT);
-  const sA = at([0.3, 1.45, 0.25]);
-  const sB = at([-0.22, 2.02, 0.78]);
-  const sC = at([-0.38, 1.98, 0.88]);
-  const sD = at([0.12, 2.06, 0.55]);
+  const sA = at([0.25, 1.6, 0.0]);
+  const sB = at([-0.28, 2.18, 0.15]);
+  const sC = at([-0.45, 2.12, 0.25]);
+  const sD = at([-0.12, 2.2, 0.0]);
   const sliceAt = lerp3(lerp3(lerp3(sA, sB, offer), sC, closer), sD, pushed);
   const sliceBob = 0.025 * Math.sin(t * 5.1) * (1 - pushed);
   const tilt = lerp(0.25, 1.02, offer) - 0.12 * pushed;
@@ -98,7 +98,7 @@ export const PizzaShot: React.FC = () => {
     wigglePhase: g * 0.6,
   };
   const pose = tiempoTalk(g, base, 0.8);
-  const shift = 0.28 * lean - 0.42 * recoil;
+  const shift = 0.16 * lean - 0.32 * recoil;
   const nubiAt: Vec3 = [NUBI[0] + shift, NUBI[1], NUBI[2] + 0.1 * shift];
   const hopY = 0.2 * (pose.hop ?? 0);
 
@@ -119,9 +119,9 @@ export const PizzaShot: React.FC = () => {
   // ---- Camera: front-left, the slice in the middle; slow push, a punch-in on TRES.
   const push = ramp(g, PIZZA, TRES, [0, 1], (x) => x);
   const punch = ramp(g, TRES, TRES + 5, [0, 1], EASE_OUT);
-  const look: Vec3 = at([lerp(-0.32, -0.5, punch), 1.45, 0.9]);
-  const position: Vec3 = at([-0.45 - 0.1 * punch, lerp(1.95, 1.9, push), 0.9 + lerp(13.6, 12.9, push) - 1.3 * punch]);
-  const cam = aim(position, FOV, look, lerp(560, 545, punch), 880);
+  const look: Vec3 = at([lerp(-0.42, -0.62, punch), 1.45, 0.4]);
+  const position: Vec3 = at([-0.6 - 0.1 * punch, lerp(2.0, 1.95, push), 0.4 + lerp(17.0, 16.3, push) - 1.6 * punch]);
+  const cam = aim(position, FOV, look, lerp(590, 575, punch), 905);
 
   const nubiC = counterAt(cam, [nubiAt[0], nubiAt[1] + 1.98 + 0.1 + hopY, nubiAt[2]]);
   const chefC = counterAt(cam, [CHEF[0], CHEF[1] + (VENDOR_SIZE / 10) * (15.0 + (chefPose.hop ?? 0)) + 0.06, CHEF[2]]);
@@ -142,7 +142,7 @@ export const PizzaShot: React.FC = () => {
             <PizzaSlice R={SLICE.R} droop={SLICE.droop} tilt={tilt} t={t} goo={1 - 0.3 * pushed} />
           </group>
           <group position={flagAt} rotation={[0, sliceYaw * 0.5, 0.06 * Math.sin(t * 3)]}>
-            <PriceFlag text="3 DÍAS" pop={flagPop} t={t} size={1.25} />
+            <PriceFlag text="3 DÍAS" pop={flagPop} t={t} size={1.3} side={1} />
           </group>
           <Vendor chef position={CHEF} rotationY={CHEF_YAW} pose={chefPose} shadow={false} />
           <Nubi size={2} position={nubiAt} rotationY={NUBI_YAW} pose={pose} shadowOpacity={0.4} />

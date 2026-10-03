@@ -93,11 +93,11 @@ export const DronShot: React.FC = () => {
           <TimecoLights red={1.4} />
           <TimecoFog near={70} far={900} />
           <directionalLight position={[DOOR_NUBI[0] + 3, 5, DOOR_NUBI[2] + 14]} intensity={1.4} color="#FFE2B8" />
-          <pointLight position={[HOVER[0] + 0.4, HOVER[1], HOVER[2] + 0.6]} intensity={2.5 + 5 * scanK} distance={7} decay={1.5} color="#FF2A2A" />
+          <pointLight position={[HOVER[0] - 0.6, HOVER[1] + 1.4, HOVER[2] - 1.6]} intensity={1.2 + 3.5 * scanK} distance={7} decay={1.5} color="#FF2A2A" />
           <TimeCity t={t} />
           <TimecoTower t={t} />
           <Nubi size={2} position={at} rotationY={NUBI_ROT} pose={pose} shadowOpacity={0.5} />
-          <group position={dronePos} rotation={[droneTilt, DRONE_ROT, 0.08 * Math.sin(t * 2.3)]} scale={1.15}>
+          <group position={dronePos} rotation={[droneTilt, DRONE_ROT, 0.08 * Math.sin(t * 2.3)]} scale={1.3}>
             <TimecoDrone t={t} eye={eye} />
           </group>
           <ScanBeam from={eyeWorld} to={[at[0], 1.0, at[2]]} w={2.6} h={2.3} sweep={sweep} amount={scanK} />
