@@ -55,6 +55,8 @@ const STAMPERS: [number, number][] = [
   [22, 15],
   [13, 23],
 ];
+/** Extras right behind the double desk: in the two-shots their desks stay empty (clear counters). */
+const BEHIND = [12, 13, 21, 22, 23];
 /** The coworker's counter floats a little higher than Nubi's (they stand side by side). */
 const CW_LIFT = 0.9;
 /** The coworker slams ENVIAR with his screen-left fin, twisted towards it. */
@@ -195,7 +197,9 @@ export const OficinaShot: React.FC = () => {
   type Tag = { key: string; d: number; node: React.ReactNode };
   const tags: Tag[] = [];
   const dist = (p: Vec3) => Math.hypot(p[0] - cam.position[0], p[1] - cam.position[1], p[2] - cam.position[2]);
+  const hide = g < A_END ? [] : BEHIND;
   OFFICE_WORKERS.forEach((w, i) => {
+    if (hide.includes(i)) return;
     const hit = stamps.find((s) => s.worker === i);
     const p = workerHead(w, g, ff, hit?.at);
     const c = counterAt(cam, p, { ref: 9, min: 0.5, max: 0.65 });
@@ -239,7 +243,7 @@ export const OficinaShot: React.FC = () => {
         <Stage cam={cam} near={0.1}>
           <OfficeLights day={day} />
           <Office t={t} day={day} hours={hours} ring={ring} clockBlur={ff} rule={flicker} prod={prod} prodPop={prodPop} />
-          <OfficeCrowd g={g} ff={ff} stamps={stamps} />
+          <OfficeCrowd g={g} ff={ff} stamps={stamps} hide={hide} />
           {stamps.map((s) => {
             const w = OFFICE_WORKERS[s.worker];
             const spot = stampSpot(w, s.at);

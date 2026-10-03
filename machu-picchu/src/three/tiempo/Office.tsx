@@ -1495,9 +1495,10 @@ const crowdGeos = once(() => {
 
 /**
  * The office workers, instanced (bodies, eyes, fins, shirts, ties): all of OFFICE_WORKERS typing
- * at frame g (`ff` = fast-forward 0..1); `stamps` make some of them stamp papers.
+ * at frame g (`ff` = fast-forward 0..1); `stamps` make some of them stamp papers; `hide` leaves
+ * those workers' desks empty.
  */
-export const OfficeCrowd: React.FC<{ g: number; ff?: number; stamps?: StampHit[] }> = ({ g, ff = 0, stamps = [] }) => {
+export const OfficeCrowd: React.FC<{ g: number; ff?: number; stamps?: StampHit[]; hide?: number[] }> = ({ g, ff = 0, stamps = [], hide = [] }) => {
   const workers = OFFICE_WORKERS;
   const n = workers.length;
   const geo = crowdGeos();
@@ -1525,7 +1526,7 @@ export const OfficeCrowd: React.FC<{ g: number; ff?: number; stamps?: StampHit[]
     workers.forEach((w, i) => {
       const hit = stamps.find((s) => s.worker === i);
       const pose = workerPose(w, g, ff, hit?.at);
-      bodyMatrix(M, w.at, 0, w.size, pose);
+      bodyMatrix(M, w.at, 0, hide.includes(i) ? 1e-4 : w.size, pose);
       bodyRef.current?.setMatrixAt(i, M);
       shirtRef.current?.setMatrixAt(i, M);
       tieRef.current?.setMatrixAt(i, M);
@@ -1542,7 +1543,7 @@ export const OfficeCrowd: React.FC<{ g: number; ff?: number; stamps?: StampHit[]
       finLRef.current?.setMatrixAt(i, A);
     });
     for (const m of [bodyRef.current, eyeRef.current, finRRef.current, finLRef.current, shirtRef.current, tieRef.current]) if (m) m.instanceMatrix.needsUpdate = true;
-  }, [g, ff, stamps, workers]);
+  }, [g, ff, stamps, hide, workers]);
   const skin = vertexMat(0.42, false, 0.14);
   return (
     <group>

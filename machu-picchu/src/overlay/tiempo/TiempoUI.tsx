@@ -529,11 +529,11 @@ export const LifeCounter: React.FC<{
             }}
           >
             <div style={{ ...MONO_DIGITS, fontFamily: FONT.heavy, fontWeight: 900, fontSize: mainSize, color: pal.text, whiteSpace: "nowrap", letterSpacing: 1, textShadow }}>
-              <CounterText text={main} prev={prev ? prev.main : null} k={flipK} cascade={cascade} frame={frame} seed={1} wrong={tier === "years" || tier === "days" ? 0.05 : 0.16} />
+              <CounterText text={main} prev={prev ? prev.main : null} k={flipK} cascade={cascade} frame={frame} seed={1} wrong={0} />
             </div>
             {sub ? (
               <div style={{ ...MONO_DIGITS, fontFamily: FONT.heavy, fontWeight: 800, fontSize: 30, color: pal.sub, whiteSpace: "nowrap", marginTop: 4, textShadow }}>
-                <CounterText text={sub} prev={prev ? prev.sub : null} k={flipK} cascade={cascade} frame={frame} seed={2} />
+                <CounterText text={sub} prev={prev ? prev.sub : null} k={flipK} cascade={cascade} frame={frame} seed={2} wrong={0.06} />
               </div>
             ) : null}
           </div>
