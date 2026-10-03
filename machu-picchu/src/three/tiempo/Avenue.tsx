@@ -227,7 +227,7 @@ export const RICH_SPOT: V3 = [CAR_SHOP.x0 + 1.89, 0, -2.85];
 /** The showroom's price banner (centre). */
 export const PRICE_SPOT: V3 = [CAR_SHOP.x0 + 3.24, 2.62, -0.3];
 /** TIMECO's billboard (centre of its face) on the TIMECO building. */
-export const BILLBOARD = { center: [(TIMECO_SHOP.x0 + TIMECO_SHOP.x1) / 2, 6.25, 0.32] as V3, w: 8.6, h: 3.5 };
+export const BILLBOARD = { center: [(TIMECO_SHOP.x0 + TIMECO_SHOP.x1) / 2, 4.5, 0.32] as V3, w: 5.2, h: 5.2 * (625 / 1536) };
 /** Middle of the TIMECO building's front (for the question shot). */
 export const TIMECO_X = (TIMECO_SHOP.x0 + TIMECO_SHOP.x1) / 2;
 
