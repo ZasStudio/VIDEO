@@ -6,6 +6,7 @@ import { LifeCounter } from "../../overlay/tiempo/TiempoUI";
 import { Shake, Stage } from "../../scenes/common";
 import { Cam, aim } from "../../thanos/camera";
 import { Vec3, lerp3 } from "../../three/CameraRig";
+import { Twinkles } from "../../three/Effects3D";
 import { Nubi, NubiPose } from "../../three/Nubi";
 import {
   COWORKER_SIZE,
@@ -32,6 +33,7 @@ import {
 import { OFICINA } from "../beats";
 import { COWORKER_EVENTS, LifeEvent, NUBI_EVENTS, coworkerSeconds, extraSeconds, nubiDraining, nubiHolding, nubiSeconds } from "../clock";
 import { counterAt } from "../counter";
+import { FONT } from "../../theme";
 import { SHOTS } from "../shots";
 import { coworkerTalk, tiempoTalk } from "../talk";
 
@@ -51,10 +53,12 @@ const FPS = 30;
 const NUBI_SIZE = 2;
 /** Workers who stamp a paper in the wide shot (index into OFFICE_WORKERS, frames after START). */
 const STAMPERS: [number, number][] = [
-  [12, 7],
-  [22, 15],
-  [13, 23],
+  [21, 7],
+  [23, 15],
+  [22, 23],
 ];
+/** Chunky toy stamps and papers so the stamping reads in the wide shot. */
+const STAMP_SCALE = 1.7;
 /** Extras right behind the double desk: in the two-shots their desks stay empty (clear counters). */
 const BEHIND = [12, 13, 21, 22, 23];
 /** The coworker's counter floats a little higher than Nubi's (they stand side by side). */
@@ -65,6 +69,37 @@ const ENVIAR_TIP = finTipWorld(OFFICE_COWORKER, 0, COWORKER_SIZE, SLAM_POSE, "L"
 const ENVIAR_AT: Vec3 = [ENVIAR_TIP[0], OFFICE.deskTop, ENVIAR_TIP[2]];
 
 const mix = (a: number, b: number, k: number) => a + (b - a) * k;
+
+/** The red "LISTO" stamp mark that pops over a stamping worker's counter (2D, like the counters). */
+const ListoMark: React.FC<{ frame: number; at: number; x: number; y: number }> = ({ frame, at, x, y }) => {
+  const d = frame - at;
+  if (d < 0 || d > 26) return null;
+  const k = d < 4 ? 1.5 - 0.5 * (d / 4) : 1;
+  const o = d > 18 ? 1 - (d - 18) / 8 : 1;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: x,
+        top: y,
+        transform: `translate(-50%, -50%) rotate(-9deg) scale(${k})`,
+        opacity: o,
+        padding: "2px 14px",
+        border: "5px solid #E8262E",
+        borderRadius: 10,
+        color: "#E8262E",
+        background: "rgba(255,255,255,0.85)",
+        fontFamily: FONT.heavy,
+        fontWeight: 900,
+        fontSize: 34,
+        letterSpacing: 2,
+        pointerEvents: "none",
+      }}
+    >
+      LISTO
+    </div>
+  );
+};
 
 /** Fins tapping on the keyboard (rate in taps per second-ish), eyes on the monitor at `look`. */
 const typing = (g: number, speed: number, phase: number, look: number): NubiPose => {
@@ -91,8 +126,9 @@ export const OficinaShot: React.FC = () => {
   const day = lapse * lapse * (3 - 2 * lapse);
   const ff = windowIn(g, LAPSE, LAPSE_END + 3, 6);
   const ring = windowIn(g, BELL, BELL + 30, 2);
-  // The rule's neon stutters on at DIA.
+  // The rule's neon stutters on at DIA and switches off with the end-of-shift bell.
   const flicker = g < DIA ? 0 : g < DIA + 9 ? [1, 0.2, 1, 0, 0.7, 1, 0.4, 1, 1][g - DIA] : 1;
+  const ruleOff = g < BELL + 2 ? 1 : g < BELL + 6 ? [0.3, 0.8, 0.15, 0][g - BELL - 2] : 0;
   const prod: 0 | 1 = g >= REWARD + 4 ? 1 : 0;
   const prodPop = g >= REWARD + 4 ? Math.max(0, 1 - (g - REWARD - 4) / 10) : 0;
   const stamps: StampHit[] = STAMPERS.map(([worker, d]) => ({ worker, at: START + d }));
@@ -155,12 +191,12 @@ export const OficinaShot: React.FC = () => {
     cwBase = { ...ty, finR: 0.05 + 0.9 * sipFF, yaw: 0.12 + 0.2 * Math.sin(t * 6) * ff, blink: g < LAPSE ? 0 : 0.15, lookX: 0.55 * (1 - sipFF), lookY: -0.3 + 0.2 * sipFF };
   } else {
     cwBase = {
-      finL: mix(mix(-0.2, 1.2, slamUp) - 1.95 * slamHit, 1.45, stretch) * (1 - turn * 0.6) + (1 - slamK) * (1 - stretch) * -0.2,
-      finR: mix(0.05, 1.35, stretch) + 0.75 * sip,
+      finL: mix(mix(-0.2, 1.2, slamUp) - 1.95 * slamHit, 2.3, stretch) * (1 - turn * 0.6) + (1 - slamK) * (1 - stretch) * -0.2,
+      finR: mix(0.05, 2.0, stretch) + 0.75 * sip,
       yaw: mix(SLAM_POSE.yaw ?? 0, 0, 1 - slamK) * (1 - stretch) - 0.6 * turn,
       pitch: 0.1 * slamK - 0.08 * stretch,
-      squash: 1 - 0.06 * slamHit + 0.13 * stretch,
-      hop: 0.5 * stretch,
+      squash: 1 - 0.06 * slamHit + 0.15 * stretch,
+      hop: 0.7 * stretch,
       roll: 0.05 * stretch * Math.sin(t * 5),
       blink: Math.max(0.95 * stretch, 0.1),
       lookX: -0.7 * turn,
@@ -208,7 +244,16 @@ export const OficinaShot: React.FC = () => {
     const secs = extraSeconds(w.seed, g) + (hit && g >= hit.at ? 300 : 0);
     // Behind the two of them (shots B and C) the extras' counters step back a little.
     const opacity = g < A_END ? 1 : 0.72;
-    tags.push({ key: `w${i}`, d: dist(p), node: <LifeCounter key={`w${i}`} frame={g} seconds={secs} {...c} events={events} opacity={opacity} /> });
+    tags.push({
+      key: `w${i}`,
+      d: dist(p),
+      node: (
+        <React.Fragment key={`w${i}`}>
+          <LifeCounter frame={g} seconds={secs} {...c} events={events} opacity={opacity} />
+          {hit ? <ListoMark frame={g} at={hit.at} x={c.x - 95 * c.scale} y={c.y - 215 * c.scale} /> : null}
+        </React.Fragment>
+      ),
+    });
   });
   const nubiHead = headTop(OFFICE_NUBI, NUBI_SIZE, nubiPose, 0.12);
   const cwHead = headTop(OFFICE_COWORKER, COWORKER_SIZE, cwPose, 0.12 + (g < A_END ? 1.6 : CW_LIFT));
@@ -242,7 +287,7 @@ export const OficinaShot: React.FC = () => {
       <Shake frame={g} impacts={[{ at: BELL, amp: 7, dur: 12 }, { at: SLAM, amp: 9, dur: 10 }]}>
         <Stage cam={cam} near={0.1}>
           <OfficeLights day={day} />
-          <Office t={t} day={day} hours={hours} ring={ring} clockBlur={ff} rule={flicker} prod={prod} prodPop={prodPop} />
+          <Office t={t} day={day} hours={hours} ring={ring} clockBlur={ff} rule={flicker * ruleOff} prod={prod} prodPop={prodPop} />
           <OfficeCrowd g={g} ff={ff} stamps={stamps} hide={hide} />
           {stamps.map((s) => {
             const w = OFFICE_WORKERS[s.worker];
@@ -252,14 +297,15 @@ export const OficinaShot: React.FC = () => {
             const held = g > s.at - 16 && g < s.at + 16;
             return (
               <group key={s.worker}>
-                <group position={spot}>
+                <group position={spot} scale={1.5}>
                   <StampPaper stamped={g >= s.at ? 1 : 0} yaw={0.2} />
                 </group>
                 {held ? (
-                  <group position={[tip[0], Math.max(OFFICE.deskTop + 0.01, tip[1] - 0.32), tip[2]]}>
+                  <group position={[tip[0], Math.max(OFFICE.deskTop + 0.01, tip[1] - 0.3 * STAMP_SCALE), tip[2]]} scale={STAMP_SCALE}>
                     <RubberStamp />
                   </group>
                 ) : null}
+                <Twinkles frame={g} at={s.at} position={[spot[0], spot[1] + 0.1, spot[2]]} radius={0.45} count={7} color="#FFFFFF" />
               </group>
             );
           })}
