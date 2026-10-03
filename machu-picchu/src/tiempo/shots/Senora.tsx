@@ -11,51 +11,55 @@ import { Glow } from "../../three/thanos/FX";
 import {
   HALL_BG,
   HALL_LADY,
-  Hallway,
   HallLights,
+  HallReflection,
+  Hallway,
   Hearts,
   LADY_BUN_TOP,
   LADY_SIZE,
   Lady,
   LifeStream,
   Mop,
-  blinkAt,
-  finTipWorld,
-  headTop,
-} from "../../three/tiempo/Office";
+  Splashes,
+} from "../../three/tiempo/Hallway";
+import { blinkAt, finTipWorld, headTop } from "../../three/tiempo/Office";
 import { SENORA } from "../beats";
-import { LADY_EVENTS, NUBI_EVENTS, ladySeconds, nubiDraining, nubiHolding, nubiSeconds } from "../clock";
+import { LADY_EVENTS, NUBI_EVENTS, YEAR, ladySeconds, nubiDraining, nubiHolding, nubiSeconds } from "../clock";
 import { counterAt } from "../counter";
 import { SHOTS } from "../shots";
 import { ladyTalk, tiempoTalk } from "../talk";
 
-// Shot "senora" (SENORA.START → END): TIMECO's hallway at night.
-// A (START → L09) wide: the old cleaning lady mops frantically on the wet tiles, her counter red
-//   and ticking (00:00:18 exactly on "dieciocho"); Nubi rushes in from the left at START+6 and
-//   stops, shocked, for L08.
-// B (L09 → TOME−8) closer on her: tired, sad eyes, still mopping, for L09.
-// C (TOME−8 → END) the two-shot: Nubi holds out its fin, the fins touch at TOME, a stream of green
-//   life flows from Nubi to her (TOME → ANO+20); at ANO her counter jumps (+1 AÑO) and Nubi's pops
-//   −1 AÑO; at INVITO Nubi hops; at HUG she drops the mop and hugs Nubi, hearts float up.
-// The two counters are stacked (hers floats a little higher) so both stay readable side by side.
+// Shot "senora" (SENORA.START → END): TIMECO's hallway at night (tall windows on the night city,
+// wet shiny tiles that mirror everything, the vending machine under the red TIMECO neon, the
+// "PISO MOJADO" sign).
+// A (START → L09) wide: the old cleaning lady mops frantically, water flying, her counter red and
+//   ticking (00:00:18 exactly on "dieciocho"); Nubi dashes in from the left at START+6 and skids
+//   to a stop on L08, eyes huge. The camera creeps in.
+// B (L09 → TOME−8) medium on her: tired, sad eyes, mopping slowly; a sigh on "alquiler".
+// C (TOME−8 → END) the two-shot: Nubi stretches out its fin, the fins touch on TOME, a stream of
+//   green life flows from Nubi to her (TOME → ANO+20) and warms the scene; at ANO her counter
+//   jumps (+1 AÑO) and Nubi's pops −1 AÑO; at INVITO Nubi hops; at HUG she drops the mop and
+//   hugs Nubi, hearts float up.
+// The two counters are stacked (hers floats higher) so both stay readable side by side; they are
+// kept inside x 60-940 and below y 460 (their popups included).
 
 const FPS = 30;
 const NUBI_SIZE = 2;
-/** Her counter floats a little above her bun when Nubi stands beside her. */
-const LADY_LIFT = 0.75;
+const SAFE_L = 60;
+const SAFE_R = 940;
 
 // ---- Where everyone stands ------------------------------------------------------------
 const LADY_A: Vec3 = HALL_LADY;
 const NUBI_A: Vec3 = [LADY_A[0] - 2.4, 0, LADY_A[2] + 0.35];
-const NUBI_C: Vec3 = [-0.9, 0, 0.8];
-const NUBI_C_YAW = 0.38;
-const LADY_C_YAW = -0.42;
+const NUBI_C: Vec3 = [-1.05, 0, 0.85];
+const NUBI_C_YAW = 0.2;
+const LADY_C_YAW = -0.26;
 /** The touch: Nubi's screen-right fin and her screen-left fin meet; her spot is solved from it. */
-const TOUCH_NUBI: NubiPose = { finR: 0.55, pitch: 0.04 };
-const TOUCH_LADY: NubiPose = { finL: 1.05, pitch: 0.1, squash: 0.97 };
+const TOUCH_NUBI: NubiPose = { finR: 1.0, pitch: 0.03 };
+const TOUCH_LADY: NubiPose = { finL: 1.2, pitch: 0.08, squash: 0.97 };
 const TIP_N = finTipWorld(NUBI_C, NUBI_C_YAW, NUBI_SIZE, TOUCH_NUBI, "R");
 const TIP_L0 = finTipWorld([0, 0, 0], LADY_C_YAW, LADY_SIZE, TOUCH_LADY, "L");
-const LADY_C: Vec3 = [TIP_N[0] - TIP_L0[0] + 0.04, 0, TIP_N[2] - TIP_L0[2]];
+const LADY_C: Vec3 = [TIP_N[0] - TIP_L0[0] + 0.03, 0, TIP_N[2] - TIP_L0[2]];
 
 const mix = (a: number, b: number, k: number) => a + (b - a) * k;
 const rotY = (v: Vec3, a: number): Vec3 => [v[0] * Math.cos(a) + v[2] * Math.sin(a), v[1], -v[0] * Math.sin(a) + v[2] * Math.cos(a)];
@@ -73,6 +77,13 @@ const mopping = (stroke: number, hunch: number): NubiPose => ({
   lookY: -0.45 * hunch,
 });
 
+/** Half the on-screen width of a life counter (to keep it inside the safe area). */
+const counterHalf = (seconds: number, scale: number) => (seconds >= YEAR ? 285 : seconds >= 86400 ? 235 : 215) * scale;
+const keepInside = <T extends { x: number; scale: number }>(c: T, seconds: number): T => {
+  const h = counterHalf(seconds, c.scale);
+  return { ...c, x: Math.min(SAFE_R - h, Math.max(SAFE_L + h, c.x)) };
+};
+
 export const SenoraShot: React.FC = () => {
   const g = useCurrentFrame() + SHOTS.senora.from;
   const { START, END, L08, DIECIOCHO, L09, ALQUILER, TOME, ANO, INVITO, HUG } = SENORA;
@@ -81,12 +92,14 @@ export const SenoraShot: React.FC = () => {
   const C0 = TOME - 8;
   const RUN0 = START + 6;
   const STOP = L08;
+  const HUG0 = HUG - 6;
 
   // ---- Shared beats -----------------------------------------------------------------------
   const year = ramp(g, ANO, ANO + 14, [0, 1], EASE_OUT);
   const stream = windowIn(g, TOME, ANO + 20, 6);
-  const hug = ramp(g, HUG - 4, HUG + 6, [0, 1], EASE_IN_OUT);
-  const drop = ramp(g, HUG - 4, HUG + 5, [0, 1], (x) => x * x);
+  const hug = ramp(g, HUG0, HUG + 4, [0, 1], EASE_IN_OUT);
+  const drop = ramp(g, HUG0, HUG0 + 9, [0, 1], (x) => x * x);
+  const warm = ramp(g, TOME - 2, ANO + 12, [0, 1], EASE_IN_OUT);
   // Mop strokes: frantic in A, tired in B and C, none once she lets go.
   const rate = g < B0 ? 0.62 : 0.3;
   const stroke = Math.sin(g * rate) * (g < C0 ? 1 : 0.55 * (1 - stream) * (1 - year * 0.6));
@@ -109,27 +122,27 @@ export const SenoraShot: React.FC = () => {
       lookX: -0.55,
       lookY: -0.05 - 0.25 * sigh,
       squash: 0.95 - 0.05 * sigh,
-      blink: Math.max(0.3, 0.75 * sigh, blinkAt(g, 41)),
-      eyeScale: 0.92,
+      blink: Math.max(0.25, 0.75 * sigh, blinkAt(g, 41)),
+      eyeScale: 0.95,
     };
     ladyYaw = -0.35;
     sad = 0.9;
   } else {
-    ladyAt = lerp3(LADY_C, [LADY_C[0] - 0.42, 0, LADY_C[2] + 0.05], hug);
-    ladyYaw = mix(LADY_C_YAW, -0.8, hug);
+    ladyAt = lerp3(LADY_C, [LADY_C[0] - 0.4, 0, LADY_C[2] + 0.05], hug);
+    ladyYaw = mix(LADY_C_YAW, -0.55, hug);
     const reach = ramp(g, C0, TOME, [0, 1], EASE_IN_OUT);
-    const pop = windowIn(g, ANO, ANO + 16, 3);
+    const joy = windowIn(g, ANO, ANO + 18, 3);
     ladyBase = {
       ...mopping(stroke, 1 - 0.85 * year),
       finL: mix(mix(-0.1, TOUCH_LADY.finL ?? 0, reach), 0.5, year * (1 - stream)),
-      squash: (TOUCH_LADY.squash ?? 1) + 0.06 * year + 0.05 * pop,
-      hop: 0.8 * pop * Math.max(0, Math.sin((g - ANO) * 0.5)),
+      squash: (TOUCH_LADY.squash ?? 1) + 0.06 * year + 0.05 * joy,
+      hop: 0.9 * joy * Math.max(0, Math.sin((g - ANO) * 0.5)),
       lookX: -0.55,
       lookY: mix(-0.1, 0.15, year),
-      eyeScale: mix(0.95, 1.18, year) + 0.15 * pop,
-      blink: g < ANO ? Math.max(0.25, blinkAt(g, 41)) : blinkAt(g, 41),
+      eyeScale: mix(0.95, 1.2, year) + 0.15 * joy,
+      blink: g < ANO ? Math.max(0.2, blinkAt(g, 41)) : blinkAt(g, 41),
     };
-    if (g >= HUG - 4) {
+    if (g >= HUG0) {
       ladyBase = {
         ...ladyBase,
         finL: mix(ladyBase.finL ?? 0, 1.35, hug),
@@ -143,25 +156,27 @@ export const SenoraShot: React.FC = () => {
     sad = 0.85 * (1 - year);
     glint = year > 0 ? 0.5 + 0.5 * Math.sin(g * 0.5) : 0;
   }
-  const ladyPose = g >= L09 && g < C0 ? ladyTalk(g, ladyBase, 0.75) : ladyBase;
-  if (g >= L09 && g < C0) ladyPose.finR = ladyBase.finR;
+  const ladyTalks = g >= L09 && g < C0;
+  const ladyPose = ladyTalks ? ladyTalk(g, ladyBase, 0.75) : ladyBase;
+  if (ladyTalks) ladyPose.finR = ladyBase.finR;
 
   // The mop: head on the floor out to her screen-right, stick up to her fin tip.
   const mopTop = finTipWorld(ladyAt, ladyYaw, LADY_SIZE, ladyPose, "R");
   const headLocal: Vec3 = [0.95 + 0.34 * stroke, 0.0, 0.5 + 0.12 * Math.cos(g * rate)];
   const mopHead = add([ladyAt[0], 0, ladyAt[2]], rotY(headLocal, ladyYaw));
   const fallen: Vec3 = [mopHead[0] + 1.3, 0.06, mopHead[2] + 0.6];
-  const mopTopNow = g >= HUG - 4 ? lerp3(mopTop, fallen, drop) : mopTop;
+  const mopTopNow = g >= HUG0 ? lerp3(mopTop, fallen, drop) : mopTop;
+  const splash = g < B0 ? 1 : g < C0 ? 0.35 : 0;
 
   // ---- Nubi --------------------------------------------------------------------------
   let nubiAt: Vec3 = NUBI_A;
   let nubiYaw = 0.25;
   let nubiBase: NubiPose = {};
   let showNubi = true;
+  const arrive = ramp(g, RUN0, STOP, [0, 1], (x) => 1 - (1 - x) * (1 - x));
   if (g < B0) {
-    const run = ramp(g, RUN0, STOP, [0, 1], (x) => 1 - (1 - x) * (1 - x));
     showNubi = g >= RUN0 - 1;
-    nubiAt = lerp3([NUBI_A[0] - 4.2, 0, NUBI_A[2] + 0.2], NUBI_A, run);
+    nubiAt = lerp3([NUBI_A[0] - 4.6, 0, NUBI_A[2] + 0.2], NUBI_A, arrive);
     const skid = g >= STOP ? Math.exp(-(g - STOP) * 0.25) : 0;
     const ph = t * 14;
     const running = g < STOP ? 1 : 0;
@@ -173,17 +188,17 @@ export const SenoraShot: React.FC = () => {
       wigglePhase: ph * 2,
       finL: running * (0.5 + 0.4 * Math.sin(ph)) + (1 - running) * (0.85 + 0.1 * Math.sin(g * 0.4)),
       finR: running * (0.5 - 0.4 * Math.sin(ph)) + (1 - running) * (0.7 + 0.35 * windowIn(g, DIECIOCHO - 6, DIECIOCHO + 20, 5)),
-      eyeScale: running ? 1.15 : 1.45,
+      eyeScale: running ? 1.15 : 1.5,
       lookX: 0.55,
-      lookY: running ? 0 : 0.35,
+      lookY: running ? 0 : 0.3,
       roll: running * 0.06 * Math.sin(ph),
     };
-    nubiYaw = mix(0.9, 0.3, run);
+    nubiYaw = mix(0.9, 0.3, arrive);
   } else if (g < C0) {
     showNubi = false;
   } else {
     nubiAt = lerp3(NUBI_C, [NUBI_C[0] + 0.22, 0, NUBI_C[2]], hug);
-    nubiYaw = mix(NUBI_C_YAW, 0.7, hug);
+    nubiYaw = mix(NUBI_C_YAW, 0.55, hug);
     const reach = ramp(g, C0, TOME, [0, 1], EASE_IN_OUT);
     const offer = 1 - ramp(g, ANO + 20, ANO + 28, [0, 1], EASE_IN_OUT);
     const hopK = g >= INVITO && g < INVITO + 14 ? Math.sin((Math.PI * (g - INVITO)) / 14) : 0;
@@ -200,7 +215,7 @@ export const SenoraShot: React.FC = () => {
       wiggle: 0.6 * happy,
       wigglePhase: g * 0.6,
     };
-    if (g >= HUG - 4) {
+    if (g >= HUG0) {
       nubiBase = {
         ...nubiBase,
         finR: mix(nubiBase.finR ?? 0, 1.25, hug),
@@ -216,65 +231,86 @@ export const SenoraShot: React.FC = () => {
   if (g >= C0) {
     // The fin stays on hers while the year flows; the hug keeps its shape.
     nubiPose.finR = nubiBase.finR;
-    if (g >= HUG - 4) nubiPose.finL = nubiBase.finL;
+    if (g >= HUG0) nubiPose.finL = nubiBase.finL;
   }
 
   // ---- Cameras --------------------------------------------------------------------------
   let cam: Cam;
   if (g < B0) {
+    // Wide, creeping in; a little push on the skid.
     const u = ramp(g, START, B0, [0, 1], (x) => x);
-    cam = aim(lerp3([0.2, 2.8, 18.2], [0.1, 2.6, 16.6], u), 38, [LADY_A[0] - 1.2, 0, LADY_A[2] + 0.2], 490, 1262);
+    const push = ramp(g, STOP - 2, STOP + 14, [0, 1], EASE_OUT);
+    cam = aim(lerp3([0.2, 1.95, 21.8], [0.05, 1.85, 19.6], u * 0.75 + push * 0.25), 38, [NUBI_A[0] / 2 + LADY_A[0] / 2, 0, 0.7], 470, 1262);
   } else if (g < C0) {
     const u = ramp(g, B0, C0, [0, 1], (x) => x);
-    cam = aim(lerp3([1.9, 1.55, 7.9], [1.8, 1.5, 7.2], u), 38, [LADY_A[0], 0.9, LADY_A[2]], 575, 1010);
+    cam = aim(lerp3([2.4, 1.5, 10.6], [2.2, 1.45, 9.7], u), 38, [LADY_A[0], 0.93, LADY_A[2]], 560, 1030);
   } else {
     const u = ramp(g, C0, END, [0, 1], EASE_IN_OUT);
     const mid: Vec3 = [(NUBI_C[0] + LADY_C[0]) / 2, 0, (NUBI_C[2] + LADY_C[2]) / 2];
-    cam = aim(lerp3([0.4, 2.5, 16.0], [0.3, 2.3, 14.6], u), 38, mid, 505, 1262);
+    cam = aim(lerp3(add(mid, [0.35, 1.7, 16.3]), add(mid, [0.25, 1.55, 14.6]), u), 38, mid, 500, 1266);
   }
 
   // ---- Life counters --------------------------------------------------------------------
   const ladyS = LADY_SIZE / 10;
-  const ladyHead: Vec3 = [
-    ladyAt[0],
-    (ladyPose.hop ?? 0) * ladyS + LADY_BUN_TOP * ladyS * (ladyPose.squash ?? 1) + 0.1 + (showNubi ? LADY_LIFT : 0),
-    ladyAt[2],
-  ];
-  const nubiHead = headTop(nubiAt, NUBI_SIZE, nubiPose, 0.12);
-  const ladyC = counterAt(cam, ladyHead, { ref: 9, min: 0.85, max: 1.1 });
-  const nubiC = counterAt(cam, nubiHead, { ref: 9, min: 0.85, max: 1.1 });
+  const lift = g < B0 ? 0.78 * arrive : g < C0 ? 0 : 0.55;
+  const ladyHead: Vec3 = [ladyAt[0], (ladyPose.hop ?? 0) * ladyS + LADY_BUN_TOP * ladyS * (ladyPose.squash ?? 1) - 0.12 * (ladyPose.pitch ?? 0) + 0.1 + lift, ladyAt[2]];
+  const nubiHead = headTop(nubiAt, NUBI_SIZE, { ...nubiPose, hop: (nubiPose.hop ?? 0) * 0.5 }, 0.12);
+  const ladySecs = ladySeconds(g);
+  const nubiSecs = nubiSeconds(g);
+  const ladyC = keepInside(counterAt(cam, ladyHead, { ref: 9, min: 0.85, max: 1.0 }), ladySecs);
+  const nubiC = keepInside(counterAt(cam, nubiHead, { ref: 9, min: 0.85, max: 1.0 }), nubiSecs);
 
   // ---- FX positions --------------------------------------------------------------------
-  const nubiChest = add(nubiAt, rotY([0.35, 1.05, 0.6], nubiYaw));
-  const ladyChest = add(ladyAt, rotY([-0.2, 0.8, 0.5], ladyYaw));
+  const nubiChest = add(nubiAt, rotY([0.45, 1.05, 0.95], nubiYaw));
+  const ladyChest = add(ladyAt, rotY([-0.25, 0.85, 0.85], ladyYaw));
   const touchTip = finTipWorld(nubiAt, nubiYaw, NUBI_SIZE, nubiPose, "R");
   const touchK = g >= C0 ? windowIn(g, TOME - 1, ANO + 22, 4) : 0;
   const flash = g >= TOME ? Math.max(0, 1 - (g - TOME) / 10) : 0;
   const burst = g >= ANO ? Math.max(0, 1 - (g - ANO) / 14) : 0;
+  const pairMid: Vec3 = [(nubiAt[0] + ladyAt[0]) / 2, 0, (nubiAt[2] + ladyAt[2]) / 2];
+
+  const actors = (
+    <>
+      <Lady position={ladyAt} rotationY={ladyYaw} pose={ladyPose} sad={sad} glint={glint} />
+      <Mop head={mopHead} top={mopTopNow} />
+      {showNubi ? <Nubi size={NUBI_SIZE} position={nubiAt} rotationY={nubiYaw} pose={nubiPose} shadowOpacity={0.4} /> : null}
+    </>
+  );
+  const gift =
+    g >= C0 ? (
+      <LifeStream from={nubiChest} to={ladyChest} t={t} amount={stream} lift={0.55} />
+    ) : null;
 
   return (
     <AbsoluteFill style={{ background: HALL_BG }}>
       <Shake frame={g} impacts={[{ at: STOP, amp: 6, dur: 10 }, { at: ANO, amp: 5, dur: 10 }]}>
         <Stage cam={cam} near={0.1}>
           <HallLights />
+          {/* The gift warms the scene: green light at the fins, then a warm glow on both faces. */}
+          <pointLight position={[pairMid[0], 1.6, pairMid[2] + 1.4]} intensity={9 * stream} distance={6} decay={1.4} color="#7DFFAA" />
+          <pointLight position={[pairMid[0] + 0.4, 2.6, pairMid[2] + 3.2]} intensity={7 * warm} distance={9} decay={1.2} color="#FFC98A" />
           <Hallway t={t} />
-          <Lady position={ladyAt} rotationY={ladyYaw} pose={ladyPose} sad={sad} glint={glint} />
-          <Mop head={mopHead} top={mopTopNow} />
-          {showNubi ? <Nubi size={NUBI_SIZE} position={nubiAt} rotationY={nubiYaw} pose={nubiPose} shadowOpacity={0.4} /> : null}
-          <DustPuff frame={g} at={STOP} position={[NUBI_A[0], 0.02, NUBI_A[2]]} radius={1.0} color="#C9D4F0" count={10} />
+          {actors}
+          <HallReflection t={t}>
+            {actors}
+            {g >= C0 ? <LifeStream from={nubiChest} to={ladyChest} t={t} amount={stream * 0.4} lift={0.55} /> : null}
+          </HallReflection>
+          <Splashes g={g} origin={mopHead} amount={splash} />
+          <DustPuff frame={g} at={STOP} position={[NUBI_A[0], 0.02, NUBI_A[2]]} radius={1.0} color="#BFE3FF" count={12} />
           {g >= C0 ? (
             <>
-              <LifeStream from={nubiChest} to={ladyChest} t={t} amount={stream} lift={0.5} />
-              <Glow color="#6DFF9A" size={0.6 + 0.9 * flash + 0.12 * Math.sin(g * 0.7)} opacity={0.8 * touchK} position={touchTip} />
+              {gift}
+              <Glow color="#6DFF9A" size={0.45 + 0.9 * flash + 0.08 * Math.sin(g * 0.7)} opacity={0.85 * touchK} position={touchTip} />
+              <Twinkles frame={g} at={TOME} position={touchTip} radius={0.35} count={8} color="#D9FFE4" />
               <Glow color="#8DFFB0" size={2.6 * burst + 0.01} opacity={0.75 * burst} position={ladyChest} />
               <Twinkles frame={g} at={ANO} position={[ladyAt[0], 0.9, ladyAt[2]]} radius={1.0} count={14} color="#9DFFB8" />
-              <Hearts g={g} at={HUG} position={[(nubiAt[0] + ladyAt[0]) / 2, 1.9, (nubiAt[2] + ladyAt[2]) / 2 + 0.3]} count={8} />
+              <Hearts g={g} at={HUG - 3} position={[pairMid[0], 1.7, pairMid[2] + 0.3]} count={11} every={1.6} />
             </>
           ) : null}
         </Stage>
-        {!ladyC.behind ? <LifeCounter frame={g} seconds={ladySeconds(g)} {...ladyC} events={LADY_EVENTS} /> : null}
+        {!ladyC.behind ? <LifeCounter frame={g} seconds={ladySecs} {...ladyC} events={LADY_EVENTS} /> : null}
         {showNubi && !nubiC.behind ? (
-          <LifeCounter frame={g} seconds={nubiSeconds(g)} {...nubiC} events={NUBI_EVENTS} draining={nubiDraining(g)} frozen={nubiHolding(g)} />
+          <LifeCounter frame={g} seconds={nubiSecs} {...nubiC} events={NUBI_EVENTS} draining={nubiDraining(g)} frozen={nubiHolding(g)} />
         ) : null}
       </Shake>
     </AbsoluteFill>

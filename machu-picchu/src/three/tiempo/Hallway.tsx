@@ -197,18 +197,18 @@ const texMat = (key: string, tex: () => THREE.Texture, o: { rough?: number; glow
 
 /** The hallway: floor y = 0 from the back wall (zBack) towards +z; side walls at x0/x1. */
 export const HALL = { x0: -10, x1: 10, zBack: -3.6, height: 7.2 };
-const HALL_WINDOWS = [-4.4, -1.6, 1.2];
+const HALL_WINDOWS = [-5.0, -2.2, 0.6];
 const HALL_WIN = { w: 2.5, y0: 0.62, y1: 6.45 };
 /** The night city behind the windows (a plane `VIEW.back` behind the wall). */
 const VIEW = { w: 36, h: 13.5, y: 4.6, back: 5 };
 /** The vending machine (base centre) against the back wall, right of the windows. */
-export const HALL_VENDING: V3 = [4.05, 0, HALL.zBack + 0.5];
+export const HALL_VENDING: V3 = [3.15, 0, HALL.zBack + 0.5];
 /** TIMECO's red neon over the vending machine. */
-export const HALL_LOGO: V3 = [4.05, 4.15, HALL.zBack + 0.06];
+export const HALL_LOGO: V3 = [3.15, 4.3, HALL.zBack + 0.06];
 /** The yellow "PISO MOJADO" sign. */
-export const HALL_SIGN: V3 = [-0.35, 0, -1.55];
+export const HALL_SIGN: V3 = [-3.1, 0, -0.5];
 /** The mop bucket. */
-export const HALL_BUCKET: V3 = [2.75, 0, -0.45];
+export const HALL_BUCKET: V3 = [2.5, 0, -0.35];
 /** Where the old lady mops. */
 export const HALL_LADY: V3 = [1.05, 0, 0.55];
 /** Night colour behind the canvas. */
@@ -297,7 +297,7 @@ const nightTex = () =>
     }
     ctx.globalAlpha = 1;
     // The moon, big and soft.
-    const mx = toX(1.6);
+    const mx = toX(1.0);
     const my = toY(6.3);
     const mr = (0.62 / VIEW.h) * H;
     const halo = ctx.createRadialGradient(mx, my, mr * 0.8, mx, my, mr * 5);
@@ -316,7 +316,7 @@ const nightTex = () =>
     ctx.arc(mx + mr * 0.1, my - mr * 0.45, mr * 0.09, 0, Math.PI * 2);
     ctx.fill();
     // TIMECO's tower far away, its red ring glowing.
-    const tx = toX(-3.3);
+    const tx = toX(-2.9);
     const tTop = toY(6.9);
     const tw = (0.9 / VIEW.w) * W;
     ctx.fillStyle = "#14204E";
@@ -670,8 +670,8 @@ const hallGeos = once(() => {
     glass: new THREE.PlaneGeometry(HALL_WIN.w, h),
     view: new THREE.PlaneGeometry(VIEW.w, VIEW.h),
     plane: new THREE.PlaneGeometry(1, 1),
-    neon: new THREE.PlaneGeometry(2.5, 0.73),
-    neonBox: rbox(2.7, 0.9, 0.08, 0.06),
+    neon: new THREE.PlaneGeometry(2.0, 0.585),
+    neonBox: rbox(2.16, 0.74, 0.08, 0.06),
   };
 });
 
@@ -704,7 +704,7 @@ export const HallSet: React.FC<{ t?: number }> = ({ t = 0 }) => {
       <group position={HALL_VENDING}>
         <VendingMachine t={t} />
       </group>
-      <group position={HALL_SIGN} rotation={[0, 0.18, 0]}>
+      <group position={HALL_SIGN} rotation={[0, 0.28, 0]}>
         <WetFloorSign />
       </group>
       <group position={HALL_BUCKET} rotation={[0, -0.35, 0]}>

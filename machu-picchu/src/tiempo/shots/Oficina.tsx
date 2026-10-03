@@ -42,12 +42,14 @@ import { coworkerTalk, tiempoTalk } from "../talk";
 //   stamping "LISTO" (+00:05:00 on their counters), the giant clock, the logo, the windows.
 // B (→ BELL) the two-shot: Nubi at its desk beside the coworker. The working day in a time-lapse
 //   (LAPSE → LAPSE_END): the clock spins 9:00 → 17:00, the windows go from morning to sunset,
-//   everyone types in fast-forward, every counter drops 8 hours. At DIA the rule lightbox
-//   "8 H DE TRABAJO = +1 DÍA DE VIDA" lights up (the lead's sticker covers y 260-460 then: the
-//   clock has risen out of that band by DIA).
-// C (BELL → END) the bell rings; the coworker slams ENVIAR and stretches; his counter pops
-//   "+00:03:00" at REWARD; the PRODUCTIVIDAD screen shows "2%"; he turns to Nubi for L07; Nubi
-//   stares at the tiny reward.
+//   everyone types in fast-forward, every counter drops 8 hours. The camera cranes up so that by
+//   DIA the spinning clock sits behind the lead's rule sticker (y ≈ 190-475, DIA → END−10) and the
+//   rule lightbox "8 H DE TRABAJO = +1 DÍA DE VIDA" lights up just below it.
+// C (BELL → END) the bell rings (the rule lightbox goes dark); the coworker slams ENVIAR and
+//   stretches; his counter pops "+00:03:00" at REWARD; the PRODUCTIVIDAD screen (below the
+//   sticker band) shows "2%"; he turns to Nubi for L07; Nubi stares at the tiny reward.
+// Nubi and the coworker stand side by side, so his counter floats higher (CW_LIFT) and the extras
+// right behind the double desk (BEHIND) are left out of the two-shots (empty desks).
 
 const FPS = 30;
 const NUBI_SIZE = 2;
@@ -192,10 +194,10 @@ export const OficinaShot: React.FC = () => {
   } else {
     cwBase = {
       finL: mix(mix(-0.2, 1.2, slamUp) - 1.95 * slamHit, 2.3, stretch) * (1 - turn * 0.6) + (1 - slamK) * (1 - stretch) * -0.2,
-      finR: mix(0.05, 2.0, stretch) + 0.75 * sip,
+      finR: mix(0.05, 2.6, stretch) + 0.75 * sip,
       yaw: mix(SLAM_POSE.yaw ?? 0, 0, 1 - slamK) * (1 - stretch) - 0.6 * turn,
-      pitch: 0.1 * slamK - 0.08 * stretch,
-      squash: 1 - 0.06 * slamHit + 0.15 * stretch,
+      pitch: 0.1 * slamK - 0.16 * stretch,
+      squash: 1 - 0.06 * slamHit + 0.2 * stretch,
       hop: 0.7 * stretch,
       roll: 0.05 * stretch * Math.sin(t * 5),
       blink: Math.max(0.95 * stretch, 0.1),
