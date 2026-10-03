@@ -358,7 +358,7 @@ export const LifeCounter: React.FC<{
   if (inK <= 0 || opacity <= 0) return null;
   const inPop = appear === undefined ? 1 : pop(frame, appear, { damping: 12, stiffness: 210 });
   const alarm = draining || tier === "seconds";
-  const pal = gold ? COUNTER_PAL.gold : alarm ? COUNTER_PAL.alarm : frozen ? COUNTER_PAL.frozen : COUNTER_PAL[tier === "seconds" ? "hours" : tier];
+  const pal = gold ? COUNTER_PAL.gold : alarm ? COUNTER_PAL.alarm : frozen ? COUNTER_PAL.frozen : COUNTER_PAL[tier];
   // Fast changes: draining, `fast`, or the first frames after an event.
   const eventHot = events.reduce((m, e) => Math.max(m, frame >= e.at && frame < e.at + 16 ? 1 - (frame - e.at) / 16 : 0), 0);
   const cascade = frozen ? 0 : Math.max(fast || draining ? 1 : 0, Math.min(1, eventHot * 1.8));
