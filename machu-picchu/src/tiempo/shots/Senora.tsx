@@ -154,7 +154,8 @@ export const SenoraShot: React.FC = () => {
       };
     }
     sad = 0.85 * (1 - year);
-    glint = year > 0 ? 0.5 + 0.5 * Math.sin(g * 0.5) : 0;
+    // A twinkle across her glasses as the year lands.
+    glint = windowIn(g, ANO + 2, ANO + 16, 5);
   }
   const ladyTalks = g >= L09 && g < C0;
   const ladyPose = ladyTalks ? ladyTalk(g, ladyBase, 0.75) : ladyBase;
@@ -264,8 +265,9 @@ export const SenoraShot: React.FC = () => {
 
   // ---- FX positions --------------------------------------------------------------------
   // The life leaves Nubi's side by its fin, crosses the touching fin tips and sinks into her apron.
-  const nubiChest = add(nubiAt, rotY([0.92, 0.9, 0.55], nubiYaw));
-  const ladyChest = add(ladyAt, rotY([-0.35, 0.58, 0.95], ladyYaw));
+  const nubiChest = add(nubiAt, rotY([0.84, 0.76, 0.85], nubiYaw));
+  const streamEnd = add(ladyAt, rotY([-0.58, 0.42, 0.9], ladyYaw));
+  const ladyChest = add(ladyAt, rotY([-0.1, 0.55, 0.9], ladyYaw));
   const touchTip = finTipWorld(nubiAt, nubiYaw, NUBI_SIZE, nubiPose, "R");
   const contact: Vec3 = [touchTip[0] + 0.02, touchTip[1] - 0.03, touchTip[2] + 0.05];
   const touchK = g >= C0 ? windowIn(g, TOME - 1, ANO + 22, 4) : 0;
@@ -282,7 +284,7 @@ export const SenoraShot: React.FC = () => {
   );
   const gift =
     g >= C0 ? (
-      <LifeStream from={nubiChest} to={ladyChest} via={contact} t={t} amount={stream} width={0.09} />
+      <LifeStream from={nubiChest} to={streamEnd} via={contact} t={t} amount={stream} width={0.09} onTop />
     ) : null;
 
   return (
@@ -291,13 +293,13 @@ export const SenoraShot: React.FC = () => {
         <Stage cam={cam} near={0.1}>
           <HallLights />
           {/* The gift warms the scene: green light at the fins, then a warm glow on both faces. */}
-          <pointLight position={[pairMid[0], 1.7, pairMid[2] + 1.6]} intensity={3.2 * stream} distance={5} decay={1.5} color="#7DFFAA" />
-          <pointLight position={[pairMid[0] + 0.3, 5.5, pairMid[2] + 2.4]} intensity={6 * warm} distance={10} decay={1.1} color="#FFC98A" />
+          <pointLight position={[pairMid[0], 1.7, pairMid[2] + 1.6]} intensity={2.2 * stream} distance={5} decay={1.5} color="#7DFFAA" />
+          <pointLight position={[pairMid[0] + 0.3, 5.5, pairMid[2] + 2.4]} intensity={4.5 * warm} distance={10} decay={1.1} color="#FFC98A" />
           <Hallway t={t} />
           {actors}
           <HallReflection t={t}>
             {actors}
-            {g >= C0 ? <LifeStream from={nubiChest} to={ladyChest} via={contact} t={t} amount={stream * 0.35} width={0.09} /> : null}
+            {g >= C0 ? <LifeStream from={nubiChest} to={streamEnd} via={contact} t={t} amount={stream * 0.35} width={0.09} /> : null}
           </HallReflection>
           <Splashes g={g} origin={mopHead} amount={splash} />
           <DustPuff frame={g} at={STOP} position={[NUBI_A[0], 0.02, NUBI_A[2]]} radius={1.0} color="#BFE3FF" count={12} />
@@ -307,8 +309,8 @@ export const SenoraShot: React.FC = () => {
               <Glow color="#6DFF9A" size={0.32 + 0.8 * flash + 0.06 * Math.sin(g * 0.7)} opacity={0.75 * touchK} position={contact} />
               <Twinkles frame={g} at={TOME} position={contact} radius={0.35} count={8} color="#D9FFE4" />
               {/* Her body fills up with green life while it flows in. */}
-              <Glow color="#4DFF88" size={1.1 + 0.25 * Math.sin(g * 0.4)} opacity={0.32 * stream} position={ladyChest} />
-              <Glow color="#5DFF95" size={1.5 * burst + 0.01} opacity={0.55 * burst} position={ladyChest} />
+              <Glow color="#4DFF88" size={0.9 + 0.2 * Math.sin(g * 0.4)} opacity={0.2 * stream} position={ladyChest} />
+              <Glow color="#5DFF95" size={1.6 * burst + 0.01} opacity={0.45 * burst} position={ladyChest} />
               <Twinkles frame={g} at={ANO} position={[ladyAt[0], 0.9, ladyAt[2]]} radius={1.0} count={14} color="#9DFFB8" />
               <Hearts g={g} at={HUG - 4} position={[pairMid[0] + 0.1, 1.05, pairMid[2] + 0.9]} count={12} every={1.5} spread={2.0} rise={1.5} />
             </>

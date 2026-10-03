@@ -835,7 +835,7 @@ export const LadyOutfit: React.FC<{ pose: NubiPose; sad?: number; glint?: number
   const mt = ladyMats();
   const { ex, ey } = eyeShape(pose);
   const lensMat = useMemo(() => new THREE.MeshBasicMaterial({ color: "#FFFFFF", transparent: true, opacity: 0.12, depthWrite: false }), []);
-  lensMat.opacity = 0.08 + 0.45 * glint;
+  lensMat.opacity = 0.08 + 0.3 * glint;
   const F = NB.front;
   return (
     <group>
@@ -936,10 +936,23 @@ export const Splashes: React.FC<{ g: number; origin: V3; amount: number; count?:
  * `via` halfway), each one spiralling a little, with bright cores and gold sparkles. `amount`
  * 0..1 fades it (it grows out of `from` as it fades in); `t` = seconds.
  */
-export const LifeStream: React.FC<{ from: V3; to: V3; via?: V3; t: number; amount: number; count?: number; lift?: number; width?: number; color?: string }> = ({
+export const LifeStream: React.FC<{
+  from: V3;
+  to: V3;
+  via?: V3;
+  t: number;
+  amount: number;
+  count?: number;
+  lift?: number;
+  width?: number;
+  color?: string;
+  /** Draw over the bodies (the life shows flowing through the fins). */
+  onTop?: boolean;
+}> = ({
   from,
   to,
   via,
+  onTop = false,
   t,
   amount,
   count = 52,
@@ -947,9 +960,9 @@ export const LifeStream: React.FC<{ from: V3; to: V3; via?: V3; t: number; amoun
   width = 0.13,
   color = "#2BFF6E",
 }) => {
-  const glow = useMemo(() => additive(new THREE.SpriteMaterial({ map: glowTexture(), color, toneMapped: false })), [color]);
-  const core = useMemo(() => additive(new THREE.SpriteMaterial({ map: glowTexture(), color: "#C8FFD8", toneMapped: false })), []);
-  const gold = useMemo(() => additive(new THREE.SpriteMaterial({ map: glowTexture(), color: "#FFE58A", toneMapped: false })), []);
+  const glow = useMemo(() => additive(new THREE.SpriteMaterial({ map: glowTexture(), color, toneMapped: false, depthTest: !onTop })), [color, onTop]);
+  const core = useMemo(() => additive(new THREE.SpriteMaterial({ map: glowTexture(), color: "#C8FFD8", toneMapped: false, depthTest: !onTop })), [onTop]);
+  const gold = useMemo(() => additive(new THREE.SpriteMaterial({ map: glowTexture(), color: "#FFE58A", toneMapped: false, depthTest: !onTop })), [onTop]);
   if (amount <= 0.01) return null;
   glow.opacity = Math.min(1, amount) * 0.85;
   core.opacity = Math.min(1, amount) * 0.9;
