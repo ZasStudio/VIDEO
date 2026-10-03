@@ -52,9 +52,11 @@ const NUBI_SIZE = 2;
 /** Workers who stamp a paper in the wide shot (index into OFFICE_WORKERS, frames after START). */
 const STAMPERS: [number, number][] = [
   [5, 7],
-  [8, 15],
-  [1, 23],
+  [6, 15],
+  [9, 23],
 ];
+/** The coworker's counter floats a little higher than Nubi's (they stand side by side). */
+const CW_LIFT = 0.9;
 /** The coworker slams ENVIAR with his screen-left fin, twisted towards it. */
 const SLAM_POSE: NubiPose = { finL: -0.75, yaw: 0.45, pitch: 0.1 };
 const ENVIAR_TIP = finTipWorld(OFFICE_COWORKER, 0, COWORKER_SIZE, SLAM_POSE, "L");
@@ -176,16 +178,17 @@ export const OficinaShot: React.FC = () => {
   let cam: Cam;
   const sweepA = ramp(g, START, A_END, [0, 1], (x) => x);
   if (g < A_END) {
-    cam = aim(lerp3([1.2, 8.6, 17.5], [0.6, 7.6, 15.2], sweepA), 46, [0, 1.6, -5.5], 540, 760);
+    cam = aim(lerp3([-0.3, 7.4, 10.8], [-0.3, 6.8, 9.6], sweepA), 46, [0, 0.6, -3.6], 510, 1150);
   } else if (g < BELL) {
-    // Crane down from the clock to the two of them as the day goes by.
-    const u = ramp(g, A_END, DIA - 4, [0, 1], EASE_IN_OUT);
-    const v = ramp(g, DIA - 4, BELL, [0, 1], (x) => x);
-    const pos = lerp3(lerp3([-3.4, 5.2, 12.2], [-3.0, 3.6, 10.8], u), [-2.9, 3.5, 10.4], v);
-    cam = aim(pos, 38, [OFFICE_NUBI[0], 1.0, OFFICE_NUBI[2]], 330, mix(1150, 1035, u));
+    // Crane up as the day goes by: the spinning clock rises behind the lead's sticker by DIA and
+    // the rule lightbox under it comes into view just as it lights up.
+    const u = ramp(g, A_END, DIA - 3, [0, 1], EASE_IN_OUT);
+    const v = ramp(g, DIA - 3, BELL, [0, 1], (x) => x);
+    const pos = lerp3(lerp3([-1.0, 2.5, 15.0], [-1.0, 5.8, 15.2], u), [-1.0, 5.9, 14.7], v);
+    cam = aim(pos, 38, [OFFICE_NUBI[0], 1.0, OFFICE_NUBI[2]], 310, 1085);
   } else {
     const u = ramp(g, BELL, END, [0, 1], (x) => x);
-    cam = aim(lerp3([3.2, 3.3, 9.6], [2.9, 3.2, 8.9], u), 38, [OFFICE_COWORKER[0], 1.0, OFFICE_COWORKER[2]], 690, 1060);
+    cam = aim(lerp3([1.6, 4.2, 15.0], [1.4, 4.0, 13.8], u), 38, [0, 1.0, OFFICE_COWORKER[2]], 520, mix(1085, 1100, u));
   }
 
   // ---- Life counters --------------------------------------------------------------------
@@ -202,7 +205,7 @@ export const OficinaShot: React.FC = () => {
     tags.push({ key: `w${i}`, d: dist(p), node: <LifeCounter key={`w${i}`} frame={g} seconds={secs} {...c} events={events} /> });
   });
   const nubiHead = headTop(OFFICE_NUBI, NUBI_SIZE, nubiPose, 0.12);
-  const cwHead = headTop(OFFICE_COWORKER, COWORKER_SIZE, cwPose, 0.12);
+  const cwHead = headTop(OFFICE_COWORKER, COWORKER_SIZE, cwPose, 0.12 + (g < A_END ? 0 : CW_LIFT));
   const mainOpts = { ref: 9, min: 0.85, max: 1.1 };
   const nubiC = counterAt(cam, nubiHead, mainOpts);
   const cwC = counterAt(cam, cwHead, mainOpts);

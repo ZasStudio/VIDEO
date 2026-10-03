@@ -14,7 +14,8 @@ import {
 } from "../overlay/tiempo/TiempoUI";
 import { CARGO, COMPRAS, ESCALA, FINAL, HOOK, OFICINA, TIMECO } from "./beats";
 
-/** Price stickers sit in the calm top band the shots keep free (x 200-800, y 240-450). */
+/** Price stickers sit in the calm top band the shots keep free (x 200-800, y 240-450). Each overlay
+ * leaves 10-14 frames after its `out`, so `out` is set that much before the cut. */
 const PRICE_X = 500;
 const PRICE_Y = 360;
 
@@ -25,18 +26,18 @@ export const TiempoOverlays: React.FC = () => {
     <AbsoluteFill style={{ pointerEvents: "none" }}>
       <TitleSticker frame={g} at={HOOK.START + 4} out={HOOK.END - 16} />
 
-      <PriceSticker frame={g} at={COMPRAS.SEIS - 2} out={COMPRAS.PIZZA - 2} x={PRICE_X} y={PRICE_Y} item="JUGO" price="6 HORAS" />
-      <PriceSticker frame={g} at={COMPRAS.TRES} out={COMPRAS.END - 2} x={PRICE_X} y={PRICE_Y} item="PIZZA" price="3 DÍAS" />
+      <PriceSticker frame={g} at={COMPRAS.SEIS - 2} out={COMPRAS.PIZZA - 10} x={PRICE_X} y={PRICE_Y} item="JUGO" price="6 HORAS" />
+      <PriceSticker frame={g} at={COMPRAS.TRES} out={COMPRAS.END - 10} x={PRICE_X} y={PRICE_Y} item="PIZZA" price="3 DÍAS" />
       <PriceSticker frame={g} at={ESCALA.MES} out={ESCALA.AUTO - 2} x={PRICE_X} y={PRICE_Y} item="CELULAR" price="1 MES" />
-      <PriceSticker frame={g} at={ESCALA.ANOS} out={ESCALA.CASA_CUT - 2} x={PRICE_X} y={PRICE_Y} item="AUTO" price="5 AÑOS" />
-      <PriceSticker frame={g} at={ESCALA.CASA} out={ESCALA.END - 4} x={PRICE_X} y={PRICE_Y} item="CASA" price="40 AÑOS" />
+      <PriceSticker frame={g} at={ESCALA.ANOS} out={ESCALA.CASA_CUT - 10} x={PRICE_X} y={PRICE_Y} item="AUTO" price="5 AÑOS" />
+      <PriceSticker frame={g} at={ESCALA.CASA} out={ESCALA.END - 10} x={PRICE_X} y={PRICE_Y} item="CASA" price="40 AÑOS" />
 
       {/* The rule, with its fine print dropping in on the coworker's "productivo". */}
-      <RuleSign frame={g} at={OFICINA.DIA} out={OFICINA.END} x={500} y={370} asteriskAt={OFICINA.PRODUCTIVO} scale={0.92} />
+      <RuleSign frame={g} at={OFICINA.DIA} out={OFICINA.END - 10} x={500} y={370} asteriskAt={OFICINA.PRODUCTIVO} scale={0.92} />
 
       <TimecoNotification frame={g} at={CARGO.NOTIF} out={CARGO.EXHALE} thanksAt={CARGO.GRACIAS} />
 
-      <ExtractionScreen frame={g} at={TIMECO.SCREEN} out={TIMECO.END} />
+      <ExtractionScreen frame={g} at={TIMECO.SCREEN} out={TIMECO.END - 14} />
 
       <ScanStamp frame={g} at={FINAL.SCAN} out={FINAL.MULTA - 2} x={500} y={760} stampAt={FINAL.L14 + 4} />
       <CrashGlitch frame={g} at={FINAL.MULTA - 1} />

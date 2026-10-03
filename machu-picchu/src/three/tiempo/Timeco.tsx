@@ -172,8 +172,8 @@ const usePoints = (count: number, color: string, core: string) => {
 export const TOWER_AT: V3 = [0, 0, -400];
 /** The hourglass: plates (top and bottom), glass bulbs, waist, posts. Heights above the ground. */
 export const HG = { plateR: 37, plateH: 6, bulbR: 31, waistR: 4, waistY: 75, top: 150, postR: 34.5 };
-/** The gatehouse at the tower's base and its gigantic door (front face at z = front). */
-export const GATE = { w: 30, h: 38, depth: 28, front: TOWER_AT[2] + 38, doorW: 14, doorH: 24 };
+/** The gatehouse in front of the tower's base and its gigantic door (front face at z = front). */
+export const GATE = { w: 30, h: 38, depth: 28, front: TOWER_AT[2] + 66, doorW: 14, doorH: 24 };
 /** The premium plaza (marble) and its storefront rows. */
 export const PLAZA = { x: 13, z0: -40, z1: 36 };
 /** Alarma: where Nubi ends its happy walk on the plaza (camera looking +z). */
@@ -1251,8 +1251,8 @@ const TOWER_GEO = once(() => {
     const NY = 6;
     const a0 = -0.62;
     const a1 = 0.62;
-    const y0 = 40;
-    const y1 = 61;
+    const y0 = 44;
+    const y1 = 65;
     const vert = (i: number, j: number) => {
       const a = a0 + ((a1 - a0) * i) / NA;
       const y = y0 + ((y1 - y0) * j) / NY;
@@ -1406,7 +1406,7 @@ export const TimecoTower: React.FC<{ t?: number; screen?: number; door?: number;
       <mesh geometry={G.avB} material={blink ? mats.avOff : mats.avOn} />
       <mesh geometry={G.glass} material={glassMat()} renderOrder={2} />
       <mesh geometry={G.screen} material={mats.screen} />
-      {on > 0.02 ? <Halo color="#FF2A2A" size={70} opacity={0.45 * on} position={[0, 50, bulbRadius(50) + 6]} /> : null}
+      {on > 0.02 ? <Halo color="#FF2A2A" size={70} opacity={0.45 * on} position={[0, 54, bulbRadius(54) + 6]} /> : null}
       {wordMat ? <mesh geometry={G.word} material={wordMat} renderOrder={3} /> : null}
       <group position={[0, logoY, logoZ]} rotation={[-0.1, 0, 0]}>
         <mesh geometry={G.frame} material={vertexMat(0.4, false, 0.1, 0.4)} />
@@ -1679,7 +1679,7 @@ export const DoorSpill: React.FC<{ open: number; t: number; fog?: number }> = ({
     return { volume: mk("#FFD9A0"), pool: mk("#FFE7B8"), puffs };
   }, []);
   const k = smooth(0, 0.45, open);
-  mats.volume.uniforms.uOpacity.value = 0.42 * k;
+  mats.volume.uniforms.uOpacity.value = 0.6 * k;
   mats.volume.uniforms.uTime.value = t;
   mats.pool.uniforms.uOpacity.value = 0.9 * k;
   mats.pool.uniforms.uTime.value = t;
@@ -1698,7 +1698,7 @@ export const DoorSpill: React.FC<{ open: number; t: number; fog?: number }> = ({
             const reach = p * 30 * (0.3 + 0.7 * fk);
             const side = (hash(i * 3.3) - 0.5) * (GATE.doorW * 0.8 + reach * 1.1);
             const s = 5 + 14 * p + 4 * hash(i * 1.9);
-            m.opacity = fk * 0.3 * Math.sin(Math.PI * Math.min(1, p * 1.15)) * (0.6 + 0.4 * hash(i * 7.7));
+            m.opacity = fk * 0.42 * Math.sin(Math.PI * Math.min(1, p * 1.15)) * (0.6 + 0.4 * hash(i * 7.7));
             return <sprite key={i} material={m} position={[side, 0.6 + s * 0.16, 1 + reach]} scale={[s * 1.4, s * 0.55, 1]} renderOrder={8} />;
           })
         : null}

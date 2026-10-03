@@ -914,21 +914,23 @@ const MON = { w: 0.94, h: 0.66, d: 0.36, stand: 0.2 };
 /** z of a worker behind a desk, relative to the desk centre. */
 const STAND = -0.62;
 const COLS = [-7.5, -4.5, -1.5, 1.5, 4.5, 7.5];
-const ROWS = [0, -3.6, -7.2, -10.8];
+const ROWS = [0, -4.2, -8.4];
 
 /** The office: side walls at x0/x1, back wall at zBack, ceiling at `height`, desk tops at deskTop. */
-export const OFFICE = { x0: -10, x1: 10, zBack: -13.6, height: 9, deskTop: DESK.top };
+export const OFFICE = { x0: -10, x1: 10, zBack: -12.2, height: 9, deskTop: DESK.top };
 export type Desk = { x: number; z: number; side: 1 | -1; hero?: boolean };
 /** Nubi and the coworker share the double desk at the front-row centre: half-width of its stations. */
 const PAIR = 1.15;
 /**
  * Every desk (centre x/z) and the corner its monitor stands on (−1 left, +1 right). The two front
- * desks in the middle are the double desk of Nubi and the coworker (`hero`).
+ * desks in the middle are the double desk of Nubi and the coworker (`hero`); behind them an aisle
+ * runs down the middle to the clock wall.
  */
 export const OFFICE_DESKS: Desk[] = ROWS.flatMap((z) =>
-  COLS.map((x, i) => {
+  COLS.flatMap((x, i) => {
     const side = (i % 2 === 0 ? -1 : 1) as 1 | -1;
-    return z === 0 && Math.abs(x) < 2 ? { x: Math.sign(x) * PAIR, z, side, hero: true } : { x, z, side };
+    if (Math.abs(x) < 2) return z === 0 ? [{ x: Math.sign(x) * PAIR, z, side, hero: true }] : [];
+    return [{ x, z, side }];
   }),
 );
 /** Where Nubi (size 2) and the coworker stand at their double desk in the front row, facing +z. */
@@ -938,12 +940,12 @@ export const OFFICE_COWORKER: V3 = [PAIR, 0, STAND];
 export const OFFICE_NUBI_DESK: V3 = [-PAIR, 0, 0];
 export const OFFICE_COWORKER_DESK: V3 = [PAIR, 0, 0];
 /** The giant wall clock (centre of its face), the rule lightbox and the PRODUCTIVIDAD screen. */
-export const OFFICE_CLOCK: V3 = [0, 5.35, OFFICE.zBack + 0.22];
+export const OFFICE_CLOCK: V3 = [0, 5.2, OFFICE.zBack + 0.22];
 export const CLOCK_R = 1.75;
-export const OFFICE_RULE: V3 = [0, 2.65, OFFICE.zBack + 0.12];
-export const OFFICE_PROD: V3 = [3.4, 5.0, OFFICE.zBack + 0.12];
-const POSTER_AT: V3 = [-3.4, 5.0, OFFICE.zBack + 0.04];
-const LOGO_AT: V3 = [0, 7.95, OFFICE.zBack + 0.04];
+export const OFFICE_RULE: V3 = [0, 2.55, OFFICE.zBack + 0.12];
+export const OFFICE_PROD: V3 = [-3.5, 5.3, OFFICE.zBack + 0.12];
+const POSTER_AT: V3 = [3.5, 5.0, OFFICE.zBack + 0.04];
+const LOGO_AT: V3 = [0, 7.85, OFFICE.zBack + 0.04];
 const WIN = { x: 4.8, y0: 0.75, y1: 7.4 };
 
 const monitorMatrix = (d: Desk) =>
@@ -1160,7 +1162,7 @@ export const Office: React.FC<{ t?: number; day?: number; hours?: number; ring?:
     ];
     // Ceiling light panels.
     const panels: THREE.BufferGeometry[] = [];
-    for (const z of [3, -1.8, -5.4, -9.0, -12.4]) {
+    for (const z of [3, -2.1, -6.3, -10.5]) {
       for (const x of [-6, -2, 2, 6]) {
         const p = new THREE.PlaneGeometry(2.4, 0.55);
         p.rotateX(Math.PI / 2);
