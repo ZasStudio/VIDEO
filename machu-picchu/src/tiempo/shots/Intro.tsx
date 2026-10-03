@@ -6,7 +6,7 @@ import { Shake, Stage } from "../../scenes/common";
 import { aim } from "../../thanos/camera";
 import { Vec3 } from "../../three/CameraRig";
 import { Nubi, NubiPose } from "../../three/Nubi";
-import { Civilian, civilianIdle, civilianLook, civilianWalk } from "../../three/agua/Street";
+import { Civilian, civilianLook, civilianWalk } from "../../three/agua/Street";
 import { Banknote, MARKET, MARKET_SKY, MarketLights, MarketStreet, SandGlints } from "../../three/tiempo/Market";
 import { HOOK } from "../beats";
 import { NUBI_EVENTS, extraSeconds, nubiDraining, nubiHolding, nubiSeconds } from "../clock";
@@ -26,14 +26,13 @@ import { tiempoTalk } from "../talk";
 const FPS = 30;
 const FOV = 36;
 const NUBI = MARKET.introNubi;
-const EYE: Vec3 = [NUBI[0], NUBI[1] + 1.12, NUBI[2]];
+const EYE: Vec3 = [NUBI[0], NUBI[1] + 1.12, NUBI[2] + 0.9];
 const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 
 /** Passers-by behind Nubi: [seed, x at frame 0, z, speed (units/s, 0 = standing), facing]. */
 const WALKERS: [number, number, number, number, number][] = [
-  [3, -3.9, -3.7, 0.55, Math.PI / 2],
-  [8, 4.3, -4.5, -0.5, -Math.PI / 2],
-  [12, 2.7, -2.9, 0, -0.45],
+  [3, -3.1, -3.9, 0.42, Math.PI / 2 - 0.75],
+  [8, 3.4, -4.7, -0.4, -Math.PI / 2 + 0.75],
 ];
 
 export const IntroShot: React.FC = () => {
@@ -46,11 +45,11 @@ export const IntroShot: React.FC = () => {
   const rise = ramp(g, TIEMPO - 2, TIEMPO + 16, [0, 1], EASE_IN_OUT);
   const dist = lerp(9.7, 8.9, push) - 0.9 * rise;
   const position: Vec3 = [0.4 - 0.15 * rise + 0.08 * Math.sin(t * 0.7), 1.45 + 1.7 * rise, NUBI[2] + dist];
-  const cam = aim(position, FOV, EYE, 540, lerp(985, 1150, rise));
+  const cam = aim(position, FOV, EYE, 540, lerp(975, 1105, rise));
 
   // ---- The banknote: flutters in from the upper left, crumbles on DINERO + 2.
   const fallU = ramp(g, DINERO - 16, DINERO + 10, [0, 1], (x) => x);
-  const notePos: Vec3 = [lerp(-1.75, -0.62, fallU) + 0.14 * Math.sin(g * 0.24), lerp(2.45, 1.25, fallU), NUBI[2] + 1.75];
+  const notePos: Vec3 = [lerp(-1.45, -0.42, fallU) + 0.14 * Math.sin(g * 0.24), lerp(2.4, 1.2, fallU), NUBI[2] + 1.75];
   const noteRot: Vec3 = [0.35 + 0.45 * Math.sin(g * 0.29), 0.35 * Math.sin(g * 0.21), 0.55 * Math.sin(g * 0.17)];
   const crumbleAt = DINERO + 2;
   const showNote = g >= DINERO - 16 && g < DINERO + 22;
@@ -61,7 +60,7 @@ export const IntroShot: React.FC = () => {
   const lookUp = windowIn(g, TIEMPO + 3, VIDA - 4, 6);
   const open = windowIn(g, START + 14, START + 40, 8);
   const base: NubiPose = {
-    lookX: -0.75 * glance,
+    lookX: -0.55 * glance,
     lookY: glance * lerp(0.25, -0.45, noteDown) + 0.7 * lookUp,
     yaw: -0.16 * glance,
     pitch: -0.08 * lookUp,
@@ -80,10 +79,10 @@ export const IntroShot: React.FC = () => {
     const look = civilianLook(seed, { held: "none", glasses: i === 1 ? "round" : "none" });
     const x = x0 + speed * t;
     const at: Vec3 = [x, 0, z];
-    const p: NubiPose = speed !== 0 ? civilianWalk(t, i * 1.7, 1) : { ...civilianIdle(t, i), finR: 0.2 + 0.15 * Math.sin(t * 2), lookX: 0.3 };
+    const p: NubiPose = { ...civilianWalk(t, i * 1.7, 1), lookX: (i ? 0.35 : -0.35) * (0.5 + 0.5 * Math.sin(t * 0.9 + i)) };
     const c = counterAt(cam, [x, look.size * 0.99 + 0.12 + (look.size / 10) * (p.hop ?? 0), z]);
-    // Fade a passer-by's counter while it passes behind Nubi's own.
-    const fade = clamp01((Math.abs(c.x - nubiC.x) - 190) / 90);
+    // Fade a passer-by's counter while it passes behind Nubi's own, or nears the frame edges.
+    const fade = clamp01((Math.abs(c.x - nubiC.x) - 200) / 90) * clamp01((c.x - 120) / 60) * clamp01((960 - c.x) / 60);
     return { look, at, rot: facing, pose: p, c, fade, seed };
   });
 

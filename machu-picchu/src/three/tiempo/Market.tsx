@@ -754,10 +754,10 @@ export const Vendor: React.FC<{
 /** Kiosk size: counter width / depth / height, the vendor's platform height (hidden). */
 export const KIOSK = { w: 2.7, d: 0.95, h: 1.0, platform: 0.32 };
 /** Where the vendor stands (kiosk space, on his platform). */
-export const KIOSK_VENDOR: V3 = [0.45, KIOSK.platform, -0.75];
+export const KIOSK_VENDOR: V3 = [0.35, KIOSK.platform, -0.75];
 /** The payment terminal stand (kiosk space): its base, and its yaw (faces the customer). */
-export const KIOSK_TERMINAL: V3 = [-1.72, 0, 0.82];
-export const KIOSK_TERMINAL_YAW = 0.55;
+export const KIOSK_TERMINAL: V3 = [0.02, 0, 0.92];
+export const KIOSK_TERMINAL_YAW = -0.35;
 /** Top of the terminal head (kiosk space), where a fin taps. */
 export const TERMINAL_TOP_Y = 1.18;
 
@@ -857,8 +857,8 @@ export const JuiceKiosk: React.FC<{ t?: number; screen?: ScreenState; beep?: num
         <primitive object={toy("#FF8A1F", { rough: 0.5, glow: 0.2 })} attach="material" />
       </mesh>
       {ready ? (
-        <mesh position={[0.42, 0.47, KIOSK.d / 2 + 0.012]}>
-          <planeGeometry args={[1.62, 1.01]} />
+        <mesh position={[0.74, 0.47, KIOSK.d / 2 + 0.012]}>
+          <planeGeometry args={[1.12, 0.7]} />
           <primitive object={texMat(menuTexture(), 0.6, 0.28)} attach="material" />
         </mesh>
       ) : null}
@@ -870,9 +870,9 @@ export const JuiceKiosk: React.FC<{ t?: number; screen?: ScreenState; beep?: num
         </mesh>
       ))}
       {/* On the counter. */}
-      <mesh geometry={fruitGeometry()} material={vertexMat(0.45, false, 0.2)} position={[-0.9, KIOSK.h + 0.08, -0.05]} />
-      <mesh geometry={cupRowGeometry()} material={vertexMat(0.35, false, 0.22)} position={[0.25, KIOSK.h + 0.08, 0.12]} />
-      <group position={[1.05, KIOSK.h + 0.08, -0.1]} rotation={[wob, 0, wob]}>
+      <mesh geometry={fruitGeometry()} material={vertexMat(0.45, false, 0.2)} position={[0.95, KIOSK.h + 0.08, 0.0]} rotation={[0, -0.2, 0]} />
+      <mesh geometry={cupRowGeometry()} material={vertexMat(0.35, false, 0.22)} position={[-1.2, KIOSK.h + 0.08, 0.1]} />
+      <group position={[-0.62, KIOSK.h + 0.08, -0.12]} rotation={[wob, 0, wob]}>
         <mesh geometry={blenderGeometry()} material={vertexMat(0.3, false, 0.22)} />
       </group>
       {/* Awning: a striped roof sloping to the front, a scalloped valance. */}
@@ -973,9 +973,9 @@ export const JuiceCup: React.FC<{ fill?: number; t?: number }> = ({ fill = 0.9, 
 
 /** Pizzeria counter size and the chef's spot (counter space, on a hidden platform). */
 export const PIZZERIA = { w: 3.0, d: 1.0, h: 1.0, platform: 0.3 };
-export const PIZZERIA_CHEF: V3 = [0.55, PIZZERIA.platform, -0.85];
+export const PIZZERIA_CHEF: V3 = [-0.05, PIZZERIA.platform, -0.85];
 /** Where the big pizza sits on the counter (counter space, its centre on the board). */
-export const PIZZERIA_PIZZA: V3 = [-0.45, PIZZERIA.h + 0.07, 0.05];
+export const PIZZERIA_PIZZA: V3 = [0.62, PIZZERIA.h + 0.07, 0.08];
 export const PIZZA_R = 0.62;
 
 /**
@@ -1040,7 +1040,7 @@ export const Pizzeria: React.FC<{ t?: number; fire?: number }> = ({ t = 0, fire 
         </mesh>
       ) : null}
       <mesh geometry={g.board} material={toy("#C98B4E", { rough: 0.7 })} position={[PIZZERIA_PIZZA[0], PIZZERIA.h + 0.105, PIZZERIA_PIZZA[2]]} />
-      <mesh geometry={g.handle} material={toy("#C98B4E", { rough: 0.7 })} position={[PIZZERIA_PIZZA[0] - PIZZA_R - 0.35, PIZZERIA.h + 0.105, PIZZERIA_PIZZA[2]]} />
+      <mesh geometry={g.handle} material={toy("#C98B4E", { rough: 0.7 })} position={[PIZZERIA_PIZZA[0] + PIZZA_R + 0.35, PIZZERIA.h + 0.105, PIZZERIA_PIZZA[2]]} />
       {/* Awning: green, white and red. */}
       <group position={[0, 3.25, -1.1]} rotation={[0.16, 0, 0]}>
         <mesh geometry={g.roof}>
@@ -1162,8 +1162,8 @@ export const PizzaSlice: React.FC<{ R?: number; droop?: number; t?: number; goo?
 };
 
 /**
- * The price flag on a toothpick (origin: the pick's foot): pops up with `pop` 0..1+ (overshoot
- * ok) and flutters with `t`. The flag reads from +z.
+ * The price flag on a toothpick (origin: the pick's foot; the flag flies to its left, −x): pops
+ * up with `pop` 0..1+ (overshoot ok) and flutters with `t`. The flag reads from +z.
  */
 export const PriceFlag: React.FC<{ text?: string; pop?: number; t?: number; size?: number }> = ({ text = "3 DÍAS", pop = 1, t = 0, size = 1 }) => {
   const ready = useFontsReady();
@@ -1184,7 +1184,7 @@ export const PriceFlag: React.FC<{ text?: string; pop?: number; t?: number; size
     <group scale={[s, s, s]}>
       <mesh geometry={pick} material={toy("#E9C48E", { rough: 0.6 })} position={[0, 0.45, 0]} scale={[1, 0.9, 1]} />
       {ready ? (
-        <mesh geometry={flag} position={[0.43, 0.68, 0]}>
+        <mesh geometry={flag} position={[-0.43, 0.68, 0]}>
           <primitive object={texMat(flagTexture(text), 0.5, 0.35, false, THREE.DoubleSide)} attach="material" />
         </mesh>
       ) : null}
@@ -1195,7 +1195,7 @@ export const PriceFlag: React.FC<{ text?: string; pop?: number; t?: number; size
 // =======================================================================================
 // The banknote that crumbles into golden sand
 
-const NOTE = { w: 0.66, h: 0.3, nx: 8, ny: 4 };
+const NOTE = { w: 0.8, h: 0.36, nx: 8, ny: 4 };
 const GRAINS = 150;
 
 const noteTiles = once(() => {

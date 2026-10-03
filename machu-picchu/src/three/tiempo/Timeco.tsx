@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useMemo, useRef } from "react";
+import React, { useLayoutEffect, useMemo } from "react";
 import * as THREE from "three";
 import { useThree } from "@react-three/fiber";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
@@ -898,7 +898,7 @@ const STOREFRONTS = once(() => {
       const H = 15 + ((i * 7 + row.first) % 3) * 3;
       const add = (g: THREE.BufferGeometry, color: string, pos: V3, rot: V3 = [0, 0, 0]) => body.push(place(g, color, pos, rot).applyMatrix4(M));
       add(rbox(SHOP_W, H, 6, 0.1), i % 2 ? "#1D1B25" : "#22202B", [0, H / 2, -3]);
-      for (const s of [-1, 1]) add(rbox(0.55, 6.8, 0.5), GOLDM, [s * (SHOP_W / 2 - 0.3), 3.4, 0.2]);
+      for (const s of [-1, 1]) add(rbox(0.55, 6.8, 0.5, 0.08), GOLDM, [s * (SHOP_W / 2 - 0.3), 3.4, 0.2]);
       add(rbox(SHOP_W, 0.35, 0.8, 0.08), GOLDM, [0, 6.9, 0.3]);
       add(rbox(SHOP_W, 0.25, 0.6, 0.06), GOLDM, [0, H - 0.2, 0.2]);
       add(rbox(6.3, 1.0, 0.3, 0.06), "#0E0D12", [0, 5.75, 0.25]);
@@ -1299,7 +1299,7 @@ const glassMat = once(() => {
   });
 });
 
-/** Falling grains through the neck of the tower. */
+/** Falling grains through the neck of the tower (tower space). */
 const SandFall: React.FC<{ t: number }> = ({ t }) => {
   const N = 90;
   const P = usePoints(N, "#FFB52A", "#FFF6CF");
@@ -1309,9 +1309,9 @@ const SandFall: React.FC<{ t: number }> = ({ t }) => {
     for (let i = 0; i < N; i++) {
       const u = frac(i / N + t * 0.55 + 0.1 * Math.sin(i * 3.7));
       const y = top - (top - bottom) * u * u;
-      P.pos[i * 3] = TOWER_AT[0] + Math.sin(i * 2.1) * 0.7 * u;
+      P.pos[i * 3] = Math.sin(i * 2.1) * 0.7 * u;
       P.pos[i * 3 + 1] = y;
-      P.pos[i * 3 + 2] = TOWER_AT[2] + Math.cos(i * 1.3) * 0.7 * u;
+      P.pos[i * 3 + 2] = Math.cos(i * 1.3) * 0.7 * u;
       P.size[i] = 1.1 + 0.8 * hash(i);
       P.alpha[i] = 0.9;
     }
@@ -1342,13 +1342,12 @@ export const TimecoTower: React.FC<{ t?: number; screen?: number; door?: number;
       stream: new THREE.MeshBasicMaterial({ color: "#FFE39A", toneMapped: false }),
       avOn: basic("#FF3B3B"),
       avOff: basic("#4A1216"),
-      screen: new THREE.MeshBasicMaterial({ color: "#FFFFFF", toneMapped: false, side: THREE.DoubleSide }),
+      screen: new THREE.MeshBasicMaterial({ map: screenTexture(), color: "#FFFFFF", toneMapped: false, side: THREE.DoubleSide }),
     }),
     [],
   );
   const wordMat = useMemo(() => (ready ? new THREE.MeshBasicMaterial({ map: wordmarkTexture(), transparent: true, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }) : null), [ready]);
   const logoMat = useMemo(() => new THREE.MeshBasicMaterial({ map: logoTexture(), toneMapped: false }), []);
-  if (!mats.screen.map) mats.screen.map = screenTexture();
   const on = clamp01(screen);
   const flick = on > 0 && on < 1 ? 0.75 + 0.25 * Math.sin(t * 40) : 1;
   mats.screen.color.setRGB(lerp(0.22, 1.15, on) * flick, lerp(0.05, 0.95, on) * flick * 0.85, lerp(0.07, 0.9, on) * flick * 0.85);
@@ -1359,7 +1358,7 @@ export const TimecoTower: React.FC<{ t?: number; screen?: number; door?: number;
     <group position={TOWER_AT}>
       <mesh geometry={G.sand} material={mats.sand} />
       <mesh geometry={G.stream} material={mats.stream} />
-      <SandFallLocal t={t} />
+      <SandFall t={t} />
       <Halo color="#FFB02A" size={34} opacity={0.55} position={[0, HG.waistY, 0]} />
       <Halo color="#FF9A1A" size={60} opacity={0.3} position={[0, 32, 0]} />
       <mesh geometry={G.metal} material={vertexMat(0.35, false, 0.12, 0.45)} />
@@ -1386,13 +1385,6 @@ export const TimecoTower: React.FC<{ t?: number; screen?: number; door?: number;
     </group>
   );
 };
-
-/** The sand stream particles in tower space. */
-const SandFallLocal: React.FC<{ t: number }> = ({ t }) => (
-  <group position={[-TOWER_AT[0], 0, -TOWER_AT[2]]}>
-    <SandFall t={t} />
-  </group>
-);
 
 // ---------------------------------------------------------------------------------------
 // The gatehouse and the gigantic door (tower space: the front face at z = GATE.front − TOWER_AT.z)
@@ -1606,10 +1598,18 @@ const lightVolumeGeometry = (w0: number, h0: number, w1: number, h1: number, len
   quad(n(-w0 / 2, h0), n(w0 / 2, h0), f(w1 / 2, h1), f(-w1 / 2, h1), 0, 1); // top
   quad(n(-w0 / 2, 0), n(-w0 / 2, h0), f(-w1 / 2, h1), f(-w1 / 2, 0), 0, 1); // left
   quad(n(w0 / 2, 0), n(w0 / 2, h0), f(w1 / 2, h1), f(w1 / 2, 0), 0, 1); // right
-  quad(n(-w0 / 2, 0.05), n(w0 / 2, 0.05), f(w1 / 2, 0.05), f(-w1 / 2, 0.05), 0, 1); // floor
   const g = new THREE.BufferGeometry();
   g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
   g.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
+  return g;
+};
+
+/** A trapezoid on the floor: w0 wide at z = 0, w1 wide at z = len (same uvs as the volume). */
+const floorQuad = (w0: number, w1: number, len: number) => {
+  const g = new THREE.BufferGeometry();
+  const y = 0.04;
+  g.setAttribute("position", new THREE.Float32BufferAttribute([-w0 / 2, y, 0, w0 / 2, y, 0, w1 / 2, y, len, -w0 / 2, y, 0, w1 / 2, y, len, -w1 / 2, y, len], 3));
+  g.setAttribute("uv", new THREE.Float32BufferAttribute([0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1], 2));
   return g;
 };
 
@@ -1622,7 +1622,7 @@ export const DoorSpill: React.FC<{ open: number; t: number; fog?: number }> = ({
   const geos = useMemo(
     () => ({
       volume: lightVolumeGeometry(GATE.doorW, GATE.doorH, 30, 34, 46),
-      pool: lightVolumeGeometry(GATE.doorW, 0.01, 34, 0.01, 52),
+      pool: floorQuad(GATE.doorW, 34, 52),
     }),
     [],
   );
@@ -1686,7 +1686,6 @@ const DRONE_GEO = once(() => {
     const a = Math.PI / 4 + (k * Math.PI) / 2;
     const dx = Math.sin(a);
     const dz = Math.cos(a);
-    dark.push(xform(new THREE.CylinderGeometry(0.026, 0.03, 0.28, 8), [dx * 0.36, 0.13, dz * 0.36], [0, 0, 0]).rotateY(0));
     dark.push(xform(new THREE.BoxGeometry(0.3, 0.04, 0.05), [dx * 0.38, 0.12, dz * 0.38], [0, a - Math.PI / 2, 0]));
     dark.push(xform(new THREE.CylinderGeometry(0.045, 0.05, 0.07, 10), [dx * 0.52, 0.17, dz * 0.52]));
   }

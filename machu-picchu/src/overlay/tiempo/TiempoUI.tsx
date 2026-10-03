@@ -287,7 +287,15 @@ const Hourglass: React.FC<{ size: number; color: string; phase: number }> = ({ s
  * tick, `prev` = the text before it); with `cascade` (0..1) every digit spins like a slot
  * machine (ghost digits above and below, jitter, now and then a wrong digit).
  */
-const CounterText: React.FC<{ text: string; prev: string | null; k: number; cascade: number; frame: number; seed: number }> = ({ text, prev, k, cascade, frame, seed }) => {
+const CounterText: React.FC<{ text: string; prev: string | null; k: number; cascade: number; frame: number; seed: number; wrong?: number }> = ({
+  text,
+  prev,
+  k,
+  cascade,
+  frame,
+  seed,
+  wrong = 0.16,
+}) => {
   const chars = Array.from(text);
   const prevChars = prev !== null && prev.length === text.length ? Array.from(prev) : null;
   const e = EASE_OUT(clamp01(k));
@@ -297,13 +305,13 @@ const CounterText: React.FC<{ text: string; prev: string | null; k: number; casc
         const isDigit = ch >= "0" && ch <= "9";
         if (isDigit && cascade > 0.02) {
           const d = Number(ch);
-          const wrong = rand(frame * 3.71 + i * 11.3 + seed) < 0.28 * cascade;
-          const shown = wrong ? String(Math.floor(rand(frame * 1.93 + i * 5.1 + seed) * 10)) : ch;
+          const isWrong = rand(frame * 3.71 + i * 11.3 + seed) < wrong * cascade;
+          const shown = isWrong ? String(Math.floor(rand(frame * 1.93 + i * 5.1 + seed) * 10)) : ch;
           const dy = (rand(frame * 5.13 + i * 2.37 + seed) - 0.5) * 0.34 * cascade;
           return (
             <span key={i} style={{ position: "relative", display: "inline-block" }}>
-              <span style={{ position: "absolute", left: 0, top: "-0.66em", opacity: 0.42 * cascade, filter: "blur(1.4px)" }}>{(d + 1) % 10}</span>
-              <span style={{ position: "absolute", left: 0, top: "0.66em", opacity: 0.42 * cascade, filter: "blur(1.4px)" }}>{(d + 9) % 10}</span>
+              <span style={{ position: "absolute", left: 0, top: "-0.5em", opacity: 0.3 * cascade, filter: "blur(1.5px)" }}>{(d + 1) % 10}</span>
+              <span style={{ position: "absolute", left: 0, top: "0.5em", opacity: 0.3 * cascade, filter: "blur(1.5px)" }}>{(d + 9) % 10}</span>
               <span style={{ display: "inline-block", transform: `translateY(${dy}em)` }}>{shown}</span>
             </span>
           );
@@ -521,7 +529,7 @@ export const LifeCounter: React.FC<{
             }}
           >
             <div style={{ ...MONO_DIGITS, fontFamily: FONT.heavy, fontWeight: 900, fontSize: mainSize, color: pal.text, whiteSpace: "nowrap", letterSpacing: 1, textShadow }}>
-              <CounterText text={main} prev={prev ? prev.main : null} k={flipK} cascade={cascade} frame={frame} seed={1} />
+              <CounterText text={main} prev={prev ? prev.main : null} k={flipK} cascade={cascade} frame={frame} seed={1} wrong={tier === "years" || tier === "days" ? 0.05 : 0.16} />
             </div>
             {sub ? (
               <div style={{ ...MONO_DIGITS, fontFamily: FONT.heavy, fontWeight: 800, fontSize: 30, color: pal.sub, whiteSpace: "nowrap", marginTop: 4, textShadow }}>
@@ -987,30 +995,6 @@ export const RuleSign: React.FC<{ frame: number; at: number; out: number; x: num
         pointerEvents: "none",
       }}
     >
-      {fineP > 0.001 ? (
-        <div
-          style={{
-            position: "absolute",
-            left: "50%",
-            top: 170,
-            transform: `translate(-50%, ${(1 - fineP) * -40}px) rotate(2deg) scale(${0.6 + 0.4 * fineP})`,
-            opacity: Math.min(1, fineP * 2),
-            padding: "10px 24px 8px",
-            borderRadius: 14,
-            background: "#FFF3DA",
-            border: "4px solid #FFFFFF",
-            boxShadow: SHADOW_SM,
-            fontFamily: FONT.heavy,
-            fontWeight: 800,
-            fontSize: 30,
-            letterSpacing: 1.5,
-            color: "#C8102E",
-            whiteSpace: "nowrap",
-          }}
-        >
-          *SI LA EMPRESA LO APRUEBA
-        </div>
-      ) : null}
       <div
         style={{
           position: "relative",
@@ -1072,6 +1056,30 @@ export const RuleSign: React.FC<{ frame: number; at: number; out: number; x: num
         <TimecoLogo size={44} outline={false} phase={(t % 80) / 80} />
         <div style={{ fontFamily: FONT.heavy, fontWeight: 900, fontSize: 28, letterSpacing: 3, color: "#FFFFFF", lineHeight: 1 }}>REGLA TIMECO</div>
       </div>
+      {fineP > 0.001 ? (
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: 172,
+            transform: `translate(-50%, ${(1 - fineP) * -40}px) rotate(2deg) scale(${0.6 + 0.4 * fineP})`,
+            opacity: Math.min(1, fineP * 2),
+            padding: "10px 24px 8px",
+            borderRadius: 14,
+            background: "#FFF3DA",
+            border: "4px solid #FFFFFF",
+            boxShadow: SHADOW_SM,
+            fontFamily: FONT.heavy,
+            fontWeight: 800,
+            fontSize: 30,
+            letterSpacing: 1.5,
+            color: "#C8102E",
+            whiteSpace: "nowrap",
+          }}
+        >
+          *SI LA EMPRESA LO APRUEBA
+        </div>
+      ) : null}
     </div>
   );
 };
@@ -1651,7 +1659,7 @@ export const CrashGlitch: React.FC<{ frame: number; at: number; dur?: number }> 
     const by = rand(sd) * 1920;
     const bh = 10 + rand(sd + 1.1) * 150 * env;
     const kind = rand(sd + 2.3);
-    const filter = kind < 0.4 ? "invert(1) hue-rotate(180deg) saturate(2)" : kind < 0.75 ? "hue-rotate(110deg) saturate(4) brightness(1.4)" : "brightness(2.2) contrast(2)";
+    const filter = kind < 0.4 ? "invert(1) saturate(1.6)" : kind < 0.75 ? "hue-rotate(300deg) saturate(3) brightness(1.35)" : "brightness(2.2) contrast(2)";
     const dx = (rand(sd + 3.9) - 0.5) * 120 * env;
     bands.push(
       <div key={`b${i}`} style={{ position: "absolute", left: 0, top: by, width: 1080, height: bh, backdropFilter: filter, WebkitBackdropFilter: filter }} />,
@@ -2061,13 +2069,44 @@ export const EndCard: React.FC<{ frame: number; at: number }> = ({ frame, at }) 
           <filter id={`ebs${uid}`} x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="4" />
           </filter>
+          <radialGradient id={`emg${uid}`} cx="0.5" cy="0.55" r="0.55">
+            <stop offset="0" stopColor="#FFFFFF" />
+            <stop offset="0.55" stopColor="#5A5A5A" />
+            <stop offset="1" stopColor="#000000" />
+          </radialGradient>
+          <mask id={`em${uid}`}>
+            <rect x={DX - 320} y={DT - 120} width={640} height={DB - DT + 200} fill={`url(#emg${uid})`} />
+          </mask>
+          <linearGradient id={`eu${uid}`} x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="rgba(255,190,110,0)" />
+            <stop offset="0.5" stopColor="rgba(255,206,140,0.85)" />
+            <stop offset="1" stopColor="rgba(255,190,110,0)" />
+          </linearGradient>
         </defs>
         <ellipse cx={DX} cy={(DT + DB) / 2} rx={360 + 80 * open} ry={520} fill={`url(#eh${uid})`} />
+        {/* The giant double door, barely visible around the gap: frame, panels, the lit leaf edges. */}
+        <g mask={`url(#em${uid})`} fill="none" stroke="rgba(255,176,96,0.22)">
+          <path d={`M${DX - 270} ${DB} L${DX - 270} ${DT - 30} Q${DX} ${DT - 120} ${DX + 270} ${DT - 30} L${DX + 270} ${DB}`} strokeWidth={7} />
+          {[-1, 1].map((sd) => {
+            const inner = DX + sd * (gapW / 2 + 34);
+            const outer = DX + sd * 232;
+            const x0 = Math.min(inner, outer);
+            const w = Math.abs(outer - inner);
+            const h1 = (DB - DT) * 0.42;
+            return (
+              <g key={sd}>
+                <rect x={x0} y={DT + 26} width={w} height={h1} rx={8} strokeWidth={4} />
+                <rect x={x0} y={DT + 56 + h1} width={w} height={DB - DT - 100 - h1} rx={8} strokeWidth={4} />
+                <circle cx={DX + sd * (gapW / 2 + 18)} cy={(DT + DB) / 2 + 20} r={7} strokeWidth={4} />
+              </g>
+            );
+          })}
+        </g>
+        <path d={`M${DX - gapW / 2 - 2.5} ${DT} L${DX - gapW / 2 - 2.5} ${DB} M${DX + gapW / 2 + 2.5} ${DT} L${DX + gapW / 2 + 2.5} ${DB}`} stroke="rgba(255,200,130,0.55)" strokeWidth={3} />
+        <rect x={DX - 270} y={DB - 3} width={540} height={6} fill={`url(#eu${uid})`} />
         <path d={`M${DX - gapW / 2} ${DB} L${DX + gapW / 2} ${DB} L${DX + 90 + gapW * 7} 1720 L${DX - 170 - gapW * 4} 1720 Z`} fill={`url(#ef${uid})`} filter={`url(#ebs${uid})`} />
         <rect x={DX - gapW / 2 - 18} y={DT - 10} width={gapW + 36} height={DB - DT + 20} fill="rgba(255,170,70,0.55)" filter={`url(#eb${uid})`} />
         <rect x={DX - gapW / 2} y={DT} width={gapW} height={DB - DT} fill={`url(#eg${uid})`} />
-        <path d={`M${DX - gapW / 2 - 3} ${DT} L${DX - gapW / 2 - 3} ${DB}`} stroke="rgba(255,190,110,0.5)" strokeWidth={2} />
-        <path d={`M${DX - 180} ${DB} L${DX + 220} ${DB}`} stroke="rgba(255,170,80,0.18)" strokeWidth={3} />
         {motes}
       </svg>
       <div style={{ position: "absolute", left: 60, width: 880, top: 268, display: "flex", flexDirection: "column", alignItems: "center", gap: 18 }}>

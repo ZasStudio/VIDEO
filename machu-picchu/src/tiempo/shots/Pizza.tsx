@@ -39,10 +39,10 @@ const FPS = 30;
 const FOV = 38;
 const P = MARKET.pizza;
 const at = (v: Vec3): Vec3 => [P[0] + v[0], P[1] + v[1], P[2] + v[2]];
-const NUBI: Vec3 = at([-2.2, 0, 1.55]);
-const NUBI_YAW = 0.62;
+const NUBI: Vec3 = at([-1.3, 0, 1.55]);
+const NUBI_YAW = 0.42;
 const CHEF: Vec3 = at(PIZZERIA_CHEF);
-const CHEF_YAW = -0.38;
+const CHEF_YAW = -0.3;
 const CHEF_SEED = 57;
 const PIZZA_AT: Vec3 = at(PIZZERIA_PIZZA);
 const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
@@ -56,12 +56,12 @@ export const PizzaShot: React.FC = () => {
   const offer = ramp(g, PIZZA, PIZZA + 16, [0, 1], EASE_IN_OUT);
   const closer = ramp(g, PIZZA + 16, TRES - 2, [0, 1], EASE_IN_OUT);
   const pushed = ramp(g, TRES + 7, TRES + 15, [0, 1], EASE_OUT);
-  const sA: Vec3 = at([0.15, 1.45, -0.75]);
-  const sB: Vec3 = at([-0.55, 1.42, 0.05]);
-  const sC: Vec3 = at([-0.75, 1.36, 0.3]);
-  const sD: Vec3 = at([0.05, 1.5, -0.55]);
+  const sA: Vec3 = at([0.45, 1.5, -0.3]);
+  const sB: Vec3 = at([-0.12, 1.44, 0.42]);
+  const sC: Vec3 = at([-0.28, 1.4, 0.6]);
+  const sD: Vec3 = at([0.15, 1.5, -0.3]);
   const sliceAt = lerp3(lerp3(lerp3(sA, sB, offer), sC, closer), sD, pushed);
-  const sliceYaw = lerp(-0.95, -1.15, pushed) + 0.06 * Math.sin(t * 2.4);
+  const sliceYaw = lerp(-0.8, -1.0, pushed) + 0.06 * Math.sin(t * 2.4);
   const sliceBob = 0.025 * Math.sin(t * 5.1) * (1 - pushed);
 
   // ---- The price flag pops up on the pizza.
@@ -113,7 +113,7 @@ export const PizzaShot: React.FC = () => {
   // ---- Camera: front-left two-shot, slow push, a punch-in on TRES.
   const push = ramp(g, PIZZA, TRES, [0, 1], (x) => x);
   const punch = ramp(g, TRES, TRES + 5, [0, 1], EASE_OUT);
-  const position: Vec3 = [lerp(8.85, 8.7, push) + 0.15 * punch, lerp(1.95, 1.9, push) + 0.1 * punch, lerp(9.4, 8.9, push) - 0.7 * punch];
+  const position: Vec3 = at([lerp(-0.55, -0.7, push) + 0.15 * punch, lerp(2.0, 1.95, push) + 0.1 * punch, lerp(15.0, 14.3, push) - 1.2 * punch]);
   const cam = aim(position, FOV, NUBI, 375, 1262);
 
   const nubiC = counterAt(cam, [nubiAt[0], nubiAt[1] + 1.98 + 0.1 + hopY, nubiAt[2]]);
@@ -130,7 +130,7 @@ export const PizzaShot: React.FC = () => {
           </group>
           <group position={PIZZA_AT}>
             <BigPizza />
-            <group position={[PIZZA_R * 0.15, 0.02, -PIZZA_R * 0.25]} rotation={[0, -0.25, 0]}>
+            <group position={[PIZZA_R * 0.35, 0.02, -PIZZA_R * 0.3]} rotation={[0, 0.15, 0]}>
               <PriceFlag text="3 DÍAS" pop={flagPop} t={t} size={1.15} />
             </group>
           </group>

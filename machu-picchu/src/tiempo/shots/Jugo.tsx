@@ -36,10 +36,10 @@ const FPS = 30;
 const FOV = 38;
 const K = MARKET.juice;
 const at = (v: Vec3): Vec3 => [K[0] + v[0], K[1] + v[1], K[2] + v[2]];
-const NUBI: Vec3 = at([-2.75, 0, 1.6]);
-const NUBI_YAW = 0.78;
+const NUBI: Vec3 = at([-1.22, 0, 1.55]);
+const NUBI_YAW = 0.46;
 const VENDOR: Vec3 = at(KIOSK_VENDOR);
-const VENDOR_YAW = -0.42;
+const VENDOR_YAW = -0.3;
 const VENDOR_SEED = 41;
 const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 /** A point in Nubi's own frame (x right, y up, z forward) to world. */
@@ -99,9 +99,9 @@ export const JugoShot: React.FC = () => {
 
   // ---- The juice cup: on the counter, slid to its left end, taken, lifted to Nubi's face.
   const counterTop = KIOSK.h + 0.08;
-  const p0 = at([0.35, counterTop, 0.05]);
-  const p1 = at([-1.12, counterTop, 0.22]);
-  const pHold = nubiLocal([1.35, 0.95, 0.55], hopY);
+  const p0 = at([0.55, counterTop, -0.05]);
+  const p1 = at([0.12, counterTop, 0.3]);
+  const pHold = nubiLocal([1.3, 0.95, 0.45], hopY);
   const pFace = nubiLocal([0.28, 0.62, 1.12], hopY);
   const slide = ramp(g, SEIS - 3, SEIS + 8, [0, 1], EASE_IN_OUT);
   let cupAt = lerp3(p0, p1, slide);
@@ -113,8 +113,8 @@ export const JugoShot: React.FC = () => {
 
   // ---- Camera: front-left, slow push-in.
   const push = ramp(g, START, PIZZA, [0, 1], (x) => x);
-  const position: Vec3 = [lerp(-11.1, -11.35, push), lerp(1.95, 1.85, push), lerp(9.6, 8.9, push)];
-  const cam = aim(position, FOV, NUBI, 385, 1262);
+  const position: Vec3 = at([lerp(-0.5, -0.65, push), lerp(2.0, 1.9, push), lerp(15.2, 14.4, push)]);
+  const cam = aim(position, FOV, NUBI, 380, 1262);
 
   const nubiC = counterAt(cam, [NUBI[0], NUBI[1] + 1.98 + 0.1 + hopY, NUBI[2]]);
   const vendorHead: Vec3 = [VENDOR[0], VENDOR[1] + (VENDOR_SIZE / 10) * (12.2 + (vendorPose.hop ?? 0)) + 0.06, VENDOR[2]];
