@@ -196,17 +196,17 @@ const texMat = (key: string, tex: () => THREE.Texture, o: { rough?: number; glow
 // Layout
 
 /** The hallway: floor y = 0 from the back wall (zBack) towards +z; side walls at x0/x1. */
-export const HALL = { x0: -10, x1: 10, zBack: -3.6, height: 7.2 };
+export const HALL = { x0: -10, x1: 10, zBack: -3.6, height: 9.6 };
 const HALL_WINDOWS = [-5.0, -2.2, 0.6];
-const HALL_WIN = { w: 2.5, y0: 0.62, y1: 6.45 };
+const HALL_WIN = { w: 2.5, y0: 0.62, y1: 9.0 };
 /** The night city behind the windows (a plane `VIEW.back` behind the wall). */
-const VIEW = { w: 36, h: 13.5, y: 4.6, back: 5 };
+const VIEW = { w: 38, h: 16.5, y: 6.2, back: 5 };
 /** The vending machine (base centre) against the back wall, right of the windows. */
 export const HALL_VENDING: V3 = [3.15, 0, HALL.zBack + 0.5];
 /** TIMECO's red neon over the vending machine. */
-export const HALL_LOGO: V3 = [3.15, 4.3, HALL.zBack + 0.06];
+export const HALL_LOGO: V3 = [3.15, 4.6, HALL.zBack + 0.06];
 /** The yellow "PISO MOJADO" sign. */
-export const HALL_SIGN: V3 = [-3.1, 0, -0.5];
+export const HALL_SIGN: V3 = [-3.2, 0, -1.6];
 /** The mop bucket. */
 export const HALL_BUCKET: V3 = [2.5, 0, -0.35];
 /** Where the old lady mops. */
@@ -232,9 +232,9 @@ const hallTileTex = () =>
     256,
     256,
     (ctx, W, H) => {
-      ctx.fillStyle = "#5A6488";
+      ctx.fillStyle = "#4A5379";
       ctx.fillRect(0, 0, W, H);
-      const tones = ["#B4BFDD", "#A7B3D4", "#BAC4E0", "#ABB7D8"];
+      const tones = ["#8E9AC6", "#8592BF", "#95A1CB", "#8A97C3"];
       for (let j = 0; j < 2; j++) {
         for (let i = 0; i < 2; i++) {
           const g = ctx.createLinearGradient(i * 128, j * 128, i * 128 + 128, j * 128 + 128);
@@ -278,7 +278,7 @@ const wetTex = () =>
 
 /** The night city through the windows: sky, stars, the moon, two skylines, TIMECO's tower. */
 const nightTex = () =>
-  canvasTexture("senora-night", 2048, 768, (ctx, W, H) => {
+  canvasTexture("senora-night", 2048, 890, (ctx, W, H) => {
     const toX = (x: number) => ((x + VIEW.w / 2) / VIEW.w) * W;
     const toY = (y: number) => ((VIEW.y + VIEW.h / 2 - y) / VIEW.h) * H;
     const g = ctx.createLinearGradient(0, 0, 0, H);
@@ -293,13 +293,13 @@ const nightTex = () =>
     for (let i = 0; i < 220; i++) {
       ctx.globalAlpha = 0.35 + rnd() * 0.65;
       const s = rnd() < 0.15 ? 4 : 2.5;
-      ctx.fillRect(rnd() * W, rnd() * H * 0.62, s, s);
+      ctx.fillRect(rnd() * W, rnd() * H * 0.58, s, s);
     }
     ctx.globalAlpha = 1;
     // The moon, big and soft.
     const mx = toX(1.0);
-    const my = toY(6.3);
-    const mr = (0.62 / VIEW.h) * H;
+    const my = toY(7.5);
+    const mr = (0.7 / VIEW.h) * H;
     const halo = ctx.createRadialGradient(mx, my, mr * 0.8, mx, my, mr * 5);
     halo.addColorStop(0, "rgba(225,232,255,0.55)");
     halo.addColorStop(1, "rgba(225,232,255,0)");
@@ -317,7 +317,7 @@ const nightTex = () =>
     ctx.fill();
     // TIMECO's tower far away, its red ring glowing.
     const tx = toX(-2.9);
-    const tTop = toY(6.9);
+    const tTop = toY(8.3);
     const tw = (0.9 / VIEW.w) * W;
     ctx.fillStyle = "#14204E";
     ctx.fillRect(tx - tw / 2, tTop, tw, H - tTop);
@@ -326,7 +326,7 @@ const nightTex = () =>
     ctx.lineTo(tx, tTop - tw * 0.7);
     ctx.lineTo(tx + tw / 2, tTop);
     ctx.fill();
-    drawLogo(ctx, tx, toY(6.15), tw * 0.42, { ring: "#FF4646", glow: "#FF2020", glass: "#3A2030", frame: "#FFB0B0" });
+    drawLogo(ctx, tx, toY(7.5), tw * 0.42, { ring: "#FF4646", glow: "#FF2020", glass: "#3A2030", frame: "#FFB0B0" });
     // Two layers of skyline with lit windows (warm and cyan).
     for (const [col, hMin, hMax, seed, lit] of [
       ["#24387A", 1.6, 4.0, 5, 0.3],
@@ -460,25 +460,30 @@ const hallMats = once(() => {
   const wet = wetTex();
   wet.repeat.set(1 / FLOOR.w, 1 / FLOOR.d);
   const shaft = additive(new THREE.MeshBasicMaterial({ map: fadeTex(), color: "#8AA4FF", toneMapped: false }));
-  shaft.opacity = 0.3;
+  shaft.opacity = 0.2;
   const vend = additive(new THREE.MeshBasicMaterial({ map: fadeTex(), color: "#7FEFFF", toneMapped: false }));
   vend.opacity = 0.3;
   const neon = additive(new THREE.MeshBasicMaterial({ map: fadeTex(), color: "#FF4A4A", toneMapped: false }));
   neon.opacity = 0.22;
   return {
+    /** The neon as seen in the wet floor (dimmer). */
+    neonDim: once(() => {
+      const d = new THREE.MeshBasicMaterial({ map: neonTex(), transparent: true, opacity: 0.32, alphaTest: 0.02, toneMapped: false, depthWrite: false });
+      return d;
+    }),
     // See-through over the mirrored set below it (the reflection); drawn first of the transparent
     // things and without depth, so glows, shadows and particles above it stay on top.
     floor: new THREE.MeshStandardMaterial({
       map: tiles,
       alphaMap: wet,
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.82,
       depthWrite: false,
-      roughness: 0.18,
+      roughness: 0.32,
       metalness: 0.05,
       emissive: new THREE.Color("#ffffff"),
       emissiveMap: tiles,
-      emissiveIntensity: 0.1,
+      emissiveIntensity: 0.07,
     }),
     glass: new THREE.MeshBasicMaterial({ color: "#BFD4FF", transparent: true, opacity: 0.07, depthWrite: false }),
     shaft,
@@ -491,7 +496,7 @@ const hallMats = once(() => {
 // Props
 
 /** The vending machine (base centre at the origin, front +z): snacks priced in time, glowing. */
-export const VendingMachine: React.FC<{ t?: number }> = ({ t = 0 }) => {
+export const VendingMachine: React.FC<{ t?: number; glow?: number }> = ({ t = 0, glow = 1 }) => {
   const ready = useFontsReady();
   const geos = useMemo(
     () => ({
@@ -517,7 +522,7 @@ export const VendingMachine: React.FC<{ t?: number }> = ({ t = 0 }) => {
       <mesh geometry={geos.slot} material={toy(TIMECO_GOLD, { glow: 0.5, metal: 0.4 })} position={[0.5, 1.25, 0.49]} />
       <mesh geometry={geos.tray} material={toy("#0E1120", { rough: 0.5 })} position={[-0.17, 0.32, 0.43]} />
       <mesh geometry={geos.header} material={toy(TIMECO_RED, { glow: 0.6 })} position={[0, 2.38, 0.44]} />
-      <Glow color="#9FF3FF" size={2.6} opacity={0.3 * flick} position={[-0.17, 1.42, 0.9]} />
+      <Glow color="#9FF3FF" size={2.6} opacity={0.3 * flick * glow} position={[-0.17, 1.42, 0.9]} />
     </group>
   );
 };
@@ -525,17 +530,18 @@ export const VendingMachine: React.FC<{ t?: number }> = ({ t = 0 }) => {
 /** The yellow A-frame "PISO MOJADO" sign (base centre at the origin, front +z, 1.35 tall). */
 export const WetFloorSign: React.FC = () => {
   const ready = useFontsReady();
-  const geos = useMemo(() => ({ panel: rbox(0.8, 1.3, 0.05, 0.07), face: new THREE.PlaneGeometry(0.7, 1.1), handle: new THREE.TorusGeometry(0.16, 0.04, 8, 16, Math.PI) }), []);
+  const geos = useMemo(() => ({ panel: rbox(0.8, 1.3, 0.05, 0.07), face: new THREE.PlaneGeometry(0.72, 1.14), cap: rbox(0.84, 0.1, 0.16, 0.04) }), []);
   const yellow = toy("#FFD21F", { rough: 0.45, glow: 0.3 });
   return (
     <group>
       {[1, -1].map((s) => (
-        <group key={s} position={[0, 1.3, 0]} rotation={[s * 0.19, s > 0 ? 0 : Math.PI, 0]}>
+        // Hinged at the top: each panel's foot swings out to its own face side.
+        <group key={s} position={[0, 1.3, 0]} rotation={[-s * 0.19, s > 0 ? 0 : Math.PI, 0]}>
           <mesh geometry={geos.panel} material={yellow} position={[0, -0.65, 0.03]} />
           {ready ? <mesh geometry={geos.face} material={texMat("wet-sign", wetSignTex, { glow: 0.42 })} position={[0, -0.67, 0.058]} /> : null}
         </group>
       ))}
-      <mesh geometry={geos.handle} material={yellow} position={[0, 1.33, 0]} />
+      <mesh geometry={geos.cap} material={yellow} position={[0, 1.3, 0]} />
     </group>
   );
 };
@@ -641,7 +647,7 @@ const hallGeos = once(() => {
     frames.push(place(rbox(0.14, h, 0.3, 0.04), FR, [x - HALL_WIN.w / 2 - 0.04, cy, zBack]));
     frames.push(place(rbox(0.14, h, 0.3, 0.04), FR, [x + HALL_WIN.w / 2 + 0.04, cy, zBack]));
     frames.push(place(rbox(0.08, h, 0.12, 0.03), FR, [x, cy, zBack]));
-    for (const y of [2.3, 4.4]) frames.push(place(rbox(HALL_WIN.w, 0.08, 0.12, 0.03), FR, [x, y, zBack]));
+    for (const y of [2.4, 4.8, 7.2]) frames.push(place(rbox(HALL_WIN.w, 0.08, 0.12, 0.03), FR, [x, y, zBack]));
     frames.push(place(rbox(HALL_WIN.w + 0.42, 0.08, 0.34, 0.03), "#5A6690", [x, HALL_WIN.y0 - 0.08, zBack + 0.13]));
   }
   // Baseboard with TIMECO's red stripe, and a soft cornice.
@@ -670,13 +676,13 @@ const hallGeos = once(() => {
     glass: new THREE.PlaneGeometry(HALL_WIN.w, h),
     view: new THREE.PlaneGeometry(VIEW.w, VIEW.h),
     plane: new THREE.PlaneGeometry(1, 1),
-    neon: new THREE.PlaneGeometry(2.0, 0.585),
-    neonBox: rbox(2.16, 0.74, 0.08, 0.06),
+    neon: new THREE.PlaneGeometry(2.3, 0.67),
+    neonBox: rbox(2.48, 0.84, 0.08, 0.06),
   };
 });
 
 /** The walls, the windows and the night city, the vending machine, the neon, sign and bucket (no floor). */
-export const HallSet: React.FC<{ t?: number }> = ({ t = 0 }) => {
+export const HallSet: React.FC<{ t?: number; mirror?: boolean }> = ({ t = 0, mirror = false }) => {
   const ready = useFontsReady();
   const geos = hallGeos();
   const m = hallMats();
@@ -692,19 +698,19 @@ export const HallSet: React.FC<{ t?: number }> = ({ t = 0 }) => {
       <mesh geometry={geos.wallR} material={wallMat} />
       <mesh geometry={geos.frames} material={vertexMat(0.5, false, 0.14)} />
       <mesh geometry={geos.view} material={texMat("senora-night", nightTex, { basic: true })} position={[0, VIEW.y, zBack - VIEW.back]} />
-      {HALL_WINDOWS.map((x) => (
-        <mesh key={x} geometry={geos.glass} material={m.glass} position={[x, cy, zBack + 0.02]} />
-      ))}
+      {mirror
+        ? null
+        : HALL_WINDOWS.map((x) => <mesh key={x} geometry={geos.glass} material={m.glass} position={[x, cy, zBack + 0.02]} />)}
       {/* TIMECO's red neon over the vending machine. */}
       <group position={HALL_LOGO}>
         <mesh geometry={geos.neonBox} material={toy("#1B1B24", { rough: 0.5 })} position={[0, 0, -0.02]} />
-        {ready ? <mesh geometry={geos.neon} material={texMat("senora-neon", neonTex, { basic: true, transparent: true })} position={[0, 0, 0.04]} /> : null}
+        {ready ? <mesh geometry={geos.neon} material={mirror ? m.neonDim() : texMat("senora-neon", neonTex, { basic: true, transparent: true })} position={[0, 0, 0.04]} /> : null}
       </group>
-      <Glow color="#FF3030" size={3.6} opacity={0.26 * buzz} position={[HALL_LOGO[0], HALL_LOGO[1], HALL_LOGO[2] + 0.3]} />
+      <Glow color="#FF3030" size={3.6} opacity={(mirror ? 0.1 : 0.26) * buzz} position={[HALL_LOGO[0], HALL_LOGO[1], HALL_LOGO[2] + 0.3]} />
       <group position={HALL_VENDING}>
-        <VendingMachine t={t} />
+        <VendingMachine t={t} glow={mirror ? 0.35 : 1} />
       </group>
-      <group position={HALL_SIGN} rotation={[0, 0.28, 0]}>
+      <group position={HALL_SIGN} rotation={[0, 0.15, 0]} scale={1.3}>
         <WetFloorSign />
       </group>
       <group position={HALL_BUCKET} rotation={[0, -0.35, 0]}>
@@ -740,7 +746,7 @@ export const Hallway: React.FC<{ t?: number }> = ({ t = 0 }) => {
 /** The mirror image of the set and of `children` (the actors) under the see-through wet floor. */
 export const HallReflection: React.FC<{ t?: number; children?: React.ReactNode }> = ({ t = 0, children }) => (
   <group scale={[1, -1, 1]}>
-    <HallSet t={t} />
+    <HallSet t={t} mirror />
     {children}
   </group>
 );
@@ -901,9 +907,9 @@ export const Splashes: React.FC<{ g: number; origin: V3; amount: number; count?:
   g,
   origin,
   amount,
-  count = 14,
-  size = 0.055,
-  reach = 0.9,
+  count = 20,
+  size = 0.075,
+  reach = 1.1,
 }) => {
   const m = fxMats();
   if (amount <= 0.02) return null;
@@ -926,27 +932,31 @@ export const Splashes: React.FC<{ g: number; origin: V3; amount: number; count?:
 };
 
 /**
- * A stream of glowing green motes flowing from `from` to `to` along an arc (`lift` up), each one
- * spiralling a little, with bright cores and sparkles. `amount` 0..1 fades it; `t` = seconds.
+ * A stream of glowing green motes flowing from `from` to `to` along an arc (`lift` up, or through
+ * `via` halfway), each one spiralling a little, with bright cores and gold sparkles. `amount`
+ * 0..1 fades it (it grows out of `from` as it fades in); `t` = seconds.
  */
-export const LifeStream: React.FC<{ from: V3; to: V3; t: number; amount: number; count?: number; lift?: number; width?: number; color?: string }> = ({
+export const LifeStream: React.FC<{ from: V3; to: V3; via?: V3; t: number; amount: number; count?: number; lift?: number; width?: number; color?: string }> = ({
   from,
   to,
+  via,
   t,
   amount,
-  count = 46,
+  count = 52,
   lift = 0.7,
-  width = 0.16,
-  color = "#55FF8C",
+  width = 0.13,
+  color = "#2BFF6E",
 }) => {
   const glow = useMemo(() => additive(new THREE.SpriteMaterial({ map: glowTexture(), color, toneMapped: false })), [color]);
-  const core = useMemo(() => additive(new THREE.SpriteMaterial({ map: glowTexture(), color: "#F2FFF5", toneMapped: false })), []);
+  const core = useMemo(() => additive(new THREE.SpriteMaterial({ map: glowTexture(), color: "#C8FFD8", toneMapped: false })), []);
   const gold = useMemo(() => additive(new THREE.SpriteMaterial({ map: glowTexture(), color: "#FFE58A", toneMapped: false })), []);
   if (amount <= 0.01) return null;
-  glow.opacity = Math.min(1, amount);
-  core.opacity = Math.min(1, amount);
-  gold.opacity = Math.min(1, amount) * 0.9;
-  const c: V3 = [(from[0] + to[0]) / 2, Math.max(from[1], to[1]) + lift, (from[2] + to[2]) / 2 + 0.25];
+  glow.opacity = Math.min(1, amount) * 0.85;
+  core.opacity = Math.min(1, amount) * 0.9;
+  gold.opacity = Math.min(1, amount) * 0.8;
+  const c: V3 = via
+    ? [2 * via[0] - (from[0] + to[0]) / 2, 2 * via[1] - (from[1] + to[1]) / 2, 2 * via[2] - (from[2] + to[2]) / 2]
+    : [(from[0] + to[0]) / 2, Math.max(from[1], to[1]) + lift, (from[2] + to[2]) / 2 + 0.25];
   const at = (u: number): V3 => {
     const a = (1 - u) * (1 - u);
     const b = 2 * u * (1 - u);
@@ -961,15 +971,15 @@ export const LifeStream: React.FC<{ from: V3; to: V3; t: number; amount: number;
         if (u > Math.min(1, amount * 1.6)) return null;
         const p = at(u);
         const env = Math.sin(Math.PI * Math.min(1, u * 1.05));
-        const w = width * (0.4 + env);
+        const w = width * (0.6 + 0.6 * env);
         const ph = t * 7 + i * 2.4;
-        const s = (0.2 + 0.16 * hash(i + 7)) * (0.5 + 0.5 * env) * (0.85 + 0.15 * Math.sin(t * 11 + i));
+        const s = (0.13 + 0.11 * hash(i + 7)) * (0.55 + 0.45 * env) * (0.85 + 0.15 * Math.sin(t * 11 + i));
         const pos: V3 = [p[0] + w * Math.cos(ph) * 0.8, p[1] + w * Math.sin(ph), p[2] + w * Math.sin(ph * 0.7 + i)];
         const mat = i % 5 === 0 ? gold : glow;
         return (
           <group key={i}>
             <sprite material={mat} position={pos} scale={[s * 2.1, s * 2.1, 1]} renderOrder={6} />
-            {i % 2 === 0 ? <sprite material={core} position={pos} scale={[s * 0.75, s * 0.75, 1]} renderOrder={7} /> : null}
+            {i % 3 === 0 ? <sprite material={core} position={pos} scale={[s * 0.7, s * 0.7, 1]} renderOrder={7} /> : null}
           </group>
         );
       })}

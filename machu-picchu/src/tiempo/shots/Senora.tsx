@@ -50,7 +50,7 @@ const SAFE_R = 940;
 
 // ---- Where everyone stands ------------------------------------------------------------
 const LADY_A: Vec3 = HALL_LADY;
-const NUBI_A: Vec3 = [LADY_A[0] - 2.4, 0, LADY_A[2] + 0.35];
+const NUBI_A: Vec3 = [LADY_A[0] - 2.25, 0, LADY_A[2] + 0.35];
 const NUBI_C: Vec3 = [-1.05, 0, 0.85];
 const NUBI_C_YAW = 0.2;
 const LADY_C_YAW = -0.26;
@@ -78,7 +78,7 @@ const mopping = (stroke: number, hunch: number): NubiPose => ({
 });
 
 /** Half the on-screen width of a life counter (to keep it inside the safe area). */
-const counterHalf = (seconds: number, scale: number) => (seconds >= YEAR ? 285 : seconds >= 86400 ? 235 : 215) * scale;
+const counterHalf = (seconds: number, scale: number) => (seconds >= YEAR ? 300 : seconds >= 86400 ? 235 : 215) * scale;
 const keepInside = <T extends { x: number; scale: number }>(c: T, seconds: number): T => {
   const h = counterHalf(seconds, c.scale);
   return { ...c, x: Math.min(SAFE_R - h, Math.max(SAFE_L + h, c.x)) };
@@ -240,14 +240,14 @@ export const SenoraShot: React.FC = () => {
     // Wide, creeping in; a little push on the skid.
     const u = ramp(g, START, B0, [0, 1], (x) => x);
     const push = ramp(g, STOP - 2, STOP + 14, [0, 1], EASE_OUT);
-    cam = aim(lerp3([0.2, 1.95, 21.8], [0.05, 1.85, 19.6], u * 0.75 + push * 0.25), 38, [NUBI_A[0] / 2 + LADY_A[0] / 2, 0, 0.7], 470, 1262);
+    cam = aim(lerp3([-0.1, 1.9, 20.6], [-0.2, 1.8, 18.4], u * 0.75 + push * 0.25), 38, [NUBI_A[0] / 2 + LADY_A[0] / 2, 0, 0.7], 545, 1262);
   } else if (g < C0) {
     const u = ramp(g, B0, C0, [0, 1], (x) => x);
     cam = aim(lerp3([2.4, 1.5, 10.6], [2.2, 1.45, 9.7], u), 38, [LADY_A[0], 0.93, LADY_A[2]], 560, 1030);
   } else {
     const u = ramp(g, C0, END, [0, 1], EASE_IN_OUT);
     const mid: Vec3 = [(NUBI_C[0] + LADY_C[0]) / 2, 0, (NUBI_C[2] + LADY_C[2]) / 2];
-    cam = aim(lerp3(add(mid, [0.35, 1.7, 16.3]), add(mid, [0.25, 1.55, 14.6]), u), 38, mid, 500, 1266);
+    cam = aim(lerp3(add(mid, [0.35, 1.7, 16.8]), add(mid, [0.25, 1.55, 15.0]), u), 38, mid, 528, 1266);
   }
 
   // ---- Life counters --------------------------------------------------------------------
@@ -258,12 +258,16 @@ export const SenoraShot: React.FC = () => {
   const ladySecs = ladySeconds(g);
   const nubiSecs = nubiSeconds(g);
   const ladyC = keepInside(counterAt(cam, ladyHead, { ref: 9, min: 0.85, max: 1.0 }), ladySecs);
-  const nubiC = keepInside(counterAt(cam, nubiHead, { ref: 9, min: 0.85, max: 1.0 }), nubiSecs);
+  // Nubi's counter rides in with it on the dash (only kept inside the frame once it has stopped).
+  const nubiRaw = counterAt(cam, nubiHead, { ref: 9, min: 0.85, max: 1.0 });
+  const nubiC = g < STOP ? nubiRaw : keepInside(nubiRaw, nubiSecs);
 
   // ---- FX positions --------------------------------------------------------------------
-  const nubiChest = add(nubiAt, rotY([0.45, 1.05, 0.95], nubiYaw));
-  const ladyChest = add(ladyAt, rotY([-0.25, 0.85, 0.85], ladyYaw));
+  // The life leaves Nubi's side by its fin, crosses the touching fin tips and sinks into her apron.
+  const nubiChest = add(nubiAt, rotY([0.92, 0.9, 0.55], nubiYaw));
+  const ladyChest = add(ladyAt, rotY([-0.35, 0.58, 0.95], ladyYaw));
   const touchTip = finTipWorld(nubiAt, nubiYaw, NUBI_SIZE, nubiPose, "R");
+  const contact: Vec3 = [touchTip[0] + 0.02, touchTip[1] - 0.03, touchTip[2] + 0.05];
   const touchK = g >= C0 ? windowIn(g, TOME - 1, ANO + 22, 4) : 0;
   const flash = g >= TOME ? Math.max(0, 1 - (g - TOME) / 10) : 0;
   const burst = g >= ANO ? Math.max(0, 1 - (g - ANO) / 14) : 0;
@@ -278,7 +282,7 @@ export const SenoraShot: React.FC = () => {
   );
   const gift =
     g >= C0 ? (
-      <LifeStream from={nubiChest} to={ladyChest} t={t} amount={stream} lift={0.55} />
+      <LifeStream from={nubiChest} to={ladyChest} via={contact} t={t} amount={stream} width={0.09} />
     ) : null;
 
   return (
@@ -287,24 +291,26 @@ export const SenoraShot: React.FC = () => {
         <Stage cam={cam} near={0.1}>
           <HallLights />
           {/* The gift warms the scene: green light at the fins, then a warm glow on both faces. */}
-          <pointLight position={[pairMid[0], 1.6, pairMid[2] + 1.4]} intensity={9 * stream} distance={6} decay={1.4} color="#7DFFAA" />
-          <pointLight position={[pairMid[0] + 0.4, 2.6, pairMid[2] + 3.2]} intensity={7 * warm} distance={9} decay={1.2} color="#FFC98A" />
+          <pointLight position={[pairMid[0], 1.7, pairMid[2] + 1.6]} intensity={3.2 * stream} distance={5} decay={1.5} color="#7DFFAA" />
+          <pointLight position={[pairMid[0] + 0.3, 5.5, pairMid[2] + 2.4]} intensity={6 * warm} distance={10} decay={1.1} color="#FFC98A" />
           <Hallway t={t} />
           {actors}
           <HallReflection t={t}>
             {actors}
-            {g >= C0 ? <LifeStream from={nubiChest} to={ladyChest} t={t} amount={stream * 0.4} lift={0.55} /> : null}
+            {g >= C0 ? <LifeStream from={nubiChest} to={ladyChest} via={contact} t={t} amount={stream * 0.35} width={0.09} /> : null}
           </HallReflection>
           <Splashes g={g} origin={mopHead} amount={splash} />
           <DustPuff frame={g} at={STOP} position={[NUBI_A[0], 0.02, NUBI_A[2]]} radius={1.0} color="#BFE3FF" count={12} />
           {g >= C0 ? (
             <>
               {gift}
-              <Glow color="#6DFF9A" size={0.45 + 0.9 * flash + 0.08 * Math.sin(g * 0.7)} opacity={0.85 * touchK} position={touchTip} />
-              <Twinkles frame={g} at={TOME} position={touchTip} radius={0.35} count={8} color="#D9FFE4" />
-              <Glow color="#8DFFB0" size={2.6 * burst + 0.01} opacity={0.75 * burst} position={ladyChest} />
+              <Glow color="#6DFF9A" size={0.32 + 0.8 * flash + 0.06 * Math.sin(g * 0.7)} opacity={0.75 * touchK} position={contact} />
+              <Twinkles frame={g} at={TOME} position={contact} radius={0.35} count={8} color="#D9FFE4" />
+              {/* Her body fills up with green life while it flows in. */}
+              <Glow color="#4DFF88" size={1.1 + 0.25 * Math.sin(g * 0.4)} opacity={0.32 * stream} position={ladyChest} />
+              <Glow color="#5DFF95" size={1.5 * burst + 0.01} opacity={0.55 * burst} position={ladyChest} />
               <Twinkles frame={g} at={ANO} position={[ladyAt[0], 0.9, ladyAt[2]]} radius={1.0} count={14} color="#9DFFB8" />
-              <Hearts g={g} at={HUG - 3} position={[pairMid[0], 1.7, pairMid[2] + 0.3]} count={11} every={1.6} />
+              <Hearts g={g} at={HUG - 4} position={[pairMid[0] + 0.1, 1.05, pairMid[2] + 0.9]} count={12} every={1.5} spread={2.0} rise={1.5} />
             </>
           ) : null}
         </Stage>
