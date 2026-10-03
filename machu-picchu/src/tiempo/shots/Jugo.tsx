@@ -117,7 +117,7 @@ export const JugoShot: React.FC = () => {
   const cam = aim(position, FOV, NUBI, 385, 1262);
 
   const nubiC = counterAt(cam, [NUBI[0], NUBI[1] + 1.98 + 0.1 + hopY, NUBI[2]]);
-  const vendorHead: Vec3 = [VENDOR[0], VENDOR[1] + VENDOR_SIZE * 0.99 + 0.14 + (VENDOR_SIZE / 10) * (vendorPose.hop ?? 0), VENDOR[2]];
+  const vendorHead: Vec3 = [VENDOR[0], VENDOR[1] + (VENDOR_SIZE / 10) * (12.2 + (vendorPose.hop ?? 0)) + 0.06, VENDOR[2]];
   const vendorC = counterAt(cam, vendorHead);
 
   return (
