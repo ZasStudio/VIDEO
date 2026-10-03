@@ -21,7 +21,7 @@ import { tiempoTalk } from "../talk";
 // NOTIF): "…respirar en zona premium" — on INHALE Nubi takes a huge breath and holds it (puffed
 // up 1.25×, bluish purple, eyes squeezed, trembling; the counter freezes) until EXHALE, when the
 // air bursts out (a quick deflate, a little spin) and the counter drains again.
-// Medium shot: feet ≈ (560, 1260), the counter's bottom ≈ y 590.
+// Medium shot: the counter's bottom anchor stays at y ≈ 720 (feet ≈ y 1262 at the start).
 
 const WALK = 2.4; // units per second
 const HAPPY = NUBI_GREEN;
@@ -72,7 +72,7 @@ export const AlarmaShot: React.FC = () => {
     lookY: 0.15,
   };
   const startle = ramp(g, ALARM + 2, ALARM + 7);
-  const panic = windowIn(g, L11, NOTIF + 6, 4);
+  const panic = windowIn(g, L11, NOTIF, 6);
   const hopP = Math.abs(Math.sin((g - L11) * 0.42));
   const no = windowIn(g, L11 + 26, L11 + 62, 5);
   const listen = ramp(g, NOTIF, NOTIF + 10) * (1 - ramp(g, INHALE - 3, INHALE));
@@ -120,16 +120,18 @@ export const AlarmaShot: React.FC = () => {
   const body = breathColor(colorK, strain * colorK);
 
   // ---- Camera: medium shot from the plaza's near side, slowly pushing in; a nudge on INHALE.
-  const push = ramp(g, START, INHALE, [0, 0.6], (x) => x) + ramp(g, INHALE, INHALE + 10, [0, 0.5]);
-  const camPos: Vec3 = [PLAZA_NUBI[0] + 0.9, 1.35, PLAZA_NUBI[2] - 7.4 + push];
-  const cam = aim(camPos, 46, [PLAZA_NUBI[0], 0, PLAZA_NUBI[2]], 560, 1262);
+  // It keeps the counter's anchor (just over the head, hops aside) at y 720, so the whole
+  // counter stays under the TIMECO notification band (y 240-485); feet ≈ y 1262 at the start.
+  const push = ramp(g, START, INHALE, [0, 0.35], (x) => x) + ramp(g, INHALE, INHALE + 10, [0, 0.3]);
+  const camPos: Vec3 = [PLAZA_NUBI[0] + 1.0, 1.5, PLAZA_NUBI[2] - 9.3 + push];
+  const cam = aim(camPos, 46, [at[0], 2.1 * sy + 0.12, at[2]], 560, 720);
 
   // Alarm light over Nubi: red pulses while draining, icy while frozen.
   const draining = nubiDraining(g);
   const frozen = nubiHolding(g);
   const beep = draining ? 0.5 + 0.5 * Math.sin(g * 1.4) : 0;
   const head: Vec3 = [nubiAt[0], 2.1 * sy + ((pose.hop ?? 0) * 0.2) + 0.12, nubiAt[2]];
-  const ctr = counterAt(cam, head, { min: 1.0, max: 1.3 });
+  const ctr = counterAt(cam, head, { min: 1.0, max: 1.12 });
   return (
     <AbsoluteFill style={{ background: TIMECO_SKY }}>
       <Shake

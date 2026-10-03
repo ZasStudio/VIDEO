@@ -20,8 +20,9 @@ import { tiempoTalk } from "../talk";
 // the right of frame, its screen reading "1 MES"; on "cinco años" the AUTOLUX showroom slides in:
 // the red toy car on its turntable under the "5 AÑOS" banner, the golden rich man beside it.
 // Nubi stops and stares; at RICH_BUY he taps the car (confetti, "VENDIDO"), his golden counter
-// barely moves (999 → 994 AÑOS). High-ish camera (y 4), so depth stacks vertically: Nubi's feet
-// at y ≈ 1260, the showroom's floor above it; y 260-460 stays plain facade (2D stickers).
+// barely moves (999 → 994 AÑOS). Final layout: Nubi x ≈ 245 (feet y ≈ 1262), the rich man x ≈ 560
+// against the showroom's navy wall, the car x ≈ 800 under the price banner; y 260-460 stays plain
+// upper facade for the 2D stickers.
 
 const FOV = 40;
 const Z = AVENUE.walkZ;
@@ -29,10 +30,10 @@ const Z = AVENUE.walkZ;
 const SPEED = 3.0;
 const STOP = ESCALA.ANOS + 4;
 const DECEL = 12;
-const END_X = CAR_SPOT[0] - 2.64;
-/** Camera: 13 units in front of the walk line, 4 up. */
-const CAM_DIST = 13;
-const CAM_Y = 4.0;
+const END_X = RICH_SPOT[0] - 2.19;
+/** Camera: 17 units in front of the walk line, 2.8 up (wide enough for Nubi, the rich man and the car). */
+const CAM_DIST = 17;
+const CAM_Y = 2.8;
 const PX_PER_UNIT = 1920 / (2 * CAM_DIST * Math.tan((FOV * Math.PI) / 360));
 
 /** Units still to walk `u` frames before STOP (constant speed, then a smooth stop). */
@@ -74,7 +75,7 @@ export const VitrinasShot: React.FC = () => {
   const nubiRot = 0.78 + 0.22 * stare;
 
   // ---- Camera: tracks Nubi (it drifts from x ≈ 470 to 245 as the showroom takes the right).
-  const sx = keyframes(g, [START, MES, ANOS, CASA_CUT], [470, 420, 285, 245]);
+  const sx = keyframes(g, [START, MES, ANOS, CASA_CUT], [470, 420, 265, 245]);
   const camPos: Vec3 = [x + (540 - sx) / PX_PER_UNIT, CAM_Y, Z + CAM_DIST];
   const cam = aim(camPos, FOV, [x, 0, Z], sx, 1262);
 
@@ -90,24 +91,25 @@ export const VitrinasShot: React.FC = () => {
     hop: 0.25 * Math.sin(Math.PI * ramp(g, RICH_BUY, RICH_BUY + 6, [0, 1], Easing.linear)),
   };
   const age = (g - RICH_BUY) / 30;
-  const spin = -0.8 + (t - ANOS / 30) * 0.5;
+  // The car's nose points at the rich man and the camera (3/4) when he buys it.
+  const spin = -2.3 + (t - RICH_BUY / 30) * 0.35;
   const sold = ramp(g, RICH_BUY + 3, RICH_BUY + 9);
-  const carTop: Vec3 = [CAR_SPOT[0], 1.75, CAR_SPOT[2]];
+  const carTop: Vec3 = [CAR_SPOT[0] - 0.3, 1.7, CAR_SPOT[2]];
 
   const nubiCounter = counterAt(cam, [x, 2.2 + (pose.hop ?? 0) * 0.2 * 0.5, Z]);
-  const richCounter = counterAt(cam, [RICH_SPOT[0] + 0.2, 3.55, RICH_SPOT[2]]);
+  const richCounter = counterAt(cam, [RICH_SPOT[0] + 0.1, 3.2, RICH_SPOT[2]]);
 
   return (
     <AbsoluteFill style={{ background: AVENUE_SKY }}>
       <Stage cam={cam}>
         <AvenueLights />
         <Avenue t={t} spin={spin} sold={sold} xRange={[x - 12, x + 14]} />
-        <RichMan position={RICH_SPOT} rotationY={0.42} pose={richPose} />
+        <RichMan position={RICH_SPOT} rotationY={0.5} pose={richPose} />
         <Nubi size={2} position={nubiAt} rotationY={nubiRot} pose={pose} shadowOpacity={0.4} />
         <ConfettiBurst age={age} position={carTop} count={80} />
         <Sparkles age={age} position={carTop} radius={1.6} count={12} size={0.26} />
         <Sparkles age={((g - START) % 36) / 30} position={[RICH_SPOT[0], 1.6, RICH_SPOT[2] + 0.8]} radius={1.0} count={4} size={0.16} seed={7 + Math.floor((g - START) / 36)} life={0.9} />
-        {age >= 0 && age < 0.4 ? <Glow color="#FFE07A" size={4.5 * (1 - age / 0.4) + 1} opacity={1 - age / 0.4} position={carTop} /> : null}
+        {age >= 0 && age < 0.3 ? <Glow color="#FFE07A" size={2.4 * (1 - age / 0.3) + 0.6} opacity={0.8 * (1 - age / 0.3)} position={carTop} /> : null}
       </Stage>
       {!richCounter.behind ? <LifeCounter frame={g} seconds={richSeconds(g)} events={RICH_EVENTS} gold x={richCounter.x} y={richCounter.y} scale={0.7} /> : null}
       {!nubiCounter.behind ? (

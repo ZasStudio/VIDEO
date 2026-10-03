@@ -4,7 +4,7 @@ import { EASE_IN_OUT, EASE_OUT, ramp } from "../../anim";
 import { LifeCounter } from "../../overlay/tiempo/TiempoUI";
 import { Stage } from "../../scenes/common";
 import { Cam, aim } from "../../thanos/camera";
-import { Vec3, lerp3 } from "../../three/CameraRig";
+import { lerp3 } from "../../three/CameraRig";
 import { Nubi, NubiPose } from "../../three/Nubi";
 import { AvenueLights, ESTATE, ESTATE_SKY, MansionEstate } from "../../three/tiempo/Avenue";
 import { ESCALA } from "../beats";
@@ -24,18 +24,17 @@ const FOV = 44;
 const NUBI = ESTATE.nubi;
 const SIGN = ESTATE.sign;
 
-/** Low start: under the panel, looking up at it. */
-const LOW: Cam = aim([2.2, 0.45, 8.6], FOV, SIGN, 560, 860, 14);
-/** Crane top: Nubi small at the gate (feet y ≈ 1262), the mansion over the hedge. */
-const HIGH_POS: Vec3 = [1.55, 3.3, 13.4];
-const HIGH: Cam = aim(HIGH_POS, FOV, NUBI, 330, 1262, 14);
-const PUSH_POS: Vec3 = [1.4, 3.05, 12.4];
-const PUSH: Cam = aim(PUSH_POS, FOV, NUBI, 330, 1262, 14);
+/** Low start: under the panel, looking up at it (the whole "SE VENDE / 40 AÑOS" in frame). */
+const LOW: Cam = aim([2.9, 0.5, 10.5], FOV, SIGN, 540, 840, 14);
+/** Crane top: Nubi small at the gate (x ≈ 300, feet y ≈ 1262), the panel at its right, the
+ * mansion on the hill above them (its roof just under the sticker band). */
+const HIGH: Cam = aim([1.4, 2.5, 17.2], FOV, NUBI, 300, 1262, 14);
+const PUSH: Cam = aim([1.35, 2.35, 16.3], FOV, NUBI, 305, 1262, 14);
 
 export const CasaShot: React.FC = () => {
   const g = useCurrentFrame() + SHOTS.casa.from;
   const t = g / 30;
-  const { CASA_CUT, CASA, L04, ENTERA, END } = ESCALA;
+  const { CASA_CUT, L04, ENTERA, END } = ESCALA;
 
   // ---- Camera: crane up and back, then a slow push-in on Nubi.
   const crane = ramp(g, CASA_CUT + 4, L04 - 2, [0, 1], EASE_IN_OUT);
@@ -83,7 +82,6 @@ export const CasaShot: React.FC = () => {
           x={nubiCounter.x}
           y={nubiCounter.y}
           scale={0.86}
-          appear={CASA - 2}
         />
       ) : null}
     </AbsoluteFill>

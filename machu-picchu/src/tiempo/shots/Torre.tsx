@@ -79,7 +79,7 @@ export const TorreShot: React.FC = () => {
       lookY: -0.12,
       squash: 1.02,
       pitch: 0.06,
-      hop: 0.8 * stomp + 2.2 * windowIn(g, TRABAJAR - 1, TRABAJAR + 9, 3),
+      hop: 0.8 * stomp + (g >= SCREEN ? 1.4 : 2.2) * windowIn(g, TRABAJAR - 1, TRABAJAR + 9, 3),
     };
     const turn = ramp(g, CUT_B, CUT_B + 8, [0, 1], EASE_OUT);
     // After the line, a look back up at the screen.
@@ -91,13 +91,14 @@ export const TorreShot: React.FC = () => {
       cam = aim(pos, 44, [N[0], 0, N[2]], 420, 1262);
     } else {
       const k = ramp(g, SCREEN, END, [0, 1], (x) => x);
-      const pos: Vec3 = [N[0] + 0.5, 1.1, N[2] + 49 - 3 * k];
-      cam = aim(pos, 22, [N[0], 0, N[2]], 540, 1292);
+      const pos: Vec3 = [N[0] + 0.5, 1.1, N[2] + 52 - 1.5 * k];
+      cam = aim(pos, 22, [N[0], 0, N[2]], 540, 1300);
     }
   }
 
   const screenOn = ramp(g, SCREEN - 6, SCREEN + 4, [0, 1], (x) => x);
-  const head: Vec3 = [at[0], 2.2 + (pose.hop ?? 0) * 0.2, at[2]];
+  // From SCREEN the counter stays put over the head (panel top ≥ y 910, under the 2D screen).
+  const head: Vec3 = g >= SCREEN ? [at[0], 2.1, at[2]] : [at[0], 2.2 + (pose.hop ?? 0) * 0.2, at[2]];
   const ctr = counterAt(cam, head, { min: counterMin, max: 1.3 });
   return (
     <AbsoluteFill style={{ background: TIMECO_SKY }}>
