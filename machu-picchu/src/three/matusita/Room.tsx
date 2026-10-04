@@ -1135,9 +1135,9 @@ const FaceUplight: React.FC<{ at: V3; yaw: number; on: number }> = ({ at, yaw, o
   const w = (lx: number, ly: number, lz: number): V3 => [at[0] + lx * c + lz * s, at[1] + ly, at[2] - lx * s + lz * c];
   return (
     <>
-      <spotLight position={w(0.15, 0.4, 1.35)} target={target} angle={0.8} penumbra={1} intensity={10 * on} distance={3} decay={2} color="#FFD49A" />
+      <spotLight position={w(-0.15, 0.4, 1.35)} target={target} angle={0.8} penumbra={1} intensity={10 * on} distance={3} decay={2} color="#FFD49A" />
       <primitive object={target} position={w(0, 2.3, 0.55)} />
-      <pointLight position={w(0.9, 0.6, 1.0)} intensity={0.5 * on} distance={1.8} decay={1.5} color="#FFC27A" />
+      <pointLight position={w(-0.9, 0.6, 1.0)} intensity={0.5 * on} distance={1.8} decay={1.5} color="#FFC27A" />
     </>
   );
 };
@@ -1151,7 +1151,7 @@ const EyeGlints: React.FC<{ eyeScale: number; on: number }> = ({ eyeScale, on })
   return (
     <>
       {[-1, 1].map((side) => (
-        <mesh key={side} geometry={glintGeo} material={glintMat} position={[side * 2.3 + 0.18, 5.5 - 0.52 * eyeScale, 4.73]} scale={[0.17, 0.12, 1]} />
+        <mesh key={side} geometry={glintGeo} material={glintMat} position={[side * 2.3 - 0.18, 5.5 - 0.52 * eyeScale, 4.73]} scale={[0.17, 0.12, 1]} />
       ))}
     </>
   );
@@ -1164,13 +1164,14 @@ const DOPPEL_PALETTE = { eyeRough: 0.75 };
  * The other Nubi, sitting in the chair. `turn` = its rotationY (0 faces the desk and its camera;
  * pass the same value as the room's chairYaw so the seat turns with it). `torch` = its flashlight.
  * `chin` 0..1 brings the flashlight from the desk up under its chin, pointing up past its face
- * (campfire-story light, like the hook): its face is then lit from below by its own torch.
+ * (campfire-story light, like the hook): its face is then lit from below by its own torch. It
+ * holds the torch in its left fin (screen-left when it faces the camera): a mirror image of Nubi.
  */
 export const Doppelganger: React.FC<{ turn?: number; torch?: number; stare?: number; chin?: number }> = ({ turn = 0, torch = 1, stare = 0, chin = 0 }) => {
   const at = sitAt(turn);
   const eyeScale = (DOPPEL_POSE.eyeScale ?? 1) + 0.08 * stare;
-  const raise = DOPPEL_TORCH.raise + 0.4 * chin;
-  const pitch = DOPPEL_TORCH.pitch + (-1.25 - DOPPEL_TORCH.pitch) * chin;
+  const raise = DOPPEL_TORCH.raise + 0.45 * chin;
+  const pitch = DOPPEL_TORCH.pitch + (-1.2 - DOPPEL_TORCH.pitch) * chin;
   return (
     <>
       <Nubi
@@ -1179,8 +1180,8 @@ export const Doppelganger: React.FC<{ turn?: number; torch?: number; stare?: num
         rotationY={turn}
         shadow={false}
         palette={DOPPEL_PALETTE}
-        pose={{ ...DOPPEL_POSE, eyeScale, finR: raise }}
-        holdR={<HeldTorch raise={raise} pitch={pitch} turn={-0.4 * chin} on={torch} intensity={30 - 18 * chin} beam={0.16 + 0.06 * chin} reach={5} />}
+        pose={{ ...DOPPEL_POSE, eyeScale, finL: raise, finR: DOPPEL_POSE.finL }}
+        holdL={<HeldTorch raise={raise} side="L" pitch={pitch} turn={0.4 * chin} on={torch} intensity={30 - 18 * chin} beam={0.16 + 0.08 * chin} reach={5} />}
       >
         <EyeGlints eyeScale={eyeScale} on={torch * chin} />
       </Nubi>

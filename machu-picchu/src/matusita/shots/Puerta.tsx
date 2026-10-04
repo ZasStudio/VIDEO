@@ -29,10 +29,10 @@ const DOOR_FLUNG = 2.72;
 /** A: the camera inside the room (outside the one-sided front wall), the chair out of frame. */
 const CAM_A: Vec3 = [-3.3, 1.7, 6.8];
 /** B: the camera in the hallway, looking over Nubi (in the doorway) at the chair. */
-const CAM_B: Vec3 = [-3.6, 3.9, -7.1];
+const CAM_B: Vec3 = [-3.6, 3.0, -7.1];
 /** Where Nubi stands in B: in the hallway behind the door, looking in at the chair. Only its
  *  shoulder shows, in the bottom-left corner (the other one dominates the frame). */
-const PEEK: Vec3 = [ROOM_DOOR.x + 0.75, 0, ROOM.zBack - 2.5];
+const PEEK: Vec3 = [ROOM_DOOR.x + 0.6, 0, ROOM.zBack - 2.3];
 /** Its back is in the dark hallway: a shadowed tone, so it reads as a near-silhouette. */
 const SHADOWED = { body: "#2F5239" };
 const PEEK_YAW = yawTo(ROOM_SIT, PEEK);
@@ -54,8 +54,8 @@ export const PuertaShot: React.FC = () => {
   const g = frame + SHOTS.puerta.from;
   const t = g / 30;
   const { DOOR, L08, TURN, OFF } = SUSTO;
-  /** Two frames after the click everything is black (a 2D glitch cut sits on top). */
-  const black = g >= OFF + 2;
+  /** At the click everything goes black: its face, the room's lights (a 2D glitch cut sits on top). */
+  const black = g >= OFF;
   const rimTarget = useMemo(() => new THREE.Object3D(), []);
 
   if (g < CUT_B) {
@@ -111,8 +111,8 @@ export const PuertaShot: React.FC = () => {
   const push = ramp(g, CUT_B, OFF, [0, 1], (x) => x);
   const close = ramp(g, TURN + 40, OFF, [0, 1], EASE_IN_OUT);
   const face: Vec3 = [sitAt(turn)[0], ROOM_SIT[1] + 1.15, sitAt(turn)[2]];
-  const from = lerp3(CAM_B, face, 0.08 * push + 0.1 * close);
-  const cam = wobble(aim(from, 44, face, 640, 760 + 20 * close), g, 0.8);
+  const from = lerp3(CAM_B, face, 0.07 * push + 0.05 * close);
+  const cam = wobble(aim(from, 44, face, 580, 760 + 20 * close), g, 0.8);
   // Nubi (foreground, a near-silhouette in the hallway) trembles; it shrinks back when the other
   // one turns. Its flashlight (left fin, the side we see) dips off the other one's face then.
   const recoil = ramp(g, TURN + 10, TURN + 40, [0, 1], EASE_OUT);
@@ -125,21 +125,19 @@ export const PuertaShot: React.FC = () => {
   };
   const pose = g < TURN ? matusitaTalk(g, base, 0.35) : { ...base };
   pose.finL = 0.3;
-  // The click: its torch goes out at OFF, the room's lights die with it over two frames, black.
-  const off = g >= OFF;
-  const lights = off ? Math.max(0, 0.22 - 0.12 * (g - OFF)) : 1 - 0.12 * recoil * (1 - flicker(g, 9, 0.5));
-  const intruderTorch = g >= OFF + 1 ? 0 : flicker(g, 7, 0.4) * (off ? 0.35 : 1);
+  const lights = 1 - 0.12 * recoil * (1 - flicker(g, 9, 0.5));
+  const intruderTorch = flicker(g, 7, 0.4);
   const dip = ramp(g, TURN, TURN + 15, [0, 1], EASE_IN_OUT);
   return (
     <AbsoluteFill style={{ background: "#000" }}>
       {!black ? (
         <Stage cam={cam} near={0.05}>
-          <RoomLights lights={lights * 0.85} moon={off ? 0 : 0.15} />
+          <RoomLights lights={lights * 0.85} moon={0.15} />
           {/* The room's light spilling through the doorway: a thin rim on Nubi's silhouette. */}
-          <directionalLight position={[PEEK[0] + 0.8, 1.6, PEEK[2] + 6]} target={rimTarget} intensity={off ? 0 : 1.6 * lights} color="#FFDDB0" />
+          <directionalLight position={[PEEK[0] + 0.8, 1.6, PEEK[2] + 6]} target={rimTarget} intensity={1.6 * lights} color="#FFDDB0" />
           <primitive object={rimTarget} position={[PEEK[0], 1.0, PEEK[2]]} />
-          <Room t={t} door={DOOR_FLUNG} chairYaw={turn} feedYaw={turn} rec={off ? 0 : 1} lights={lights} />
-          <Doppelganger turn={turn} torch={off ? 0 : 1} stare={close} chin={chin} />
+          <Room t={t} door={DOOR_FLUNG} chairYaw={turn} feedYaw={turn} rec={1} lights={lights} />
+          <Doppelganger turn={turn} torch={1} stare={close} chin={chin} />
           <Nubi
             size={2}
             position={PEEK}
