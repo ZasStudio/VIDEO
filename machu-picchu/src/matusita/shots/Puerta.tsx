@@ -112,7 +112,7 @@ export const PuertaShot: React.FC = () => {
   const close = ramp(g, TURN + 40, OFF, [0, 1], EASE_IN_OUT);
   const face: Vec3 = [sitAt(turn)[0], ROOM_SIT[1] + 1.15, sitAt(turn)[2]];
   const from = lerp3(CAM_B, face, 0.07 * push + 0.05 * close);
-  const cam = wobble(aim(from, 44, face, 580, 760 + 20 * close), g, 0.8);
+  const cam = wobble(aim(from, 44, face, 500, 760 + 20 * close), g, 0.8);
   // Nubi (foreground, a near-silhouette in the hallway) trembles; it shrinks back when the other
   // one turns. Its flashlight (left fin, the side we see) dips off the other one's face then.
   const recoil = ramp(g, TURN + 10, TURN + 40, [0, 1], EASE_OUT);
