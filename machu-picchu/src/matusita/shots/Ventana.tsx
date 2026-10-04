@@ -122,10 +122,10 @@ export const VentanaShot: React.FC = () => {
             t={t}
             min={pov ? [-4, 0, 1] : [-6, 0, 2]}
             size={pov ? [12, 9, 14] : [14, 10, 20]}
-            count={2600}
+            count={1900}
             seed={11}
-            opacity={0.3}
-            px={2.4}
+            opacity={0.32}
+            px={2.5}
             lamp={lamp}
             torch={{ pos: aimed.lens, dir: aimed.dir, on, angle: 0.26 }}
             far={40}

@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
+import * as THREE from "three";
 import { EASE_IN, EASE_IN_OUT, EASE_OUT, ramp } from "../../anim";
 import { Shake, Stage } from "../../scenes/common";
 import { Cam, aim } from "../../thanos/camera";
@@ -28,11 +29,12 @@ const DOOR_FLUNG = 2.72;
 /** A: the camera inside the room (outside the one-sided front wall), the chair out of frame. */
 const CAM_A: Vec3 = [-3.3, 1.7, 6.8];
 /** B: the camera in the hallway, looking over Nubi (in the doorway) at the chair. */
-const CAM_B: Vec3 = [-3.7, 3.4, -6.4];
-/** Where Nubi stands in B: in the hallway, peeking round the door frame at the chair. */
-const PEEK: Vec3 = [ROOM_DOOR.x - 1.1, 0, ROOM.zBack - 0.6];
-/** Its back is in the dark hallway: a shadowed tone, so it reads as a foreground silhouette. */
-const SHADOWED = { body: "#4A7A58" };
+const CAM_B: Vec3 = [-3.6, 3.9, -7.1];
+/** Where Nubi stands in B: in the hallway behind the door, looking in at the chair. Only its
+ *  shoulder shows, in the bottom-left corner (the other one dominates the frame). */
+const PEEK: Vec3 = [ROOM_DOOR.x + 0.75, 0, ROOM.zBack - 2.5];
+/** Its back is in the dark hallway: a shadowed tone, so it reads as a near-silhouette. */
+const SHADOWED = { body: "#2F5239" };
 const PEEK_YAW = yawTo(ROOM_SIT, PEEK);
 
 /** Handheld camcorder wobble (small, slow, deterministic). */
@@ -52,7 +54,9 @@ export const PuertaShot: React.FC = () => {
   const g = frame + SHOTS.puerta.from;
   const t = g / 30;
   const { DOOR, L08, TURN, OFF } = SUSTO;
-  const dark = g >= OFF;
+  /** Two frames after the click everything is black (a 2D glitch cut sits on top). */
+  const black = g >= OFF + 2;
+  const rimTarget = useMemo(() => new THREE.Object3D(), []);
 
   if (g < CUT_B) {
     // ---- A: the door bursts open; Nubi in the doorway, panting.
@@ -67,8 +71,8 @@ export const PuertaShot: React.FC = () => {
       eyeScale: 1.35,
       lookX: 0.3 * Math.sin((g - DOOR) * 0.12),
       lookY: -0.05,
-      finL: 0.55 - 0.3 * ramp(g, DOOR, DOOR + 10),
-      finR: 0.35,
+      finR: 0.55 - 0.3 * ramp(g, DOOR, DOOR + 10),
+      finL: 0.35,
       pitch: -0.04 + 0.03 * pant,
       hop: g >= DOOR ? 1.2 * (1 - ramp(g, DOOR, DOOR + 6)) : 0,
     };
@@ -88,7 +92,7 @@ export const PuertaShot: React.FC = () => {
                 rotationY={Math.atan2(CAM_A[0] - ROOM_THRESHOLD[0], CAM_A[2] - ROOM_THRESHOLD[2]) + 0.25}
                 pose={pose}
                 shadowOpacity={0.4}
-                holdR={<HeldTorch raise={pose.finR ?? 0} pitch={0.05 + tremble} turn={0.15} on={flicker(g, 5, 0.6)} intensity={45} beam={0.2} />}
+                holdL={<HeldTorch raise={pose.finL ?? 0} side="L" pitch={0.05 + tremble} turn={-0.15} on={flicker(g, 5, 0.6)} intensity={45} beam={0.2} />}
               />
             ) : null}
           </Stage>
@@ -101,30 +105,41 @@ export const PuertaShot: React.FC = () => {
   const turnK = ramp(g, TURN, TURN + 66, [0, 1], EASE_IN_OUT);
   const stareYaw = yawTo(CAM_B);
   const turn = stareYaw * turnK;
+  // As it turns it brings its flashlight up under its chin: its own uplight becomes the key on
+  // its face (campfire-story light, like the hook). At OFF it clicks it off.
+  const chin = ramp(g, TURN, TURN + 15, [0, 1], EASE_IN_OUT);
   const push = ramp(g, CUT_B, OFF, [0, 1], (x) => x);
   const close = ramp(g, TURN + 40, OFF, [0, 1], EASE_IN_OUT);
   const face: Vec3 = [sitAt(turn)[0], ROOM_SIT[1] + 1.15, sitAt(turn)[2]];
   const from = lerp3(CAM_B, face, 0.08 * push + 0.1 * close);
-  const cam = wobble(aim(from, 46, face, 640, 760 + 20 * close), g, 0.8);
-  // Nubi (foreground) trembles; it shrinks back when the other one turns.
+  const cam = wobble(aim(from, 44, face, 640, 760 + 20 * close), g, 0.8);
+  // Nubi (foreground, a near-silhouette in the hallway) trembles; it shrinks back when the other
+  // one turns. Its flashlight (left fin, the side we see) dips off the other one's face then.
   const recoil = ramp(g, TURN + 10, TURN + 40, [0, 1], EASE_OUT);
   const base: NubiPose = {
     squash: 0.98 - 0.05 * recoil + 0.012 * Math.sin(g * 0.5),
     roll: 0.02 * Math.sin(g * 2.3) * (0.5 + recoil),
     eyeScale: 1.3 + 0.2 * recoil,
-    finL: -0.2 - 0.2 * recoil,
-    finR: 0.3,
+    finL: 0.3,
+    finR: -0.2 - 0.2 * recoil,
   };
-  const pose = g < TURN ? matusitaTalk(g, base, 0.35) : base;
-  const lights = dark ? 0 : 1 - 0.12 * recoil * (1 - flicker(g, 9, 0.5));
-  const torchOn = dark ? 0 : 1;
+  const pose = g < TURN ? matusitaTalk(g, base, 0.35) : { ...base };
+  pose.finL = 0.3;
+  // The click: its torch goes out at OFF, the room's lights die with it over two frames, black.
+  const off = g >= OFF;
+  const lights = off ? Math.max(0, 0.22 - 0.12 * (g - OFF)) : 1 - 0.12 * recoil * (1 - flicker(g, 9, 0.5));
+  const intruderTorch = g >= OFF + 1 ? 0 : flicker(g, 7, 0.4) * (off ? 0.35 : 1);
+  const dip = ramp(g, TURN, TURN + 15, [0, 1], EASE_IN_OUT);
   return (
     <AbsoluteFill style={{ background: "#000" }}>
-      {!dark ? (
+      {!black ? (
         <Stage cam={cam} near={0.05}>
-          <RoomLights lights={lights * 0.85} moon={0.45} />
-          <Room t={t} door={DOOR_FLUNG} chairYaw={turn} feedYaw={turn} rec={1} lights={lights} />
-          <Doppelganger turn={turn} torch={torchOn} stare={close} />
+          <RoomLights lights={lights * 0.85} moon={off ? 0 : 0.15} />
+          {/* The room's light spilling through the doorway: a thin rim on Nubi's silhouette. */}
+          <directionalLight position={[PEEK[0] + 0.8, 1.6, PEEK[2] + 6]} target={rimTarget} intensity={off ? 0 : 1.6 * lights} color="#FFDDB0" />
+          <primitive object={rimTarget} position={[PEEK[0], 1.0, PEEK[2]]} />
+          <Room t={t} door={DOOR_FLUNG} chairYaw={turn} feedYaw={turn} rec={off ? 0 : 1} lights={lights} />
+          <Doppelganger turn={turn} torch={off ? 0 : 1} stare={close} chin={chin} />
           <Nubi
             size={2}
             position={PEEK}
@@ -132,7 +147,18 @@ export const PuertaShot: React.FC = () => {
             pose={pose}
             palette={SHADOWED}
             shadowOpacity={0.4}
-            holdR={<HeldTorch raise={0.3} pitch={-0.02 + 0.03 * Math.sin(g * 1.9)} turn={-0.12 + 0.04 * Math.sin(g * 0.7)} on={torchOn * flicker(g, 7, 0.4)} intensity={45} beam={0.12} reach={8} />}
+            holdL={
+              <HeldTorch
+                raise={0.3}
+                side="L"
+                pitch={-0.04 + 0.22 * dip + 0.03 * Math.sin(g * 1.9)}
+                turn={0.04 * Math.sin(g * 0.7)}
+                on={intruderTorch}
+                intensity={45 - 33 * dip}
+                beam={0.12 - 0.05 * dip}
+                reach={9}
+              />
+            }
           />
         </Stage>
       ) : null}

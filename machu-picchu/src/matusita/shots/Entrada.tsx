@@ -63,7 +63,7 @@ const mix = (a: number, b: number, k: number) => a + (b - a) * k;
 export const EntradaShot: React.FC = () => {
   const g = useCurrentFrame() + SHOTS.entrada.from;
   const t = g / FPS;
-  const { START, OPEN, SEMANA, SLAM, RATTLE, L04, L05, DIGNIDAD, LINTERNA, END } = RETO;
+  const { START, OPEN, SEMANA, SLAM, RATTLE, L04, L05, DIGNIDAD, LINTERNA } = RETO;
   const HOP0 = OPEN + 9;
   const HOP1 = SEMANA - 1;
   const TURN_BACK = L05 + 2;
@@ -255,7 +255,7 @@ export const EntradaShot: React.FC = () => {
           <spotLight position={camLamp} target={camLight} angle={0.6} penumbra={1} intensity={9} distance={0} decay={1.1} color="#E2E8FF" />
           <primitive object={camLight} position={lampAt} />
           <EntranceHall t={t} door={door} handle={handle} swing={swing} />
-          <Nubi size={SIZE} position={pos} rotationY={rotY} pose={pose} shadowOpacity={0.55} holdL={g < SLAM + 1 ? mic : undefined}>
+          <Nubi size={SIZE} position={pos} rotationY={rotY} pose={pose} shadowOpacity={0.55} palette={{ eyeRough: 0.75 }} holdL={g < SLAM + 1 ? mic : undefined}>
             <PressBadge swing={0.05 * Math.sin(t * 3) + 0.1 * windowIn(g, SLAM, SLAM + 14, 3) * Math.sin(g * 1.2)} />
           </Nubi>
           {micWorld ? (

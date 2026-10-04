@@ -923,9 +923,9 @@ export const CasaMatusita: React.FC<{ glow?: number; eyes?: number; creak?: numb
         {eyeOpen > 0.01
           ? [-1, 1].map((s) => (
               <group key={s} position={[CASA_EYES[0] - thx + s * 0.17, CASA_EYES[1] - thy, CASA_EYES[2]]}>
-                <mesh geometry={eyeGeo()} material={tm.eye} scale={[0.2, 0.11 * eyeOpen, 1]} renderOrder={6} />
-                <Glow color="#9ED2FF" size={0.75} opacity={0.5 * eyeOpen} />
-                <Glow color="#E6F6FF" size={0.26} opacity={0.6 * eyeOpen} />
+                <mesh geometry={eyeGeo()} material={tm.eye} scale={[0.27, 0.135 * eyeOpen, 1]} renderOrder={6} />
+                <Glow color="#9ED2FF" size={0.85} opacity={0.45 * eyeOpen} />
+                <Glow color="#E6F6FF" size={0.3} opacity={0.55 * eyeOpen} />
               </group>
             ))
           : null}
@@ -1334,7 +1334,7 @@ void main() {
   float tl = max(1e-3, length(tv));
   float cone = smoothstep(uTorchCos - 0.015, uTorchCos + 0.03, dot(tv / tl, uTorchDir));
   float torch = uTorch * cone * exp(-tl * 0.09);
-  vCol = vec3(0.55, 0.65, 0.9) * 0.5 + vec3(1.0, 0.6, 0.28) * lamp * 1.6 + vec3(1.0, 0.9, 0.72) * torch * 2.4 + vec3(0.85, 0.9, 1.0) * uFlash * 1.4;
+  vCol = vec3(0.6, 0.72, 1.0) * 0.6 + vec3(1.0, 0.6, 0.28) * lamp * 2.6 + vec3(1.0, 0.9, 0.72) * torch * 3.2 + vec3(0.85, 0.9, 1.0) * uFlash * 1.4;
   vA = smoothstep(0.35, 1.6, dist) * (1.0 - smoothstep(uFar * 0.45, uFar, dist));
   vAlong = position.y;
   vSide = position.x * 2.0;
@@ -1392,6 +1392,7 @@ export const Rain: React.FC<{
         new THREE.ShaderMaterial({
           vertexShader: RAIN_VERT,
           fragmentShader: RAIN_FRAG,
+          side: THREE.DoubleSide,
           uniforms: {
             uTime: { value: 0 },
             uMin: { value: new THREE.Vector3() },
@@ -1467,7 +1468,7 @@ void main() {
   float ring = smoothstep(0.62, 0.88, d) * (1.0 - smoothstep(0.88, 1.0, d));
   float dotc = (1.0 - smoothstep(0.0, 0.3, d)) * (1.0 - smoothstep(0.0, 0.1, vLife));
   float a = uOpacity * (ring * pow(1.0 - vLife, 1.5) + dotc * 1.6);
-  vec3 col = vec3(0.62, 0.72, 0.95) + vec3(1.0, 0.62, 0.3) * vLampK * 1.5;
+  vec3 col = vec3(0.62, 0.72, 0.95) * 1.2 + vec3(1.0, 0.62, 0.3) * vLampK * 2.0;
   gl_FragColor = vec4(col, a);
 }`;
 
@@ -1506,6 +1507,7 @@ export const Splashes: React.FC<{ t: number; x0: number; x1: number; z0: number;
         new THREE.ShaderMaterial({
           vertexShader: SPLASH_VERT,
           fragmentShader: SPLASH_FRAG,
+          side: THREE.DoubleSide,
           uniforms: { uTime: { value: 0 }, uRate: { value: 1.6 }, uLampPos: { value: new THREE.Vector3(...LAMP_HEAD) }, uLamp: { value: 1 }, uOpacity: { value: 0.3 } },
         }),
       ),

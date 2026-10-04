@@ -94,12 +94,14 @@ export const OjosShot: React.FC = () => {
         <Nubi size={SIZE} position={N} rotationY={nubi.rotationY} pose={pose} shadowOpacity={0.5} holdR={<HeldTorch nubi={nubi} side="R" target={torchTarget} on={on} reach={6} intensity={14} beam={0.2} />}>
           <EyeGlints pose={pose} on={on} />
         </Nubi>
-        <Rain t={t} min={[N[0] - 5, 0, N[2] - 6]} size={[10, 7, 12]} count={1600} seed={3} opacity={0.32} px={2.2} lamp={lamp} torch={{ pos: aimed.lens, dir: aimed.dir, on: on * 0.8, angle: 0.3 }} />
+        <Rain t={t} min={[N[0] - 5, 0, N[2] - 6]} size={[10, 7, 12]} count={1300} seed={3} opacity={0.34} px={2.4} lamp={lamp} torch={{ pos: aimed.lens, dir: aimed.dir, on: on * 0.8, angle: 0.3 }} />
         <Splashes t={t} x0={N[0] - 5} x1={N[0] + 5} z0={N[2] - 8} z1={N[2] + 4} count={140} opacity={0.22} lamp={lamp} />
         <Mist t={t} x0={-20} x1={20} z0={6} z1={26} count={10} opacity={0.12} />
       </Stage>
       {/* Vignette: the face is the light. */}
-      <AbsoluteFill style={{ background: "radial-gradient(ellipse 70% 52% at 50% 44%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.78) 100%)" }} />
+      <AbsoluteFill style={{ background: "radial-gradient(ellipse 70% 52% at 50% 46%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.8) 100%)" }} />
+      {/* The top of Nubi's head falls into darkness (only the under-lit face reads). */}
+      <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.42) 22%, rgba(0,0,0,0) 38%)" }} />
       <AbsoluteFill style={{ background: "#000", opacity: black }} />
     </AbsoluteFill>
   );

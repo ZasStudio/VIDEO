@@ -1126,17 +1126,65 @@ export const DOPPEL_POSE: NubiPose = { eyeScale: 1.2, squash: 0.985, finR: -0.12
 /** Its flashlight points at the desk. */
 export const DOPPEL_TORCH = { raise: -0.12, pitch: 0.38 };
 
+/** The torch's spill on a face from just below and in front of it (Nubi's model space, `at` + yaw). */
+const FaceUplight: React.FC<{ at: V3; yaw: number; on: number }> = ({ at, yaw, on }) => {
+  const target = useMemo(() => new THREE.Object3D(), []);
+  if (on < 0.01) return null;
+  const c = Math.cos(yaw);
+  const s = Math.sin(yaw);
+  const w = (lx: number, ly: number, lz: number): V3 => [at[0] + lx * c + lz * s, at[1] + ly, at[2] - lx * s + lz * c];
+  return (
+    <>
+      <spotLight position={w(0.15, 0.4, 1.35)} target={target} angle={0.8} penumbra={1} intensity={10 * on} distance={3} decay={2} color="#FFD49A" />
+      <primitive object={target} position={w(0, 2.3, 0.55)} />
+      <pointLight position={w(0.9, 0.6, 1.0)} intensity={0.5 * on} distance={1.8} decay={1.5} color="#FFC27A" />
+    </>
+  );
+};
+
+const glintMat = new THREE.MeshBasicMaterial({ color: "#FFF1D6", transparent: true, toneMapped: false, depthWrite: false });
+const glintGeo = new THREE.CircleGeometry(1, 16);
+/** Small warm catchlights low in each eye (light from below), in Nubi's model units. */
+const EyeGlints: React.FC<{ eyeScale: number; on: number }> = ({ eyeScale, on }) => {
+  if (on < 0.05) return null;
+  glintMat.opacity = 0.85 * on;
+  return (
+    <>
+      {[-1, 1].map((side) => (
+        <mesh key={side} geometry={glintGeo} material={glintMat} position={[side * 2.3 + 0.18, 5.5 - 0.52 * eyeScale, 4.73]} scale={[0.17, 0.12, 1]} />
+      ))}
+    </>
+  );
+};
+
+/** Matte eyes: a torch hot spot never blows them out to white. */
+const DOPPEL_PALETTE = { eyeRough: 0.75 };
+
 /**
  * The other Nubi, sitting in the chair. `turn` = its rotationY (0 faces the desk and its camera;
  * pass the same value as the room's chairYaw so the seat turns with it). `torch` = its flashlight.
+ * `chin` 0..1 brings the flashlight from the desk up under its chin, pointing up past its face
+ * (campfire-story light, like the hook): its face is then lit from below by its own torch.
  */
-export const Doppelganger: React.FC<{ turn?: number; torch?: number; stare?: number }> = ({ turn = 0, torch = 1, stare = 0 }) => (
-  <Nubi
-    size={2}
-    position={sitAt(turn)}
-    rotationY={turn}
-    shadow={false}
-    pose={{ ...DOPPEL_POSE, eyeScale: (DOPPEL_POSE.eyeScale ?? 1) + 0.08 * stare }}
-    holdR={<HeldTorch raise={DOPPEL_TORCH.raise} pitch={DOPPEL_TORCH.pitch} on={torch} intensity={30} beam={0.16} reach={5} />}
-  />
-);
+export const Doppelganger: React.FC<{ turn?: number; torch?: number; stare?: number; chin?: number }> = ({ turn = 0, torch = 1, stare = 0, chin = 0 }) => {
+  const at = sitAt(turn);
+  const eyeScale = (DOPPEL_POSE.eyeScale ?? 1) + 0.08 * stare;
+  const raise = DOPPEL_TORCH.raise + 0.4 * chin;
+  const pitch = DOPPEL_TORCH.pitch + (-1.25 - DOPPEL_TORCH.pitch) * chin;
+  return (
+    <>
+      <Nubi
+        size={2}
+        position={at}
+        rotationY={turn}
+        shadow={false}
+        palette={DOPPEL_PALETTE}
+        pose={{ ...DOPPEL_POSE, eyeScale, finR: raise }}
+        holdR={<HeldTorch raise={raise} pitch={pitch} turn={-0.4 * chin} on={torch} intensity={30 - 18 * chin} beam={0.16 + 0.06 * chin} reach={5} />}
+      >
+        <EyeGlints eyeScale={eyeScale} on={torch * chin} />
+      </Nubi>
+      <FaceUplight at={at} yaw={turn} on={torch * chin} />
+    </>
+  );
+};

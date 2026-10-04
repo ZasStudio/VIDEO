@@ -23,7 +23,7 @@ import { Flashlight } from "./Flashlight";
 // HALL (entrance hall): x −4.4..4.4, back wall at z = −3 with the front door in the middle
 //   (HALL_DOOR, hinge on the left, opens inwards), a fanlight over it, the street behind it; a
 //   moonlit window on the right wall, a broken chandelier, a console on the left, a sheeted chair.
-// CORRIDOR (the hallway, a separate set): x −2.4..2.4, from z = 9 (towards the hall) to the end
+// CORRIDOR (the hallway, a separate set): x −2.4..2.4, from z = 16 (towards the hall) to the end
 //   wall at z = −16 with a small moonlit window. Left wall: the sepia photos (the scratched one at
 //   z ≈ −4). Right side: the staircase rising away from z = −5.5 into a dark stairwell.
 
@@ -1591,7 +1591,7 @@ export const HallLights: React.FC<{ street: number; moon?: number }> = ({ street
 // The corridor
 
 /** The hallway: side walls at x0/x1, from zNear to the end wall at zEnd, ceiling at `height`. */
-export const CORRIDOR = { x0: -2.4, x1: 2.4, zNear: 9, zEnd: -16, height: 4.6 };
+export const CORRIDOR = { x0: -2.4, x1: 2.4, zNear: 16, zEnd: -16, height: 4.6 };
 const STAIRS = { x0: 1.0, x1: 2.4, z0: -5.5, steps: 15, rise: 0.3, run: 0.45 };
 const STAIRS_TOP_Z = STAIRS.z0 - STAIRS.steps * STAIRS.run;
 /** A point high up the staircase, where it disappears into the dark stairwell. */
@@ -1603,6 +1603,9 @@ export const CORRIDOR_WINDOW = { x: -0.55, y: 2.3, w: 1.0, h: 1.4 };
 export const CORRIDOR_WINDOW_C: V3 = [CORRIDOR_WINDOW.x, CORRIDOR_WINDOW.y, CORRIDOR.zEnd];
 /** Photos on the left wall: z, y (centre), w, h, kind, tilt. Kind 3 is the scratched-out face. */
 const PHOTOS: [number, number, number, number, PhotoKind, number][] = [
+  [12.6, 2.4, 0.8, 0.62, 4, -0.04],
+  [10.2, 2.6, 0.6, 0.8, 2, 0.03],
+  [7.6, 2.3, 0.9, 0.7, 1, 0],
   [5.2, 2.3, 0.7, 0.9, 0, 0.03],
   [3.0, 2.6, 0.9, 0.7, 1, -0.05],
   [1.0, 2.2, 0.6, 0.8, 2, 0],
@@ -1794,6 +1797,7 @@ export const CorridorLights: React.FC<{ k?: number }> = ({ k = 1 }) => {
       <primitive object={target} position={[CORRIDOR_WINDOW.x + 0.2, 0, CORRIDOR.zEnd + 4.5]} />
       <pointLight position={[CORRIDOR_WINDOW.x, CORRIDOR_WINDOW.y, CORRIDOR.zEnd + 0.8]} intensity={5 * k} distance={9} decay={1.2} color="#8FA9FF" />
       <directionalLight position={[-0.5, 3, -20]} intensity={0.45 * k} color="#7F96E0" />
+      <directionalLight position={[0.5, 9, -12]} intensity={0.55 * k} color="#8AA2F0" />
     </>
   );
 };

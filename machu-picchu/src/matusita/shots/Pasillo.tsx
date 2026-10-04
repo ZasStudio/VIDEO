@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import * as THREE from "three";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
-import { EASE_IN, EASE_IN_OUT, EASE_OUT, clamp01, keyframes, ramp, windowIn } from "../../anim";
+import { EASE_IN_OUT, EASE_OUT, clamp01, keyframes, ramp, windowIn } from "../../anim";
 import { Shake, Stage } from "../../scenes/common";
 import { Cam, aim } from "../../thanos/camera";
 import { Vec3, lerp3 } from "../../three/CameraRig";
@@ -59,7 +59,7 @@ const path = (g: number, frames: number[], pts: Vec3[]): Vec3 => [0, 1, 2].map((
 export const PasilloShot: React.FC = () => {
   const g = useCurrentFrame() + SHOTS.pasillo.from;
   const t = g / FPS;
-  const { START, END, THUMP, L06, ADELANTE, STEPS, L07, SHADOW, RUN } = MIEDO;
+  const { END, THUMP, L06, ADELANTE, STEPS, L07, SHADOW, RUN } = MIEDO;
   const CUT = STEPS + 8;
   const WALK0 = L06 + 24;
   const B = g >= CUT;
@@ -68,9 +68,9 @@ export const PasilloShot: React.FC = () => {
   const walkU = ramp(g, WALK0, STEPS, [0, 1], (x) => x);
   const walking = g > WALK0 && g < STEPS;
   const phase = (g - WALK0) * 0.3;
-  const runU = ramp(g, RUN, RUN + 9, [0, 1], EASE_IN);
+  const runU = ramp(g, RUN, RUN + 7, [0, 1], (x) => 0.55 * x * x + 0.45 * x);
   let pos: Vec3 = lerp3(P0, P1, walkU * walkU * (3 - 2 * walkU) * 0.35 + walkU * 0.65);
-  if (g >= RUN) pos = lerp3(P1, [P1[0] + 0.9, 0, P1[2] + 5.2], runU);
+  if (g >= RUN) pos = lerp3(P1, [P1[0] + 1.3, 0, P1[2] + 5.2], runU);
   const flinchTurn = ramp(g, THUMP + 1, THUMP + 5, [0, 1], EASE_OUT) * (1 - ramp(g, L06 + 18, L06 + 40, [0, 1], EASE_IN_OUT));
   const turn = ramp(g, L07 - 2, SHADOW - 4, [0, 1], EASE_IN_OUT);
   let rotY = Math.PI - 0.6 * flinchTurn;
@@ -89,8 +89,8 @@ export const PasilloShot: React.FC = () => {
   let base: NubiPose = {
     hop: 2.2 * jump + (walking ? 0.3 * Math.abs(Math.sin(phase)) : 0),
     squash: 1 + 0.14 * jump - 0.12 * land - (walking ? 0.03 * Math.abs(Math.sin(phase)) : 0) - 0.06 * frozen - 0.04 * dread,
-    finL: -0.1 + 0.9 * jump - 0.25 * startled - 0.25 * frozen - 0.15 * dread,
-    finR: 0.35 + 0.5 * flinchTurn - 0.1 * frozen,
+    finR: -0.1 + 0.9 * jump - 0.25 * startled - 0.25 * frozen - 0.15 * dread,
+    finL: 0.35 + 0.5 * flinchTurn - 0.1 * frozen,
     roll: (walking ? 0.03 * Math.sin(phase) : 0) + (0.015 * frozen + 0.01 * dread) * tremble,
     eyeScale: 1 + 0.45 * startled + 0.25 * frozen + 0.12 * dread,
     lookY: 0.4 * flinchTurn,
@@ -116,8 +116,8 @@ export const PasilloShot: React.FC = () => {
   const pose = talk > 0 ? matusitaTalk(g, base, talk) : base;
   if (g >= STEPS - 2 && g < RUN) pose.blink = 0;
 
-  // ---- The flashlight (finR) --------------------------------------------------------------------
-  const tip = finTipWorld(pos, rotY, SIZE, pose, "R");
+  // ---- The flashlight (finL: on the staircase side while Nubi walks away from us) -------------------
+  const tip = finTipWorld(pos, rotY, SIZE, pose, "L");
   const ahead: Vec3 = [pos[0] + 0.45, 0.15, pos[2] - 6.5];
   const shiver: Vec3 = [0.06 * Math.sin(g * 1.9), 0.05 * Math.sin(g * 2.7), 0];
   let aimAt: Vec3 = ahead;
@@ -126,7 +126,7 @@ export const PasilloShot: React.FC = () => {
     aimAt = lerp3(ahead, add(CORRIDOR_STAIRS_TOP, shiver, 1.5), up);
     if (g >= ADELANTE - 2) {
       const win: Vec3 = [CORRIDOR_WINDOW_C[0], CORRIDOR_WINDOW_C[1] - 0.5, CORRIDOR_WINDOW_C[2] + 0.6];
-      aimAt = add(path(g, [ADELANTE - 2, ADELANTE + 9, ADELANTE + 21, ADELANTE + 33], [ahead, [-2.3, 2.0, -6.6], [1.3, 0.8, -6.8], win]), shiver, frozen);
+      aimAt = add(path(g, [ADELANTE - 2, ADELANTE + 9, ADELANTE + 21, ADELANTE + 33], [ahead, [-2.35, 2.8, -3.9], [1.6, 1.3, -7.6], win]), shiver, frozen);
     }
   } else if (g < RUN) {
     const face: Vec3 = [Math.sin(rotY), 0, Math.cos(rotY)];
@@ -150,8 +150,9 @@ export const PasilloShot: React.FC = () => {
   let cam: Cam;
   if (!B) {
     const wob = handheld(g, 1.1);
-    const camPos: Vec3 = [pos[0] + 2.0 + wob.pos[0], 1.95 + wob.pos[1], pos[2] + 6.8 + wob.pos[2]];
-    cam = aim(camPos, FOV, [pos[0] + wob.look[0], wob.look[1], pos[2]], 430, 1258, 12, wob.roll);
+    const creep = ramp(g, MIEDO.START, CUT, [0, 1], (x) => x);
+    const camPos: Vec3 = [pos[0] + 1.55 + wob.pos[0], 2.5 + wob.pos[1], pos[2] + 9.9 - 1.1 * creep + wob.pos[2]];
+    cam = aim(camPos, FOV, [pos[0] + wob.look[0], wob.look[1], pos[2]], 375, 1255, 12, wob.roll);
   } else {
     const wob = handheld(g, 1.6 + 0.8 * dread);
     const camPos = add(CAM_B, wob.pos);
@@ -190,7 +191,7 @@ export const PasilloShot: React.FC = () => {
   }
 
   // ---- Dust: the flashlight beam and the moonlight from the end window ----------------------------
-  const beam = { from: lens, dir: torchDir, angle: 0.3, reach: 10, on: on * 0.9 };
+  const beam = { from: lens, dir: torchDir, angle: 0.3, reach: B ? 9 : 14, on: on };
   const moonFrom: Vec3 = [CORRIDOR_WINDOW_C[0], CORRIDOR_WINDOW_C[1], CORRIDOR.zEnd];
   const moon = { from: moonFrom, dir: dirTo(moonFrom, [CORRIDOR_WINDOW_C[0] + 0.2, 0, CORRIDOR.zEnd + 3.6]), angle: 0.25, reach: 6, on: 0.8 };
 
@@ -199,15 +200,15 @@ export const PasilloShot: React.FC = () => {
       <Shake frame={g} impacts={[{ at: THUMP, amp: 18, dur: 14 }, { at: RUN, amp: 8, dur: 10 }, { at: SHADOW, amp: 3, dur: 6 }]}>
         <Stage cam={cam} near={0.05}>
           <CorridorLights />
-          <spotLight position={lampPos} target={lampTarget} angle={B ? 0.55 : 0.5} penumbra={0.75} intensity={(B ? 30 : 16) * lamp} distance={0} decay={1.25} color="#E4E8F4" />
+          <spotLight position={lampPos} target={lampTarget} angle={B ? 0.55 : 0.5} penumbra={0.75} intensity={(B ? 30 : 2.5) * lamp} distance={0} decay={1.25} color="#E4E8F4" />
           <primitive object={lampTarget} position={lampAim} />
           <Corridor />
-          <WallShadows wallX={CORRIDOR.x0} z0={6} z1={-10} height={CORRIDOR.height} light={lampPos} figures={figures} opacity={(B ? 0.86 : 0.6) * lamp} blur={0.045} fill={fill} />
-          <Nubi size={SIZE} position={pos} rotationY={rotY} pose={pose} shadowOpacity={0.5}>
+          <WallShadows wallX={CORRIDOR.x0} z0={6} z1={-10} height={CORRIDOR.height} light={lampPos} figures={figures} opacity={(B ? 0.86 : 0.3) * lamp} blur={0.045} fill={fill} />
+          <Nubi size={SIZE} position={pos} rotationY={rotY} pose={pose} shadowOpacity={0.5} palette={{ eyeRough: 0.75 }}>
             <PressBadge swing={0.05 * Math.sin(t * 3.1) + 0.12 * jump} />
           </Nubi>
-          <HeldTorch from={tip} to={aimAt} on={on} reach={12} intensity={90} beam={0.24} scale={1.3} />
-          <DustMotes t={t} min={[-2.3, 0.1, -13]} max={[2.3, 4.4, 4.5]} beam={beam} beam2={moon} count={650} />
+          <HeldTorch from={tip} to={aimAt} on={on} reach={B ? 9 : 15} intensity={B ? 90 : 120} beam={B ? 0.24 : 0.5} scale={1.3} />
+          <DustMotes t={t} min={[-2.3, 0.1, -13]} max={[2.3, 4.4, 9]} beam={beam} beam2={moon} count={1100} size={0.028} color="#FFE6B0" />
           <FallingDust age={(g - THUMP) / FPS} center={[pos[0] + 0.4, CORRIDOR.height, pos[2] - 1.2]} area={[3.2, 3.0]} ceiling={CORRIDOR.height} count={110} />
         </Stage>
       </Shake>

@@ -105,10 +105,10 @@ export const FachadaShot: React.FC = () => {
           t={t}
           min={[-10, 0, 3]}
           size={[22, 11, 26]}
-          count={3200}
+          count={2600}
           seed={7}
-          opacity={0.3}
-          px={2.4}
+          opacity={0.32}
+          px={2.5}
           lamp={lamp}
           flash={flash}
           torch={{ pos: aimed.lens, dir: aimed.dir, on, angle: 0.3 }}
