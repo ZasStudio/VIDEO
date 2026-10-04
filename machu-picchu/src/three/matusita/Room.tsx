@@ -1181,7 +1181,7 @@ export const Doppelganger: React.FC<{ turn?: number; torch?: number; stare?: num
         shadow={false}
         palette={DOPPEL_PALETTE}
         pose={{ ...DOPPEL_POSE, eyeScale, finR: raise }}
-        holdR={<HeldTorch raise={raise} pitch={pitch} turn={-0.4 * chin} on={torch} intensity={30 - 18 * chin} beam={0.16 + 0.08 * chin} reach={5} />}
+        holdR={<HeldTorch raise={raise} pitch={pitch} turn={-0.4 * chin} on={torch} intensity={30 - 18 * chin} beam={0.16 + 0.16 * chin} reach={5} />}
       >
         <EyeGlints eyeScale={eyeScale} on={torch * chin} />
       </Nubi>

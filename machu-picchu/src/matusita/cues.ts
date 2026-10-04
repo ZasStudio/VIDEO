@@ -82,7 +82,7 @@ const susto = (): Cue[] => {
     [L08_GRITANDO, "matusita/scream", 0.3],
     [TURN, "matusita/whisper", 0.45],
     [OFF - 1, "matusita/click", 0.9],
-    [OFF, "matusita/glitch", 0.9],
+    [OFF + 2, "matusita/glitch", 0.9],
   ];
 };
 

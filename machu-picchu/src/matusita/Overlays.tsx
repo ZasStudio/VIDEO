@@ -16,7 +16,8 @@ export const MatusitaOverlays: React.FC = () => {
 
       {/* The legend, re-enacted as camcorder footage; the clock skips two hours when the door opens. */}
       <VHSOverlay frame={g} from={RETO.REC} to={SUSTO.END} jumpAt={SUSTO.HORAS} />
-      <GlitchCut frame={g} at={SUSTO.OFF} />
+      {/* The other Nubi's torch clicks off: two frames of black, then the tape tears. */}
+      <GlitchCut frame={g} at={SUSTO.OFF + 2} dur={6} />
 
       <EndCard frame={g} at={FINAL.CARD} />
       <FilmGrain frame={g} />
