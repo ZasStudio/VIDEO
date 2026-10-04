@@ -100,7 +100,7 @@ export const FachadaShot: React.FC = () => {
           <MatusitaStreet lamp={lamp} glow={glow} mirror />
           <Nubi size={SIZE} position={N} rotationY={rotY} pose={pose} shadow={false} holdR={<HeldTorch nubi={nubi} side="R" target={target} on={on} mirror />} />
         </StreetReflection>
-        <Nubi size={SIZE} position={N} rotationY={rotY} pose={pose} shadowOpacity={0.5} holdR={<HeldTorch nubi={nubi} side="R" target={target} on={on} reach={13} intensity={40} beam={0.2} />} />
+        <Nubi size={SIZE} position={N} rotationY={rotY} pose={pose} shadowOpacity={0.5} holdR={<HeldTorch nubi={nubi} side="R" target={target} on={on} reach={13} intensity={40} beam={0.25} haze={0.22} />} />
         <Rain
           t={t}
           min={[-10, 0, 3]}

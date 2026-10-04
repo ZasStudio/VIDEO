@@ -93,7 +93,7 @@ const WIN1 = { w: 1.25, h: 1.8, cy: CURB + 2.0 };
 /** "The" window (upper floor, third bay): its centre on the facade plane. */
 export const CASA_WINDOW: V3 = [CASA.bays[2], WIN2.cy, 0];
 /** Where the two pale eyes show, in the dark gap of the window (between the eye centres). */
-export const CASA_EYES: V3 = [CASA.bays[2] - 0.22, WIN2.cy + 0.42, 0.05];
+export const CASA_EYES: V3 = [CASA.bays[2] - 0.32, WIN2.cy + 0.4, 0.07];
 /** The rusty metal door (fourth bay): base centre on the facade plane. */
 export const CASA_DOOR: V3 = [CASA.bays[3], CURB, 0];
 /** The rusty shop shutter (second bay): centre on the facade plane. */
@@ -102,8 +102,8 @@ export const CASA_SHUTTER: V3 = [CASA.bays[1], CURB + 1.5, 0];
 export const CASA_PLATE: V3 = [CASA.x1 + CASA.cham / 2 + 0.03, CURB + 2.7, -CASA.cham / 2 + 0.03];
 
 /** The street lamp: concrete pole at the corner, the sodium head out over the road. */
-export const LAMP_POLE: V3 = [7.9, CURB, 2.0];
-export const LAMP_HEAD: V3 = [7.9, 7.05, 3.55];
+export const LAMP_POLE: V3 = [6.1, CURB, 2.0];
+export const LAMP_HEAD: V3 = [6.1, 7.05, 3.55];
 /** Where Nubi stands in the establishing shot: on the plaza kerb across from the window. */
 export const NUBI_OPPOSITE: V3 = [1.7, CURB, 11.3];
 
@@ -153,9 +153,9 @@ export const NightFog: React.FC<{ near?: number; far?: number; color?: string }>
  */
 export const NightLights: React.FC<{ k?: number; flash?: number; rim?: number }> = ({ k = 1, flash = 0, rim = 1 }) => (
   <>
-    <hemisphereLight args={["#4A5C9C", "#0D0C14", (0.55 + 2.2 * flash) * k]} />
-    <directionalLight position={[-14, 22, 18]} intensity={(0.42 + 4.5 * flash) * k} color="#8FA6FF" />
-    <directionalLight position={[6, 16, -30]} intensity={0.7 * rim * k} color="#7F96E8" />
+    <hemisphereLight args={["#4A5C9C", "#0D0C14", 0.3 * k + 1.4 * flash]} />
+    <directionalLight position={[-14, 22, 18]} intensity={0.26 * k + 3.0 * flash} color="#7F98FF" />
+    <directionalLight position={[6, 16, -30]} intensity={0.6 * rim} color="#7F96E8" />
     <directionalLight position={[22, 6, 14]} intensity={0.14 * k} color="#FFB070" />
   </>
 );
@@ -798,6 +798,14 @@ const leafGeo = once(() => {
   return g;
 });
 const planeGeo = once(() => new THREE.PlaneGeometry(1, 1));
+/** A unit almond (an eye shape: pointed corners), 1 wide and 1 tall. */
+const eyeGeo = once(() => {
+  const s = new THREE.Shape();
+  s.moveTo(-0.5, 0);
+  s.quadraticCurveTo(0, 0.85, 0.5, 0);
+  s.quadraticCurveTo(0, -0.85, -0.5, 0);
+  return new THREE.ShapeGeometry(s, 12);
+});
 
 /** The torn net curtain behind "the" window (alpha: ragged bottom, a tear). */
 const curtainTex = () =>
@@ -831,7 +839,9 @@ const curtainTex = () =>
 const theMats = once(() => ({
   glow: additive(new THREE.MeshBasicMaterial({ color: "#FFB25E", toneMapped: false, fog: false })),
   curtain: new THREE.MeshStandardMaterial({ map: curtainTex(), transparent: true, alphaTest: 0.05, color: "#8C9198", roughness: 1, emissive: new THREE.Color("#FFAA55"), emissiveIntensity: 0, side: THREE.DoubleSide, depthWrite: false }),
-  eye: additive(new THREE.MeshBasicMaterial({ color: "#E8F4E6", toneMapped: false, fog: false })),
+  eye: additive(new THREE.MeshBasicMaterial({ color: "#EAF6F0", toneMapped: false, fog: false })),
+  /** The room behind "the" window: unlit black, so torch light never fills it. */
+  dark: new THREE.MeshBasicMaterial({ color: "#010103" }),
 }));
 
 /**
@@ -857,8 +867,8 @@ export const CasaMatusita: React.FC<{ glow?: number; eyes?: number; creak?: numb
   const thx = CASA_WINDOW[0];
   const thy = CASA_WINDOW[1];
   const lw = WIN2.w;
-  tm.glow.opacity = 0.9 * glow;
-  tm.curtain.emissiveIntensity = 0.9 * glow;
+  tm.glow.opacity = 0.42 * glow;
+  tm.curtain.emissiveIntensity = 0.55 * glow;
   const eyeOpen = clamp01(eyes);
   tm.eye.opacity = Math.min(1, eyeOpen * 1.4);
   return (
@@ -901,23 +911,25 @@ export const CasaMatusita: React.FC<{ glow?: number; eyes?: number; creak?: numb
       ) : null}
       {/* "The" window: curtain, inner glow, eyes, two leaves. */}
       <group position={[thx, thy, 0]}>
-        <mesh geometry={planeGeo()} material={tm.curtain} position={[0.28, 0.12, 0.022]} scale={[0.7, 2.2, 1]} />
+        <mesh geometry={planeGeo()} material={tm.dark} position={[0, 0, 0.016]} scale={[lw, WIN2.h, 1]} />
+        <mesh geometry={planeGeo()} material={tm.curtain} position={[0.3, 0.12, 0.022]} scale={[0.66, 2.2, 1]} />
         {glow > 0.004 ? (
           <>
             <mesh geometry={planeGeo()} material={tm.glow} position={[0, 0, 0.018]} scale={[lw * 0.98, WIN2.h * 0.98, 1]} renderOrder={3} />
-            {!mirror ? <pointLight position={[0, -0.2, 0.9]} intensity={5 * glow} distance={5} decay={1.6} color="#FFAE5A" /> : null}
-            <Glow color="#FFA24A" size={3.2} opacity={0.4 * glow} position={[0, 0, 0.4]} />
+            {!mirror ? <pointLight position={[0, -0.2, 0.9]} intensity={2.2 * glow} distance={4} decay={1.6} color="#FFAE5A" /> : null}
+            <Glow color="#FFA24A" size={2.6} opacity={0.22 * glow} position={[0, 0, 0.4]} />
           </>
         ) : null}
         {eyeOpen > 0.01
           ? [-1, 1].map((s) => (
-              <group key={s} position={[CASA_EYES[0] - thx + s * 0.13, CASA_EYES[1] - thy, 0.06]}>
-                <mesh geometry={planeGeo()} material={tm.eye} scale={[0.1, 0.06 * eyeOpen, 1]} renderOrder={4} />
-                <Glow color="#CFE8D8" size={0.42} opacity={0.5 * eyeOpen} />
+              <group key={s} position={[CASA_EYES[0] - thx + s * 0.17, CASA_EYES[1] - thy, CASA_EYES[2]]}>
+                <mesh geometry={eyeGeo()} material={tm.eye} scale={[0.2, 0.11 * eyeOpen, 1]} renderOrder={6} />
+                <Glow color="#9ED2FF" size={0.75} opacity={0.5 * eyeOpen} />
+                <Glow color="#E6F6FF" size={0.26} opacity={0.6 * eyeOpen} />
               </group>
             ))
           : null}
-        <group position={[-lw / 2, 0, 0.04]} rotation={[0, -1.25 + creak, 0]}>
+        <group position={[-lw / 2, 0, 0.04]} rotation={[0, -2.25 + creak, 0]}>
           <mesh geometry={leafGeo()} material={leafMat} />
         </group>
         <group position={[lw / 2, 0, 0.04]} rotation={[0, -Math.PI + 0.32 + creak * 0.4, 0]}>
@@ -997,9 +1009,9 @@ const furnitureGeo = once(() => {
   const wire = "#0B0C10";
   // Concrete poles (tapered), with a crossbar near the top.
   for (const p of [LAMP_POLE, POLE_L, POLE_X]) {
-    geos.push(place(new THREE.CylinderGeometry(0.09, 0.14, 8.2, 10), conc, [p[0], p[1] + 4.1, p[2]]));
-    geos.push(place(rbox(1.5, 0.12, 0.12, 0.03), conc, [p[0], p[1] + 7.7, p[2]]));
-    for (const s of [-1, 1]) geos.push(place(new THREE.CylinderGeometry(0.04, 0.05, 0.16, 6), "#C9C3B4", [p[0] + s * 0.6, p[1] + 7.84, p[2]]));
+    geos.push(place(new THREE.CylinderGeometry(0.09, 0.15, 10.6, 10), conc, [p[0], p[1] + 5.3, p[2]]));
+    geos.push(place(rbox(1.5, 0.12, 0.12, 0.03), conc, [p[0], p[1] + 10.1, p[2]]));
+    for (const s of [-1, 1]) geos.push(place(new THREE.CylinderGeometry(0.04, 0.05, 0.16, 6), "#C9C3B4", [p[0] + s * 0.6, p[1] + 10.24, p[2]]));
     geos.push(place(rbox(0.32, 0.5, 0.22, 0.04), "#3D4048", [p[0], p[1] + 6.3, p[2] - 0.15]));
   }
   // The lamp arm: a curved pipe out over the road.
@@ -1013,30 +1025,29 @@ const furnitureGeo = once(() => {
   geos.push(place(rbox(0.36, 0.16, 0.8, 0.07), "#2E3138", [LAMP_HEAD[0], LAMP_HEAD[1] + 0.12, LAMP_HEAD[2]]));
   // Wires: along the street, across the cross street, a service drop to the house, a sagging
   // bundle along the facade under the cornice and a loose coil on the pole.
-  const tops = (p: V3, dx: number): V3 => [p[0] + dx, p[1] + 7.84, p[2]];
+  const tops = (p: V3, dx: number): V3 => [p[0] + dx, p[1] + 10.24, p[2]];
+  const fy = CASA.f1 - 0.32;
   const spans: [V3, V3, number][] = [
-    [tops(POLE_L, -0.6), tops(LAMP_POLE, -0.6), 0.9],
-    [tops(POLE_L, 0.6), tops(LAMP_POLE, 0.6), 1.1],
-    [[POLE_L[0], 6.4, 2.0], [LAMP_POLE[0], 6.4, 2.0], 1.4],
-    [tops(LAMP_POLE, 0.6), tops(POLE_X, -0.6), 0.7],
-    [tops(LAMP_POLE, -0.6), tops(POLE_X, 0.6), 0.9],
-    [tops(POLE_L, -0.6), [-40, 8.0, 2.0], 1.4],
-    [tops(POLE_L, 0.6), [-40, 7.9, 2.2], 1.7],
-    [tops(POLE_X, 0.6), [44, 8.0, 2.0], 1.5],
-    [[LAMP_POLE[0], 6.3, 2.0], [4.4, CASA.f2 - 0.35, 0.16], 0.5],
-    [[LAMP_POLE[0], 6.2, 2.0], [CASA.side + 0.1, CASA.f2 - 0.5, -3.0], 0.45],
-    [[CASA.x0 + 0.3, CASA.f2 - 0.3, 0.2], [-1.0, CASA.f2 - 0.35, 0.2], 0.35],
-    [[-1.0, CASA.f2 - 0.35, 0.2], [4.4, CASA.f2 - 0.35, 0.16], 0.42],
-    [[CASA.x0 + 0.3, CASA.f2 - 0.42, 0.22], [4.4, CASA.f2 - 0.45, 0.18], 0.75],
-    [[POLE_L[0], 6.4, 2.0], [CASA.x0 + 0.3, CASA.f2 - 0.3, 0.2], 0.6],
-    [tops(LAMP_POLE, 0.6), [LAMP_POLE[0] + 0.4, 7.6, 30], 1.8],
+    [tops(POLE_L, -0.6), tops(LAMP_POLE, -0.6), 0.8],
+    [tops(POLE_L, 0.6), tops(LAMP_POLE, 0.6), 1.0],
+    [tops(LAMP_POLE, 0.6), tops(POLE_X, -0.6), 0.6],
+    [tops(LAMP_POLE, -0.6), tops(POLE_X, 0.6), 0.8],
+    [tops(POLE_L, -0.6), [-40, 10.4, 2.0], 1.3],
+    [tops(POLE_L, 0.6), [-40, 10.3, 2.2], 1.6],
+    [tops(POLE_X, 0.6), [44, 10.4, 2.0], 1.4],
+    [[LAMP_POLE[0], 6.0, 2.0], [4.6, fy, 0.2], 0.3],
+    [[LAMP_POLE[0], 5.9, 2.0], [CASA.side + 0.12, fy, -3.0], 0.25],
+    [[CASA.x0 + 0.3, fy, 0.2], [-1.0, fy, 0.2], 0.12],
+    [[-1.0, fy, 0.2], [4.6, fy, 0.2], 0.16],
+    [[CASA.x0 + 0.3, fy - 0.08, 0.22], [4.6, fy - 0.1, 0.22], 0.3],
+    [[POLE_L[0], 6.0, 2.0], [CASA.x0 + 0.3, fy, 0.2], 0.5],
   ];
   for (const [a, b, sag] of spans) geos.push(place(new THREE.TubeGeometry(catenary(a, b, sag), 40, 0.024, 4, false), wire, [0, 0, 0]));
   const coil = new THREE.TorusGeometry(0.32, 0.03, 4, 18);
   geos.push(place(coil, wire, [LAMP_POLE[0] + 0.05, 5.6, LAMP_POLE[2] - 0.2], [0.3, 0.2, 0]));
   geos.push(place(new THREE.TorusGeometry(0.24, 0.025, 4, 16), wire, [LAMP_POLE[0] - 0.05, 5.3, LAMP_POLE[2] - 0.2], [0.1, -0.3, 0.2]));
   // Wall hooks for the facade bundle.
-  for (const x of [-6.7, -1.0, 4.4]) geos.push(place(rbox(0.08, 0.08, 0.26, 0.02), "#2A2A2E", [x, CASA.f2 - 0.32, 0.12]));
+  for (const x of [-6.7, -1.0, 4.6]) geos.push(place(rbox(0.08, 0.08, 0.26, 0.02), "#2A2A2E", [x, fy, 0.12]));
   // Kerbs: faded yellow faces (road side).
   return mergeAll(geos);
 });
@@ -1177,9 +1188,9 @@ export const LampLight: React.FC<{ on: number; mirror?: boolean; eye?: V3 }> = (
       <Glow color="#FFD6A0" size={0.9} opacity={(mirror ? 0.4 : 0.8) * on} position={[H[0], H[1] - 0.02, H[2]]} />
       {!mirror ? (
         <>
-          <spotLight position={[H[0], H[1] - 0.05, H[2]]} target={target} angle={1.0} penumbra={0.75} intensity={42 * on} distance={24} decay={1.35} color="#FF9440" />
-          <primitive object={target} position={[H[0] - 0.4, 0, H[2] + 1.6]} />
-          <pointLight position={[H[0], H[1] - 0.4, H[2] - 0.6]} intensity={2.2 * on} distance={6} decay={1.2} color="#FF9A48" />
+          <spotLight position={[H[0], H[1] - 0.05, H[2]]} target={target} angle={0.82} penumbra={0.8} intensity={40 * on} distance={22} decay={1.35} color="#FF9440" />
+          <primitive object={target} position={[H[0] - 0.6, 0, H[2] + 2.4]} />
+          <pointLight position={[H[0], H[1] - 0.4, H[2] - 0.2]} intensity={1.4 * on} distance={4.5} decay={1.3} color="#FF9A48" />
           <mesh material={m.cone} position={[H[0], H[1] / 2, H[2]]}>
             <coneGeometry args={[3.6, H[1], 32, 1, true]} />
           </mesh>
@@ -1201,7 +1212,7 @@ const GROUND: Rect[] = [
   { key: "walk", x0: -80, x1: CROSS.x0, z0: 0, z1: ROAD.z0, y: CURB, tex: "pavement", tile: 2.4, opacity: 0.86 },
   { key: "walk-side", x0: CASA.x1, x1: CROSS.x0, z0: -60, z1: 0, y: CURB, tex: "pavement", tile: 2.4, opacity: 0.86 },
   { key: "walk-far", x0: CROSS.x1, x1: 80, z0: -60, z1: ROAD.z0, y: CURB, tex: "pavement", tile: 2.4, opacity: 0.86 },
-  { key: "plaza", x0: -80, x1: 80, z0: ROAD.z1, z1: 70, y: CURB, tex: "pavement", tile: 3.2, opacity: 0.74 },
+  { key: "plaza", x0: -80, x1: 80, z0: ROAD.z1, z1: 70, y: CURB, tex: "pavement", tile: 3.2, opacity: 0.8 },
 ];
 
 /** The wet ground (see-through over <StreetReflection>), kerbs, a lane line. */
@@ -1577,6 +1588,57 @@ export const torchAim = (n: NubiAt, side: "R" | "L", target: V3) => {
   return { q, grip: [pos.x, pos.y, pos.z] as V3, lens: [lens.x, lens.y, lens.z] as V3, dir: [dWorld.x, dWorld.y, dWorld.z] as V3 };
 };
 
+const BEAM_VERT = /* glsl */ `
+varying float vT;
+varying vec3 vN;
+varying vec3 vView;
+varying float vAxis;
+void main() {
+  vT = uv.y;
+  vec4 mv = modelViewMatrix * vec4(position, 1.0);
+  vView = normalize(-mv.xyz);
+  vN = normalize(normalMatrix * normal);
+  vec3 axis = normalize((modelViewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
+  vAxis = abs(dot(axis, vView));
+  gl_Position = projectionMatrix * mv;
+}`;
+const BEAM_FRAG = /* glsl */ `
+uniform vec3 uColor;
+uniform float uOpacity;
+varying float vT;
+varying vec3 vN;
+varying vec3 vView;
+varying float vAxis;
+void main() {
+  float rim = pow(abs(dot(normalize(vN), normalize(vView))), 1.2);
+  float thick = max(rim, vAxis * 0.8);
+  float along = pow(vT, 1.7);
+  gl_FragColor = vec4(uColor, uOpacity * along * thick);
+}`;
+
+/**
+ * A visible torch beam that also reads when seen along its axis (from behind the torch, where the
+ * shared Flashlight's beam fades out): a soft additive cone from the lens along +Z.
+ */
+export const BeamCone: React.FC<{ reach: number; angle: number; opacity: number; color?: string }> = ({ reach, angle, opacity, color = "#FFE2A8" }) => {
+  const geo = useMemo(() => new THREE.ConeGeometry(Math.tan(angle) * reach, reach, 40, 1, true), [angle, reach]);
+  const mat = useMemo(
+    () =>
+      additive(
+        new THREE.ShaderMaterial({
+          vertexShader: BEAM_VERT,
+          fragmentShader: BEAM_FRAG,
+          uniforms: { uColor: { value: new THREE.Color(color) }, uOpacity: { value: opacity } },
+          side: THREE.DoubleSide,
+        }),
+      ),
+    [color, opacity],
+  );
+  mat.uniforms.uOpacity.value = opacity;
+  if (opacity <= 0.004) return null;
+  return <mesh geometry={geo} material={mat} position={[0, 0, 0.43 + reach / 2]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={5} />;
+};
+
 const torchPropMats = once(() => ({
   body: new THREE.MeshStandardMaterial({ color: "#2B2F3A", roughness: 0.5, metalness: 0.4 }),
   lens: new THREE.MeshBasicMaterial({ color: "#FFE9B8", toneMapped: false }),
@@ -1596,7 +1658,9 @@ export const HeldTorch: React.FC<{
   intensity?: number;
   beam?: number;
   mirror?: boolean;
-}> = ({ nubi, side, target, on, reach = 12, angle = 0.3, intensity = 60, beam = 0.22, mirror = false }) => {
+  /** Opacity of the extra all-angle beam (see BeamCone). */
+  haze?: number;
+}> = ({ nubi, side, target, on, reach = 12, angle = 0.3, intensity = 60, beam = 0.22, mirror = false, haze = 0 }) => {
   const { q } = torchAim(nubi, side, target);
   const k = 10 / nubi.size;
   if (mirror) {
@@ -1613,6 +1677,7 @@ export const HeldTorch: React.FC<{
   return (
     <group quaternion={q} scale={k}>
       <Flashlight on={on} reach={reach} angle={angle} intensity={intensity} beam={beam} />
+      <BeamCone reach={reach} angle={angle * 0.9} opacity={haze * on} />
     </group>
   );
 };

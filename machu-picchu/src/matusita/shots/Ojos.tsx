@@ -80,16 +80,21 @@ export const OjosShot: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: nightSky(0) }}>
       <Stage cam={cam} near={0.2} far={400}>
-        <NightFog near={10} far={70} />
-        <NightLights k={0.55} rim={1.6} />
+        <NightFog near={5} far={46} />
+        <NightLights k={0.07} rim={0} />
+        {/* A cold rim from behind (directional: it shines from this point towards the world origin,
+            i.e. from the house's side towards the camera): the silhouette's top and side edges. */}
+        <directionalLight position={[-8, 6, -30]} intensity={0.9} color="#8EA4FF" />
         <FaceLight on={on} />
         {set}
         <StreetReflection>
           <MatusitaStreet lamp={lamp} mirror />
           <Nubi size={SIZE} position={N} rotationY={nubi.rotationY} pose={pose} shadow={false} holdR={<HeldTorch nubi={nubi} side="R" target={torchTarget} on={on} mirror />} />
         </StreetReflection>
-        <Nubi size={SIZE} position={N} rotationY={nubi.rotationY} pose={pose} shadowOpacity={0.5} holdR={<HeldTorch nubi={nubi} side="R" target={torchTarget} on={on} reach={6} intensity={14} beam={0.16} />} />
-        <Rain t={t} min={[N[0] - 5, 0, N[2] - 6]} size={[10, 7, 12]} count={1400} seed={3} opacity={0.2} px={2.2} lamp={lamp} torch={{ pos: aimed.lens, dir: aimed.dir, on: on * 0.8, angle: 0.3 }} />
+        <Nubi size={SIZE} position={N} rotationY={nubi.rotationY} pose={pose} shadowOpacity={0.5} holdR={<HeldTorch nubi={nubi} side="R" target={torchTarget} on={on} reach={6} intensity={14} beam={0.2} />}>
+          <EyeGlints pose={pose} on={on} />
+        </Nubi>
+        <Rain t={t} min={[N[0] - 5, 0, N[2] - 6]} size={[10, 7, 12]} count={1600} seed={3} opacity={0.32} px={2.2} lamp={lamp} torch={{ pos: aimed.lens, dir: aimed.dir, on: on * 0.8, angle: 0.3 }} />
         <Splashes t={t} x0={N[0] - 5} x1={N[0] + 5} z0={N[2] - 8} z1={N[2] + 4} count={140} opacity={0.22} lamp={lamp} />
         <Mist t={t} x0={-20} x1={20} z0={6} z1={26} count={10} opacity={0.12} />
       </Stage>
@@ -105,9 +110,28 @@ const FaceLight: React.FC<{ on: number }> = ({ on }) => {
   const target = useMemo(() => new THREE.Object3D(), []);
   return (
     <>
-      <spotLight position={[N[0] + 0.3, CURB + 0.45, N[2] + 1.55]} target={target} angle={0.62} penumbra={0.85} intensity={6.5 * on} distance={3.2} decay={1.4} color="#FFD49A" />
-      <primitive object={target} position={[N[0], CURB + 1.35, N[2] + 0.85]} />
-      <pointLight position={[N[0] + 0.9, CURB + 0.6, N[2] + 1.2]} intensity={0.9 * on} distance={2.4} decay={1.5} color="#FFC27A" />
+      <spotLight position={[N[0] + 0.1, CURB + 0.42, N[2] + 1.3]} target={target} angle={0.8} penumbra={1} intensity={9 * on} distance={2.8} decay={2} color="#FFD49A" />
+      <primitive object={target} position={[N[0], CURB + 2.3, N[2] + 0.55]} />
+      <pointLight position={[N[0] + 0.9, CURB + 0.6, N[2] + 1.0]} intensity={0.5 * on} distance={1.8} decay={1.5} color="#FFC27A" />
+    </>
+  );
+};
+
+const glintMat = new THREE.MeshBasicMaterial({ color: "#FFF1D6", transparent: true, toneMapped: false, depthWrite: false });
+const glintGeo = new THREE.CircleGeometry(1, 16);
+/** Little warm catchlights low in each eye (the light comes from below), in Nubi's model units. */
+const EyeGlints: React.FC<{ pose: NubiPose; on: number }> = ({ pose, on }) => {
+  const eyeScale = pose.eyeScale ?? 1;
+  const eyeH = Math.max(0.1, (1 - (pose.blink ?? 0)) * eyeScale);
+  if (on < 0.05 || eyeH < 0.4) return null;
+  glintMat.opacity = 0.85 * on;
+  const ex = (pose.lookX ?? 0) * 0.5;
+  const ey = (pose.lookY ?? 0) * 0.4;
+  return (
+    <>
+      {[-1, 1].map((side) => (
+        <mesh key={side} geometry={glintGeo} material={glintMat} position={[side * 2.3 + ex + 0.18, 5.5 + ey - 0.52 * eyeH, 4.73]} scale={[0.17, 0.12 * Math.min(1, eyeH), 1]} />
+      ))}
     </>
   );
 };

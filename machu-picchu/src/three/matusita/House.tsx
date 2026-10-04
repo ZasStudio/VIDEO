@@ -42,13 +42,24 @@ const worldPlane = (w: number, h: number) => {
   for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * w, uv.getY(i) * h);
   return g;
 };
-const tiled = (tex: THREE.Texture, unit: number) => {
+const tiled = (tex: THREE.Texture, unit: number, unitY = unit) => {
   const t = tex.clone();
   t.wrapS = THREE.RepeatWrapping;
   t.wrapT = THREE.RepeatWrapping;
-  t.repeat.set(1 / unit, 1 / unit);
+  t.repeat.set(1 / unit, 1 / unitY);
   t.needsUpdate = true;
   return t;
+};
+const planeCache = new Map<string, THREE.BufferGeometry>();
+/** Cached world-uv plane. */
+const worldPlaneCached = (w: number, h: number) => {
+  const k = `${w}x${h}`;
+  let g = planeCache.get(k);
+  if (!g) {
+    g = worldPlane(w, h);
+    planeCache.set(k, g);
+  }
+  return g;
 };
 
 type Ctx = CanvasRenderingContext2D;
@@ -124,6 +135,7 @@ const wallpaperTex = () =>
   );
 
 /** Damp stains, water runs, peeled patches and grime for one wall (not tiled, transparent). */
+const STAIN_UNIT: [number, number] = [9.6, 4.8];
 const stainTex = (seed: number) =>
   canvasTexture(`mat-stains-${seed}`, 1024, 512, (ctx, w, h) => {
     const r = mulberry(seed);
@@ -188,7 +200,7 @@ const stainTex = (seed: number) =>
       ctx.fillStyle = `rgba(14,16,8,${r() * 0.55})`;
       ctx.fillRect(r() * w, y, 1 + r() * 3, 1 + r() * 3);
     }
-  });
+  }, { wrapS: true, wrapT: true });
 
 /** Dusty black-and-white floor tiles, 8 × 8 tiles of 0.5 (tile = 4 world units). */
 const CHECKER_UNIT = 4;
@@ -205,7 +217,7 @@ const checkerTex = () =>
         for (let j = 0; j < n; j++) {
           const white = (i + j) % 2 === 0;
           const v = r();
-          ctx.fillStyle = white ? `hsl(40, 16%, ${54 + v * 12}%)` : `hsl(30, 8%, ${8 + v * 6}%)`;
+          ctx.fillStyle = white ? `hsl(42, 12%, ${42 + v * 10}%)` : `hsl(30, 8%, ${7 + v * 5}%)`;
           ctx.fillRect(i * s, j * s, s, s);
           if (r() < 0.2) {
             // A cracked tile.
@@ -790,7 +802,7 @@ const surface = (key: string, tex: THREE.Texture, o: { rough?: number; glow?: nu
 
 const houseMats = once(() => {
   const wallpaper = surface("wallpaper", tiled(wallpaperTex(), WALLPAPER_UNIT), { glow: 0.025 });
-  const stains = [stainTex(301), stainTex(302), stainTex(303)].map((t, i) => surface(`stains${i}`, t, { transparent: true, glow: 0 }));
+  const stains = [stainTex(301), stainTex(302), stainTex(303)].map((t, i) => surface(`stains${i}`, tiled(t, STAIN_UNIT[0], STAIN_UNIT[1]), { transparent: true, glow: 0 }));
   const wainscot = (() => {
     const t = wainscotTex().clone();
     t.wrapS = THREE.RepeatWrapping;
@@ -827,13 +839,12 @@ const houseMats = once(() => {
 
 const Wall: React.FC<{ w: number; h: number; position: V3; rotY: number; stain: number }> = ({ w, h, position, rotY, stain }) => {
   const m = houseMats();
-  const geo = useMemo(() => worldPlane(w, h), [w, h]);
-  const lower = useMemo(() => worldPlane(w, WAINSCOT.h), [w]);
-  const flat = useMemo(() => new THREE.PlaneGeometry(w, h), [w, h]);
+  const geo = worldPlaneCached(w, h);
+  const lower = worldPlaneCached(w, WAINSCOT.h);
   return (
     <group position={position} rotation={[0, rotY, 0]}>
       <mesh geometry={geo} material={m.wallpaper} position={[0, h / 2, 0]} />
-      <mesh geometry={flat} material={m.stains[stain % m.stains.length]} position={[0, h / 2, 0.004]} />
+      <mesh geometry={geo} material={m.stains[stain % m.stains.length]} position={[0, h / 2, 0.004]} />
       <mesh geometry={lower} material={m.wainscot} position={[0, WAINSCOT.h / 2, 0.012]} />
       {/* Chair rail, baseboard, crown moulding. */}
       <mesh material={m.wood} position={[0, WAINSCOT.h, 0.04]}>
@@ -1139,7 +1150,7 @@ const _up = new THREE.Vector3(0, 1, 0);
  * Nubi's flashlight held at a fin tip (`from`, world; get it with finTipWorld) and aimed at the
  * world point `to`. Props are passed to the shared <Flashlight>.
  */
-export const HeldTorch: React.FC<{ from: V3; to: V3; on?: number; reach?: number; angle?: number; intensity?: number; beam?: number; color?: string }> = ({ from, to, ...rest }) => {
+export const HeldTorch: React.FC<{ from: V3; to: V3; on?: number; reach?: number; angle?: number; intensity?: number; beam?: number; color?: string; scale?: number }> = ({ from, to, ...rest }) => {
   const q = useMemo(() => new THREE.Quaternion(), []);
   const a = new THREE.Vector3(...from);
   const b = new THREE.Vector3(...to);
@@ -1152,6 +1163,20 @@ export const HeldTorch: React.FC<{ from: V3; to: V3; on?: number; reach?: number
       </group>
     </group>
   );
+};
+
+/**
+ * Camcorder handheld wobble at global frame `g` (deterministic): offsets for the camera position
+ * and its aim point (world units) and a roll (rad). `amount` scales it (nervous cameraman > 1).
+ */
+export const handheld = (g: number, amount = 1) => {
+  const t = g / 30;
+  const n = (a: number, b: number, c: number) => Math.sin(t * a + b) * 0.6 + Math.sin(t * a * 2.3 + c) * 0.3 + Math.sin(t * a * 5.1 + b * 2) * 0.1;
+  return {
+    pos: [n(0.9, 1.3, 2.1) * 0.035 * amount, n(1.1, 0.4, 3.3) * 0.03 * amount, n(0.7, 2.2, 0.8) * 0.02 * amount] as V3,
+    look: [n(1.3, 4.1, 1.7) * 0.05 * amount, n(1.0, 2.9, 0.3) * 0.045 * amount, 0] as V3,
+    roll: n(0.8, 5.3, 1.1) * 0.012 * amount,
+  };
 };
 
 /** Unit direction from `from` to `to`. */
@@ -1262,7 +1287,7 @@ export const hallHandle = (angle: number): V3 => {
 };
 /** Nubi waiting on the sidewalk outside the door, and its TV-host spot inside. */
 export const HALL_OUTSIDE: V3 = [0.12, -0.12, -4.7];
-export const HALL_HOST: V3 = [0.45, 0, -0.55];
+export const HALL_HOST: V3 = [0.45, 0, -1.3];
 /** The orange street lamp's bulb (outside, seen through the doorway and the fanlight). */
 export const STREET_LAMP: V3 = [1.25, 3.85, -9.2];
 /** The moonlit window on the right wall (centre). */
@@ -1295,11 +1320,11 @@ const hallGeos = once(() => {
   right.closePath();
   const wc = HALL_WINDOW.z - (zBack + zFront) / 2;
   const wh = new THREE.Path();
-  // In the right wall's local frame (rotY = −π/2) local +x points to world −z.
-  wh.moveTo(-wc - HALL_WINDOW.w / 2, HALL_WINDOW.y - HALL_WINDOW.h / 2);
-  wh.lineTo(-wc + HALL_WINDOW.w / 2, HALL_WINDOW.y - HALL_WINDOW.h / 2);
-  wh.lineTo(-wc + HALL_WINDOW.w / 2, HALL_WINDOW.y + HALL_WINDOW.h / 2);
-  wh.lineTo(-wc - HALL_WINDOW.w / 2, HALL_WINDOW.y + HALL_WINDOW.h / 2);
+  // In the right wall's local frame (rotY = −π/2) local +x points to world +z.
+  wh.moveTo(wc - HALL_WINDOW.w / 2, HALL_WINDOW.y - HALL_WINDOW.h / 2);
+  wh.lineTo(wc + HALL_WINDOW.w / 2, HALL_WINDOW.y - HALL_WINDOW.h / 2);
+  wh.lineTo(wc + HALL_WINDOW.w / 2, HALL_WINDOW.y + HALL_WINDOW.h / 2);
+  wh.lineTo(wc - HALL_WINDOW.w / 2, HALL_WINDOW.y + HALL_WINDOW.h / 2);
   wh.closePath();
   right.holes.push(wh);
   const rightGeo = new THREE.ShapeGeometry(right);
@@ -1387,9 +1412,7 @@ export const EntranceHall: React.FC<{ t: number; door: number; handle?: number; 
       </mesh>
       {/* Back wall with the doorway, its stains, wainscot and mouldings (split around the door). */}
       <mesh geometry={geo.backGeo} material={m.wallpaper} position={[0, 0, zBack]} />
-      <mesh material={m.stains[0]} position={[(x0 + x1) / 2, height / 2, zBack + 0.004]}>
-        <planeGeometry args={[x1 - x0, height]} />
-      </mesh>
+      <mesh geometry={geo.backGeo} material={m.stains[0]} position={[0, 0, zBack + 0.004]} />
       {[
         [x0, HALL_DOOR.x0 - 0.12],
         [HALL_DOOR.x1 + 0.12, x1],
@@ -1426,7 +1449,6 @@ export const EntranceHall: React.FC<{ t: number; door: number; handle?: number; 
         ))}
         <mesh geometry={geo.fanGlass} material={m.fanGlass} position={[0, 0, -0.03]} />
       </group>
-      <CornerWeb position={[HALL_DOOR.x0 + 0.02, HALL_DOOR.h - 0.02, zBack + 0.1]} rotation={[0, 0, 0]} size={0.55} />
       {/* The rusty door on its hinge. */}
       <group position={HALL_HINGE} rotation={[0, door, 0]}>
         <mesh geometry={geo.door} material={m.rust} position={[DOOR_W / 2, (HALL_DOOR.h - 0.03) / 2, 0]} />
@@ -1481,9 +1503,9 @@ export const EntranceHall: React.FC<{ t: number; door: number; handle?: number; 
         <planeGeometry args={[1, 1]} />
       </mesh>
       <mesh geometry={geo.ceiling} material={m.ceiling} rotation={[Math.PI / 2, 0, 0]} position={[(x0 + x1) / 2, height, midZ]} />
-      <CornerWeb position={[x0, height, zBack]} rotation={[0, 0, 0]} size={1.5} />
-      <CornerWeb position={[x1, height, zBack]} rotation={[0, Math.PI, 0]} size={1.3} />
-      <CornerWeb position={[x0, height - 0.1, zBack + 4]} rotation={[0, Math.PI / 2, 0]} size={1.1} />
+      <CornerWeb position={[x0, height - 0.12, zBack + 0.03]} rotation={[0, 0, 0]} size={1.5} />
+      <CornerWeb position={[x1, height - 0.12, zBack + 0.03]} rotation={[0, Math.PI, 0]} size={1.3} />
+      <CornerWeb position={[x0 + 0.03, height - 0.12, zBack + 4]} rotation={[0, Math.PI / 2, 0]} size={1.1} />
       <group position={CHANDELIER}>
         <Chandelier swing={swing} t={t} />
       </group>
@@ -1553,13 +1575,14 @@ export const HallLights: React.FC<{ street: number; moon?: number }> = ({ street
   const moonTarget = useMemo(() => new THREE.Object3D(), []);
   return (
     <>
-      <hemisphereLight args={["#5D6E9E", "#120F0C", 0.32]} />
+      <hemisphereLight args={["#4B5F9E", "#0C0C12", 0.4]} />
       <pointLight position={[STREET_LAMP[0], STREET_LAMP[1] - 0.15, STREET_LAMP[2]]} intensity={36} distance={22} decay={1.5} color="#FF9A3C" />
       <spotLight position={[0.3, 3.4, HALL.zBack - 4.5]} target={target} angle={0.5} penumbra={0.7} intensity={70 * street} distance={18} decay={1.3} color="#FF9447" />
       <primitive object={target} position={[0.1, 0, HALL.zBack + 3.6]} />
-      <spotLight position={[HALL.x1 + 1.6, 4.4, HALL_WINDOW.z]} target={moonTarget} angle={0.55} penumbra={0.8} intensity={34 * moon} distance={16} decay={1.2} color="#8EA8FF" />
+      <spotLight position={[HALL.x1 + 1.6, 4.4, HALL_WINDOW.z]} target={moonTarget} angle={0.55} penumbra={0.8} intensity={60 * moon} distance={18} decay={1.15} color="#86A2FF" />
       <primitive object={moonTarget} position={[0.5, 0, HALL_WINDOW.z - 1.0]} />
-      <directionalLight position={[2, 6, -8]} intensity={0.35 * moon} color="#7F95D8" />
+      <directionalLight position={[2, 6, -8]} intensity={0.5 * moon} color="#7F95D8" />
+      <directionalLight position={[4, 3, 6]} intensity={0.22 * moon} color="#6F86D0" />
     </>
   );
 };
@@ -1626,8 +1649,6 @@ const corridorGeos = once(() => {
   sw.closePath();
   ceil.holes.push(sw);
   const ceilGeo = new THREE.ShapeGeometry(ceil);
-  const uv = ceilGeo.attributes.uv as THREE.BufferAttribute;
-  for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i), uv.getY(i));
   // The staircase: treads, risers, nosings and the panelled side facing the corridor (vertex colours).
   const parts: THREE.BufferGeometry[] = [];
   const { x0: sx0, x1: sx1, z0, steps, rise, run } = STAIRS;
@@ -1681,8 +1702,8 @@ const Banister: React.FC = () => {
           const top = (i + 1) * rise;
           const broken = i === 6;
           return (
-            <mesh key={i} material={m.wood} position={[x, top + (broken ? 0.3 : 0.45), z0 - i * run - run / 2]} rotation={[broken ? 0.4 : 0, 0, 0]}>
-              <cylinderGeometry args={[0.022, 0.026, broken ? 0.55 : 0.9, 6]} />
+            <mesh key={i} material={m.wood} position={[x, top + (broken ? 0.3 : 0.52), z0 - i * run - run / 2]} rotation={[broken ? 0.4 : 0, 0, 0]}>
+              <cylinderGeometry args={[0.022, 0.026, broken ? 0.55 : 1.04, 6]} />
             </mesh>
           );
         })}
@@ -1704,15 +1725,11 @@ export const Corridor: React.FC = () => {
   const stairMat = vertexMat(0.75, false, 0.03);
   return (
     <group>
-      <mesh material={m.boards} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, midZ]}>
-        <primitive object={worldPlaneCached(x1 - x0, len)} attach="geometry" />
-      </mesh>
+      <mesh geometry={worldPlaneCached(x1 - x0, len)} material={m.boards} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, midZ]} />
       <Wall w={len} h={height} position={[x0, 0, midZ]} rotY={Math.PI / 2} stain={0} />
       <Wall w={len} h={height} position={[x1, 0, midZ]} rotY={-Math.PI / 2} stain={2} />
       <mesh geometry={geo.endGeo} material={m.wallpaper} position={[0, 0, zEnd]} />
-      <mesh material={m.stains[1]} position={[0, height / 2, zEnd + 0.004]}>
-        <planeGeometry args={[x1 - x0, height]} />
-      </mesh>
+      <mesh geometry={geo.endGeo} material={m.stains[1]} position={[0, 0, zEnd + 0.004]} />
       <mesh material={m.wainscot} position={[0, WAINSCOT.h / 2, zEnd + 0.012]}>
         <planeGeometry args={[x1 - x0, WAINSCOT.h]} />
       </mesh>
@@ -1759,23 +1776,13 @@ export const Corridor: React.FC = () => {
           <Photo kind={kind} w={w} h={h} tilt={tilt} />
         </group>
       ))}
-      <CornerWeb position={[x0, height, -6]} rotation={[0, Math.PI / 2, 0]} size={1.2} />
-      <CornerWeb position={[x1, height, 2]} rotation={[0, -Math.PI / 2, -Math.PI / 2]} size={1.0} />
-      <CornerWeb position={[x0, height, zEnd]} rotation={[0, 0, 0]} size={1.0} />
+      <CornerWeb position={[x0 + 0.03, height - 0.12, -6]} rotation={[0, Math.PI / 2, 0]} size={1.2} />
+      <CornerWeb position={[x1 - 0.03, height - 0.12, 2]} rotation={[0, -Math.PI / 2, 0]} size={1.0} />
+      <CornerWeb position={[x0, height - 0.12, zEnd + 0.03]} rotation={[0, 0, 0]} size={1.0} />
     </group>
   );
 };
 
-const planeCache = new Map<string, THREE.BufferGeometry>();
-const worldPlaneCached = (w: number, h: number) => {
-  const k = `${w}x${h}`;
-  let g = planeCache.get(k);
-  if (!g) {
-    g = worldPlane(w, h);
-    planeCache.set(k, g);
-  }
-  return g;
-};
 
 /** Lights of the hallway: cold moonlight from the end window and a faint cold fill. */
 export const CorridorLights: React.FC<{ k?: number }> = ({ k = 1 }) => {

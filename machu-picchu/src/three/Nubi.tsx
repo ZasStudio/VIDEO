@@ -37,7 +37,8 @@ const EYE = "#151515";
 /**
  * Colours of a Nubi-shaped character (the other heroes and villains are Nubis of other
  * colours). Fins and legs default to the body colour; `eyeGlow` > 0 makes the eyes emit their
- * own colour (glowing eyes behind a mask).
+ * own colour (glowing eyes behind a mask). `eyeRough` (default 0.32) widens the eyes' highlight:
+ * raise it (~0.75) when a strong light sits near the camera, so the glossy eyes don't blow out white.
  */
 export type NubiPalette = {
   body?: string;
@@ -45,6 +46,7 @@ export type NubiPalette = {
   legs?: string;
   eyes?: string;
   eyeGlow?: number;
+  eyeRough?: number;
 };
 
 const BODY = { w: 10, h: 7.4, d: 8.8, y: 6.2 };
@@ -149,6 +151,7 @@ export const Nubi: React.FC<{
   const legColor = palette?.legs ?? bodyColor;
   const eyeColor = palette?.eyes ?? EYE;
   const eyeGlow = palette?.eyeGlow ?? 0;
+  const eyeRough = palette?.eyeRough ?? 0.32;
   const vinyl = (c: string) =>
     new THREE.MeshStandardMaterial({ color: c, roughness: 0.42, metalness: 0, emissive: new THREE.Color(c), emissiveIntensity: 0.14 });
   const bodyMat = useMemo(() => vinyl(bodyColor), [bodyColor]);
@@ -158,12 +161,12 @@ export const Nubi: React.FC<{
     () =>
       new THREE.MeshStandardMaterial({
         color: eyeColor,
-        roughness: 0.32,
+        roughness: eyeRough,
         emissive: new THREE.Color(eyeGlow > 0 ? eyeColor : "#000000"),
         emissiveIntensity: eyeGlow,
         toneMapped: eyeGlow <= 0,
       }),
-    [eyeColor, eyeGlow],
+    [eyeColor, eyeGlow, eyeRough],
   );
   const bodyGeo = useRounded(BODY.w, BODY.h, BODY.d, 0.6);
   const legGeo = useRounded(LEG.w, LEG.h, LEG.l, 0.42);

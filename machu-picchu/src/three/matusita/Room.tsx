@@ -20,7 +20,7 @@ import { Flashlight } from "./Flashlight";
 // camera can stand outside the front wall (the "tripod camera" view) and look in. Hide the desk
 // props (`desk={false}`) for views from the front: they stand between that camera and the chair.
 //
-// Layout (see ROOM): x −3.6..3.6, z −2.6 (back wall, door) .. 2.4 (front wall, desk), walls 4 high.
+// Layout (see ROOM): x −4.4..4.2, z −3.4 (back wall, door) .. 2.4 (front wall, desk), walls 5.4 high.
 //   back wall:  plant, poster, the door (x −1.0, hinge on its −x side, opens into the room), the
 //               toy shelf above the chair, the window (x 2.0) with the city and the rain, fairy lights
 //   front wall: desk (x −1.5..2.3) with lamp, mug, tripod camera + ring light, monitor, keyboard;
@@ -100,7 +100,7 @@ const withRepeat = (tex: THREE.Texture, rx: number, ry: number) => {
 // =======================================================================================
 // Layout
 
-export const ROOM = { x0: -4.4, x1: 4.2, zBack: -3.4, zFront: 2.4, height: 4.4 };
+export const ROOM = { x0: -4.4, x1: 4.2, zBack: -3.4, zFront: 2.4, height: 5.4 };
 /** The door in the back wall: centre x, width, height (Nubi-sized: it opens into the room, hinge on
  *  its +x side, the chair's side, so when it is ajar the gap shows on the far side). */
 export const ROOM_DOOR = { x: -1.5, w: 2.25, h: 3.0 };
@@ -125,7 +125,7 @@ const LAMP: V3 = [2.25, DESK.top, 2.05];
 /** Nubi standing on the threshold of the door, in the doorway (faces +z, into the room). */
 export const ROOM_THRESHOLD: V3 = [ROOM_DOOR.x, 0, ROOM.zBack - 0.1];
 /** The hallway behind the door: x range and how far it runs (towards −z). */
-const HALL = { x0: ROOM_DOOR.x - 1.35, x1: ROOM_DOOR.x + 1.35, len: 6, h: 4.0 };
+const HALL = { x0: ROOM_DOOR.x - 2.9, x1: ROOM_DOOR.x + 1.35, len: 6, h: 4.0 };
 /** Turn (rotationY) for a Nubi in the chair to face the doorway. */
 export const FACE_DOOR_YAW = Math.atan2(ROOM_DOOR.x - ROOM_SIT[0], ROOM.zBack - ROOM_SIT[2]);
 /** Yaw from a seated Nubi towards a world point. */
@@ -989,7 +989,8 @@ export type RoomProps = {
   rattle?: number;
   /** The chair's swivel (radians; 0 = facing the desk). */
   chairYaw?: number;
-  /** Show the desk and its props (hide them when the camera looks from the desk at the chair). */
+  /** Show the desk, its props and the front wall's decorations (hide them for views from the
+   *  front: the camera then stands outside the front wall, looking at the chair and the door). */
   desk?: boolean;
   /** The camera feed on the monitor: whoever sits in the chair, turned by feedYaw. */
   feed?: boolean;
@@ -1044,14 +1045,20 @@ export const Room: React.FC<RoomProps> = ({ t = 0, lights = 1, monitor, door = 0
         <PottedPlant />
       </group>
       <Poster tex={posterGhostTex} k="ghost" position={[-3.55, 2.55, zBack + 0.02]} tilt={0.03} />
-      <ToyShelf position={[ROOM_CHAIR[0] + 0.15, 3.3, zBack + 0.16]} />
-      <FairyLights a={[x0 + 0.3, 4.1, zBack + 0.04]} b={[x1 - 0.3, 4.1, zBack + 0.04]} n={26} sag={0.24} on={lights} t={t} />
+      <ToyShelf position={[ROOM_CHAIR[0] + 0.15, 3.9, zBack + 0.16]} />
+      <Poster tex={posterPlanetTex} k="planet" position={[ROOM_DOOR.x + 0.15, 4.1, zBack + 0.02]} tilt={-0.03} w={0.7} h={0.92} />
+      <Poster tex={posterPlayTex} k="play" position={[WINDOW.x + 0.1, 4.25, zBack + 0.02]} tilt={0.04} w={0.6} h={0.8} />
+      <FairyLights a={[x0 + 0.3, 5.05, zBack + 0.04]} b={[x1 - 0.3, 5.05, zBack + 0.04]} n={26} sag={0.26} on={lights} t={t} />
 
-      {/* Front wall: posters, a second shelf, fairy lights. */}
-      <Poster tex={posterPlayTex} k="play" position={[-0.25, 2.75, zFront - 0.02]} rotationY={Math.PI} tilt={-0.04} />
-      <Poster tex={posterPlanetTex} k="planet" position={[2.3, 2.85, zFront - 0.02]} rotationY={Math.PI} tilt={0.03} w={0.7} h={0.92} />
-      <ToyShelf position={[ROOM_CHAIR[0], 3.45, zFront - 0.16]} rotationY={Math.PI} variant={1} />
-      <FairyLights a={[x1 - 0.3, 4.1, zFront - 0.04]} b={[x0 + 0.3, 4.1, zFront - 0.04]} n={24} sag={0.24} on={lights} t={t} seed={3} />
+      {/* Front wall (hidden with the desk): posters, a second shelf, fairy lights. */}
+      {desk ? (
+        <>
+          <Poster tex={posterPlayTex} k="play" position={[-0.25, 2.75, zFront - 0.02]} rotationY={Math.PI} tilt={-0.04} />
+          <Poster tex={posterPlanetTex} k="planet" position={[2.3, 2.85, zFront - 0.02]} rotationY={Math.PI} tilt={0.03} w={0.7} h={0.92} />
+          <ToyShelf position={[ROOM_CHAIR[0], 3.45, zFront - 0.16]} rotationY={Math.PI} variant={1} />
+          <FairyLights a={[x1 - 0.3, 5.05, zFront - 0.04]} b={[x0 + 0.3, 5.05, zFront - 0.04]} n={24} sag={0.26} on={lights} t={t} seed={3} />
+        </>
+      ) : null}
 
       <Bed />
       <mesh geometry={geos.rug} material={texMat("rug", rugTex(), { glow: 0.03, rough: 0.95 })} rotation={[-Math.PI / 2, 0, 0]} position={[ROOM_CHAIR[0], 0.006, ROOM_CHAIR[2] + 0.1]} />
@@ -1075,14 +1082,15 @@ export const RoomLights: React.FC<{ lights?: number; moon?: number; ring?: numbe
       {/* Moonlight from the window (back wall) into the room. */}
       <directionalLight position={[WINDOW.x + 1.2, 5.5, ROOM.zBack - 4]} intensity={0.9 * moon} color="#8FA8FF" />
       <pointLight position={[WINDOW.x, WINDOW.y, ROOM.zBack + 0.5]} intensity={1.6 * moon} distance={4.5} decay={1.5} color="#7F98F0" />
-      {/* Ring light: soft key on the chair from the desk. */}
-      <pointLight position={[RING[0], RING[1], RING[2] - 0.2]} intensity={7 * L * ring} distance={0} decay={1.25} color="#FFF0DC" />
+      {/* Ring light: soft key on the chair from the desk (a near light and a soft frontal wash). */}
+      <pointLight position={[RING[0], RING[1] + 0.1, RING[2] + 0.4]} intensity={3.2 * L * ring} distance={0} decay={1.25} color="#FFF0DC" />
+      <directionalLight position={[RING[0] + 1, RING[1] + 1.5, RING[2] + 8]} intensity={0.7 * L * ring} color="#FFE6C8" />
       {/* Desk lamp (warm) and the monitor (cool). */}
       <pointLight position={[LAMP[0] + 0.2, LAMP[1] + 0.45, LAMP[2] - 0.2]} intensity={3.2 * L} distance={7} decay={1.4} color="#FFB060" />
       <pointLight position={[MONITOR[0] - 0.1, MONITOR[1] + 0.6, MONITOR[2] - 0.4]} intensity={1.6 * L} distance={4} decay={1.5} color="#8FB6FF" />
       {/* Fairy lights: a warm wash over the back wall (the door) and the front wall. */}
-      <pointLight position={[-0.4, 3.7, ROOM.zBack + 1.1]} intensity={2.4 * L} distance={5.5} decay={1.4} color="#FFC27A" />
-      <pointLight position={[0.6, 3.7, ROOM.zFront - 0.9]} intensity={1.6 * L} distance={5} decay={1.4} color="#FFC27A" />
+      <pointLight position={[-0.4, 4.3, ROOM.zBack + 1.1]} intensity={2.6 * L} distance={6} decay={1.4} color="#FFC27A" />
+      <pointLight position={[0.6, 4.3, ROOM.zFront - 0.9]} intensity={1.6 * L} distance={5.5} decay={1.4} color="#FFC27A" />
     </>
   );
 };

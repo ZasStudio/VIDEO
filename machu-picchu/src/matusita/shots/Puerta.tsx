@@ -28,9 +28,11 @@ const DOOR_FLUNG = 2.72;
 /** A: the camera inside the room (outside the one-sided front wall), the chair out of frame. */
 const CAM_A: Vec3 = [-3.3, 1.7, 6.8];
 /** B: the camera in the hallway, looking over Nubi (in the doorway) at the chair. */
-const CAM_B: Vec3 = [-2.3, 3.0, -6.2];
-/** Where Nubi stands in B: in the doorway, turned towards the chair. */
-const PEEK: Vec3 = [ROOM_DOOR.x + 0.05, 0, ROOM.zBack - 0.25];
+const CAM_B: Vec3 = [-3.7, 3.4, -6.4];
+/** Where Nubi stands in B: in the hallway, peeking round the door frame at the chair. */
+const PEEK: Vec3 = [ROOM_DOOR.x - 1.1, 0, ROOM.zBack - 0.6];
+/** Its back is in the dark hallway: a shadowed tone, so it reads as a foreground silhouette. */
+const SHADOWED = { body: "#4A7A58" };
 const PEEK_YAW = yawTo(ROOM_SIT, PEEK);
 
 /** Handheld camcorder wobble (small, slow, deterministic). */
@@ -102,8 +104,8 @@ export const PuertaShot: React.FC = () => {
   const push = ramp(g, CUT_B, OFF, [0, 1], (x) => x);
   const close = ramp(g, TURN + 40, OFF, [0, 1], EASE_IN_OUT);
   const face: Vec3 = [sitAt(turn)[0], ROOM_SIT[1] + 1.15, sitAt(turn)[2]];
-  const from = lerp3(CAM_B, face, 0.1 * push + 0.2 * close);
-  const cam = wobble(aim(from, 55, face, 620, 780 + 30 * close), g, 0.8);
+  const from = lerp3(CAM_B, face, 0.08 * push + 0.1 * close);
+  const cam = wobble(aim(from, 46, face, 640, 760 + 20 * close), g, 0.8);
   // Nubi (foreground) trembles; it shrinks back when the other one turns.
   const recoil = ramp(g, TURN + 10, TURN + 40, [0, 1], EASE_OUT);
   const base: NubiPose = {
@@ -120,7 +122,7 @@ export const PuertaShot: React.FC = () => {
     <AbsoluteFill style={{ background: "#000" }}>
       {!dark ? (
         <Stage cam={cam} near={0.05}>
-          <RoomLights lights={lights} moon={0.8} />
+          <RoomLights lights={lights * 0.85} moon={0.45} />
           <Room t={t} door={DOOR_FLUNG} chairYaw={turn} feedYaw={turn} rec={1} lights={lights} />
           <Doppelganger turn={turn} torch={torchOn} stare={close} />
           <Nubi
@@ -128,8 +130,9 @@ export const PuertaShot: React.FC = () => {
             position={PEEK}
             rotationY={PEEK_YAW}
             pose={pose}
+            palette={SHADOWED}
             shadowOpacity={0.4}
-            holdR={<HeldTorch raise={0.3} pitch={0.12 + 0.03 * Math.sin(g * 1.9)} turn={0.05 * Math.sin(g * 0.7)} on={torchOn * flicker(g, 7, 0.4)} intensity={35} beam={0.12} />}
+            holdR={<HeldTorch raise={0.3} pitch={-0.02 + 0.03 * Math.sin(g * 1.9)} turn={-0.12 + 0.04 * Math.sin(g * 0.7)} on={torchOn * flicker(g, 7, 0.4)} intensity={45} beam={0.12} reach={8} />}
           />
         </Stage>
       ) : null}

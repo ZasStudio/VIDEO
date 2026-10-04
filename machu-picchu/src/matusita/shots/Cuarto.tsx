@@ -18,7 +18,7 @@ import { matusitaTalk } from "../talk";
 //   lowers the flashlight. At KNOCK two knocks on the door behind it: it freezes, eyes wide.
 
 /** The creator camera: Nubi's base at (x, y) on screen, the door readable on the left. */
-export const ROOM_CAM_POS: Vec3 = [ROOM_SIT[0] + 0.9, 2.6, ROOM_SIT[2] + 15.2];
+export const ROOM_CAM_POS: Vec3 = [ROOM_SIT[0] + 0.9, 3.6, ROOM_SIT[2] + 15.2];
 export const roomCam = (push = 0): Cam => {
   const pos = lerp3(ROOM_CAM_POS, [ROOM_SIT[0], 1.9, ROOM_SIT[2]], push);
   return aim(pos, 33, ROOM_SIT, 690 - 40 * push, 1250);
@@ -79,7 +79,7 @@ export const CuartoShot: React.FC = () => {
     };
   }
   const torchRaise = pose.finR ?? 0;
-  const torchPitch = 0.55 + 0.5 * relief - 0.35 * (frozen ? startle : 0);
+  const torchPitch = 0.3 + 0.55 * relief - 0.2 * (frozen ? startle : 0);
 
   // ---- Camera: locked off on the tripod, a slow creep in; a small snap in on the knocks.
   const creep = ramp(g, BREATH, KNOCK, [0, 0.05], (x) => x) + ramp(g, KNOCK, KNOCK + 14, [0, 0.07], EASE_OUT);
@@ -97,7 +97,7 @@ export const CuartoShot: React.FC = () => {
             rotationY={0}
             pose={pose}
             shadow={false}
-            holdR={<HeldTorch raise={torchRaise} pitch={torchPitch} turn={-0.1} on={torch} intensity={30} beam={0.14} />}
+            holdR={<HeldTorch raise={torchRaise} pitch={torchPitch} turn={0.35} on={torch} intensity={14} beam={0.12} reach={4} />}
           />
         </Stage>
       </Shake>

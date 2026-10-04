@@ -19,7 +19,7 @@ import { roomCam } from "./Cuarto";
 //   Then Nubi goes still like the other one (eyes too wide, flashlight at the desk) and its
 //   flashlight and the room's lights stutter and die just before BLACK: the loop back to the start.
 
-const AJAR = 0.34;
+const AJAR = 0.75;
 
 export const FinalShot: React.FC = () => {
   const frame = useCurrentFrame();
@@ -71,10 +71,12 @@ export const FinalShot: React.FC = () => {
 
   // ---- Lights: flicker as it spins, steady and dim while it whispers, then stutter and die.
   const spinFlick = g < BACK + 10 ? flicker(g, 21, 1.6) : 1;
-  const dieFlick = g >= CLICK + 4 ? flicker(g, 33, 3) * (1 - ramp(g, BLACK - 6, BLACK - 2, [0, 1], (x) => x)) : 1;
+  // The room's lights stutter out first, then the flashlight (like the other one switching off).
+  const OUT = BLACK - 7;
+  const dieFlick = g >= CLICK + 2 ? flicker(g, 33, 3.5) * (1 - ramp(g, OUT - 4, OUT, [0, 1], (x) => x)) : 1;
   const lights = 0.8 * spinFlick * dieFlick;
-  const torch = g >= BLACK - 2 ? 0 : g >= CLICK + 4 ? flicker(g + 3, 41, 3) * (g >= BLACK - 4 ? 0.4 : 1) : 1;
-  const moon = 1 - ramp(g, BLACK - 5, BLACK - 1, [0, 1], (x) => x);
+  const torch = g >= OUT + 3 ? 0 : g >= CLICK + 2 ? flicker(g + 3, 41, 2.5) * (g >= OUT ? 0.5 : 1) : 1;
+  const moon = 1 - ramp(g, CLICK + 4, OUT + 2, [0, 0.85], (x) => x);
 
   // ---- Camera: the creator camera, a slow creep in while it whispers.
   const cam = roomCam(0.12 + ramp(g, BACK, CLICK, [0, 0.1], (x) => x));
@@ -91,11 +93,12 @@ export const FinalShot: React.FC = () => {
             rotationY={yaw}
             pose={pose}
             shadow={false}
-            holdR={<HeldTorch raise={pose.finR ?? 0} pitch={torchPitch} turn={-0.08 * (1 - still)} on={torch} intensity={34} beam={0.16} />}
+            holdR={<HeldTorch raise={pose.finR ?? 0} pitch={torchPitch} turn={0.3 * back * (1 - still)} on={torch} intensity={back > 0.5 ? 14 : 34} beam={0.14} reach={back > 0.5 ? 4 : 7} />}
           />
         </Stage>
       </Shake>
-      {g >= BLACK - 1 ? <AbsoluteFill style={{ background: "#000" }} /> : null}
+      {/* Black once the flashlight is out. */}
+      <AbsoluteFill style={{ background: "#000", opacity: ramp(g, OUT + 2, OUT + 4, [0, 1], (x) => x) }} />
     </AbsoluteFill>
   );
 };

@@ -2,6 +2,7 @@ import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { EASE_IN_OUT, EASE_OUT, ramp, windowIn } from "../../anim";
 import { Shake, Stage } from "../../scenes/common";
+import { Glow } from "../../three/thanos/FX";
 import { Cam, aim } from "../../thanos/camera";
 import { Vec3, lerp3 } from "../../three/CameraRig";
 import { Nubi, NubiPose } from "../../three/Nubi";
@@ -85,9 +86,11 @@ export const VentanaShot: React.FC = () => {
   let cam: Cam;
   const pov = g >= POV;
   if (!pov) {
-    const u = ramp(g, RAISE, POV, [0, 1], (x) => x);
-    const pos: Vec3 = lerp3([N[0] - 1.25, 0.62, N[2] + 5.4], [N[0] - 1.0, 0.74, N[2] + 4.6], EASE_IN_OUT(u));
-    cam = aim(pos, 30, CASA_EYES, 600, 600, 17);
+    // Low, well behind Nubi: Nubi below the window, the beam climbing between them; a slow push
+    // towards the window (it grows for the eyes).
+    const u = EASE_IN_OUT(ramp(g, RAISE, EYES + 10, [0, 1], (x) => x));
+    const pos: Vec3 = lerp3([N[0] + 0.6, 0.5, N[2] + 11], [N[0] + 0.7, 0.52, N[2] + 10], u);
+    cam = aim(pos, 40 - 4 * u, CASA_EYES, 470, 500 - 10 * u, 17);
   } else {
     const u = ramp(g, POV, END, [0, 1], (x) => x);
     const pos: Vec3 = [CASA_EYES[0] + 0.02 * Math.sin(t * 9), CASA_EYES[1] - 0.05, -0.15];
@@ -100,13 +103,15 @@ export const VentanaShot: React.FC = () => {
   const torchTarget: Vec3 = pov ? [win[0] + 0.6, win[1] - 1.6, 0] : target;
   const lamp = lampFlicker(g);
 
-  const holdR = <HeldTorch nubi={nubiAt} side="R" target={torchTarget} on={on} reach={14} intensity={46} beam={pov ? 0.08 : 0.24} angle={0.26} />;
+  const holdR = <HeldTorch nubi={nubiAt} side="R" target={torchTarget} on={on} reach={14} intensity={110} beam={pov ? 0.06 : 0.3} angle={0.14} haze={pov ? 0.05 : 0.34} />;
   return (
     <AbsoluteFill style={{ background: nightSky(0) }}>
       <Shake frame={g} impacts={[{ at: EYES + 1, amp: 5, dur: 10 }]}>
         <Stage cam={cam} near={pov ? 0.05 : 0.3} far={400}>
           <NightFog near={16} far={110} />
           <NightLights />
+          {/* In the reverse, the torch's bounce off the wet ground lights Nubi's upturned face. */}
+          {pov ? <pointLight position={[N[0], CURB + 1.0, N[2] - 1.3]} intensity={1.6} distance={2.6} decay={1.6} color="#FFD7A0" /> : null}
           <MatusitaStreet lamp={lamp} eyes={pov ? 0 : eyes} creak={0.05 * Math.sin(t * 0.9)} eye={cam.position} />
           <StreetReflection>
             <MatusitaStreet lamp={lamp} mirror />
@@ -126,6 +131,8 @@ export const VentanaShot: React.FC = () => {
             far={40}
           />
           <Splashes t={t} x0={-6} x1={8} z0={2.6} z1={20} count={320} opacity={0.3} lamp={lamp} />
+          {/* The torch's hot spot on the shutters once the beam lands on the window. */}
+          {!pov ? <Glow color="#FFD08A" size={2.4} opacity={0.2 * on * ramp(g, RAISE + 14, RAISE + 24)} position={[target[0], target[1], 0.25]} /> : null}
           <Mist t={t} x0={-26} x1={26} z0={3} z1={13} count={14} opacity={0.12} />
         </Stage>
       </Shake>
