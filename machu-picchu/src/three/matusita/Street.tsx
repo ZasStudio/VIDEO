@@ -658,11 +658,6 @@ const FACES: Record<"main" | "cham" | "side", Frame> = {
   side: { pos: [CASA.side, 0, (-CASA.cham + CASA.back) / 2], rotY: Math.PI / 2, w: -CASA.cham - CASA.back },
 };
 const frameMatrix = (f: Frame) => new THREE.Matrix4().compose(new THREE.Vector3(...f.pos), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, f.rotY, 0)), new THREE.Vector3(1, 1, 1));
-/** World point of a local facade point. */
-const onFace = (f: Frame, p: V3): V3 => {
-  const v = new THREE.Vector3(...p).applyMatrix4(frameMatrix(f));
-  return [v.x, v.y, v.z];
-};
 
 const STONE = "#E3D3A8";
 const STONE_DARK = "#B9A275";

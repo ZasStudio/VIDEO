@@ -18,10 +18,10 @@ import { matusitaTalk } from "../talk";
 //   lowers the flashlight. At KNOCK two knocks on the door behind it: it freezes, eyes wide.
 
 /** The creator camera: Nubi's base at (x, y) on screen, the door readable on the left. */
-export const ROOM_CAM_POS: Vec3 = [ROOM_SIT[0] - 0.55, 1.95, ROOM_SIT[2] + 6.4];
+export const ROOM_CAM_POS: Vec3 = [ROOM_SIT[0] + 0.9, 2.6, ROOM_SIT[2] + 15.2];
 export const roomCam = (push = 0): Cam => {
   const pos = lerp3(ROOM_CAM_POS, [ROOM_SIT[0], 1.9, ROOM_SIT[2]], push);
-  return aim(pos, 50, ROOM_SIT, 610, 1240);
+  return aim(pos, 33, ROOM_SIT, 690 - 40 * push, 1250);
 };
 
 /** Two knocks: 1 on each hit, decaying fast. */

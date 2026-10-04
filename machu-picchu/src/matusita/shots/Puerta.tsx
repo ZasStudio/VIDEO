@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
-import { EASE_IN_OUT, EASE_OUT, pop, ramp } from "../../anim";
+import { EASE_IN, EASE_IN_OUT, EASE_OUT, ramp } from "../../anim";
 import { Shake, Stage } from "../../scenes/common";
 import { Cam, aim } from "../../thanos/camera";
 import { Vec3, lerp3 } from "../../three/CameraRig";
@@ -23,8 +23,14 @@ import { matusitaTalk } from "../talk";
 //      sits on top).
 
 const CUT_B = SUSTO.DOOR + 20;
-/** Where Nubi stops, a step into the room, to look at the chair (B). */
-const PEEK: Vec3 = [ROOM_DOOR.x + 0.3, 0, ROOM.zBack + 0.75];
+/** The door flung open against the wall (radians). */
+const DOOR_FLUNG = 2.72;
+/** A: the camera inside the room (outside the one-sided front wall), the chair out of frame. */
+const CAM_A: Vec3 = [-3.3, 1.7, 6.8];
+/** B: the camera in the hallway, looking over Nubi (in the doorway) at the chair. */
+const CAM_B: Vec3 = [-2.3, 3.0, -6.2];
+/** Where Nubi stands in B: in the doorway, turned towards the chair. */
+const PEEK: Vec3 = [ROOM_DOOR.x + 0.05, 0, ROOM.zBack - 0.25];
 const PEEK_YAW = yawTo(ROOM_SIT, PEEK);
 
 /** Handheld camcorder wobble (small, slow, deterministic). */
@@ -48,8 +54,10 @@ export const PuertaShot: React.FC = () => {
 
   if (g < CUT_B) {
     // ---- A: the door bursts open; Nubi in the doorway, panting.
-    const burst = g >= DOOR ? pop(g, DOOR, { damping: 10, stiffness: 260, mass: 0.6 }) : 0;
-    const door = 1.72 * burst;
+    // Flung open against the wall, a small bounce back.
+    const fling = ramp(g, DOOR, DOOR + 5, [0, 1], EASE_IN);
+    const bounce = g >= DOOR + 5 ? 0.3 * Math.exp(-(g - DOOR - 5) / 5) * Math.abs(Math.sin((g - DOOR - 5) * 0.55)) : 0;
+    const door = DOOR_FLUNG * fling - bounce;
     const pant = Math.sin((g - DOOR) * 0.55);
     const pantK = ramp(g, DOOR, DOOR + 30, [1, 0.6]);
     const base: NubiPose = {
@@ -63,8 +71,7 @@ export const PuertaShot: React.FC = () => {
       hop: g >= DOOR ? 1.2 * (1 - ramp(g, DOOR, DOOR + 6)) : 0,
     };
     const pose = g >= L08 ? matusitaTalk(g, base, 0.7) : base;
-    const pos: Vec3 = [-3.05, 1.15, 1.85];
-    const cam = wobble(aim(pos, 45, [ROOM_THRESHOLD[0], 0, ROOM_THRESHOLD[2]], 560, 1230), g);
+    const cam = wobble(aim(CAM_A, 40, [ROOM_THRESHOLD[0], 0, ROOM_THRESHOLD[2]], 540, 1240), g);
     const tremble = 0.05 * Math.sin(g * 1.7);
     return (
       <AbsoluteFill style={{ background: "#000" }}>
@@ -76,7 +83,7 @@ export const PuertaShot: React.FC = () => {
               <Nubi
                 size={2}
                 position={ROOM_THRESHOLD}
-                rotationY={-0.25}
+                rotationY={Math.atan2(CAM_A[0] - ROOM_THRESHOLD[0], CAM_A[2] - ROOM_THRESHOLD[2]) + 0.25}
                 pose={pose}
                 shadowOpacity={0.4}
                 holdR={<HeldTorch raise={pose.finR ?? 0} pitch={0.05 + tremble} turn={0.15} on={flicker(g, 5, 0.6)} intensity={45} beam={0.2} />}
@@ -90,14 +97,13 @@ export const PuertaShot: React.FC = () => {
 
   // ---- B / C: over Nubi's shoulder, the other Nubi in the chair.
   const turnK = ramp(g, TURN, TURN + 66, [0, 1], EASE_IN_OUT);
-  const camPos: Vec3 = [ROOM_DOOR.x - 0.1, 2.45, ROOM.zBack - 0.45];
-  const stareYaw = yawTo(camPos);
+  const stareYaw = yawTo(CAM_B);
   const turn = stareYaw * turnK;
   const push = ramp(g, CUT_B, OFF, [0, 1], (x) => x);
   const close = ramp(g, TURN + 40, OFF, [0, 1], EASE_IN_OUT);
   const face: Vec3 = [sitAt(turn)[0], ROOM_SIT[1] + 1.15, sitAt(turn)[2]];
-  const from = lerp3(camPos, face, 0.12 * push + 0.22 * close);
-  const cam = wobble(aim(from, 48, face, 590, 700 + 40 * close), g, 0.8);
+  const from = lerp3(CAM_B, face, 0.1 * push + 0.2 * close);
+  const cam = wobble(aim(from, 55, face, 620, 780 + 30 * close), g, 0.8);
   // Nubi (foreground) trembles; it shrinks back when the other one turns.
   const recoil = ramp(g, TURN + 10, TURN + 40, [0, 1], EASE_OUT);
   const base: NubiPose = {
@@ -115,7 +121,7 @@ export const PuertaShot: React.FC = () => {
       {!dark ? (
         <Stage cam={cam} near={0.05}>
           <RoomLights lights={lights} moon={0.8} />
-          <Room t={t} door={1.72} chairYaw={turn} feedYaw={turn} rec={1} lights={lights} />
+          <Room t={t} door={DOOR_FLUNG} chairYaw={turn} feedYaw={turn} rec={1} lights={lights} />
           <Doppelganger turn={turn} torch={torchOn} stare={close} />
           <Nubi
             size={2}

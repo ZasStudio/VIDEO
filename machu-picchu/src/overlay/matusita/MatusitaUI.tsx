@@ -804,7 +804,7 @@ export const VHSOverlay: React.FC<{ frame: number; from: number; to: number; jum
   const stamp = `NOCHE 1  ${two(Math.floor(clock / 3600))}:${two(Math.floor(clock / 60) % 60)}`;
   // Power on: the OSD blinks in while a tracking roll locks the picture.
   const osdOn = pattern(frame, from, [0, 0, 1, 0, 1, 1, 1], 1);
-  const lockY = d < 7 ? -320 + d * 220 : null;
+  const lockY = d < 7 ? -300 + d * 200 : null;
   const glitchK = jumping ? (e < 2 ? 1 : 1 - (e - 2) / 6) : 0;
   const rareJolt = rand(Math.floor(frame / 3) * 1.7 + 0.2) < 0.05;
   const osdDx = jumping ? jit(frame, 3, 1) * 12 * glitchK : rareJolt ? jit(frame, 5, 1) * 3 : 0;
@@ -817,7 +817,7 @@ export const VHSOverlay: React.FC<{ frame: number; from: number; to: number; jum
   if (jumping) {
     for (let i = 0; i < 3; i++) {
       const r = rand(jumpAt * 0.31 + i * 4.7 + e * 0.9);
-      bands.push({ y: 260 + r * 840 - e * 12, h: 40 + rand(i * 2.3 + e) * 110, k: glitchK, seed: 900 + i + e * 7 });
+      bands.push({ y: 260 + r * 740 - e * 12, h: 40 + rand(i * 2.3 + e) * 110, k: glitchK, seed: 900 + i + e * 7 });
     }
   }
   const grade = `saturate(0.8) contrast(1.1) sepia(0.12) blur(0.6px)${jumping && e < 3 ? ` hue-rotate(${e === 0 ? 24 : -14}deg) contrast(1.35) brightness(1.15)` : ""}`;
@@ -850,7 +850,7 @@ export const VHSOverlay: React.FC<{ frame: number; from: number; to: number; jum
       {bands.map((b, i) => (
         <TrackBand key={i} frame={frame} y={b.y} h={b.h} k={b.k} seed={b.seed} />
       ))}
-      {lockY !== null ? <TrackBand frame={frame} y={lockY} h={300} k={1} seed={77} /> : null}
+      {lockY !== null ? <TrackBand frame={frame} y={lockY} h={240} k={1} seed={77} /> : null}
       {jumping && e < 6 ? <div style={{ position: "absolute", left: 0, top: -80 + e * 190, width: 1080, height: 70, background: "rgba(0,0,0,0.85)" }} /> : null}
       {jumping && e < 2 ? <AbsoluteFill style={{ background: "#FFFFFF", opacity: e === 0 ? 0.24 : 0.1 }} /> : null}
       <AbsoluteFill style={{ background: "radial-gradient(ellipse 80% 66% at 50% 46%, rgba(0,0,0,0) 56%, rgba(0,0,0,0.3) 82%, rgba(0,0,0,0.62) 100%)" }} />

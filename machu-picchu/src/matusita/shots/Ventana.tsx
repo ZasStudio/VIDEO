@@ -48,7 +48,7 @@ export const ventanaEyes = (g: number) => ramp(g, LUGAR.EYES, LUGAR.EYES + 10, [
 export const VentanaShot: React.FC = () => {
   const g = useCurrentFrame() + SHOTS.ventana.from;
   const t = g / 30;
-  const { RAISE, L03, EYES, EYES_OFF, END } = LUGAR;
+  const { RAISE, EYES, EYES_OFF, END } = LUGAR;
   const eyes = ventanaEyes(g);
 
   // ---- Nubi raises the torch from the shutter to the window; freezes when the eyes show.

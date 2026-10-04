@@ -100,31 +100,32 @@ const withRepeat = (tex: THREE.Texture, rx: number, ry: number) => {
 // =======================================================================================
 // Layout
 
-export const ROOM = { x0: -3.6, x1: 3.6, zBack: -2.6, zFront: 2.4, height: 4.0 };
-/** The door in the back wall: centre x, width, height (it opens into the room, hinge at x − w/2). */
-export const ROOM_DOOR = { x: -1.4, w: 1.06, h: 2.5 };
+export const ROOM = { x0: -4.4, x1: 4.2, zBack: -3.4, zFront: 2.4, height: 4.4 };
+/** The door in the back wall: centre x, width, height (Nubi-sized: it opens into the room, hinge on
+ *  its +x side, the chair's side, so when it is ajar the gap shows on the far side). */
+export const ROOM_DOOR = { x: -1.5, w: 2.25, h: 3.0 };
 const WALL_T = 0.14;
-const HINGE: V3 = [ROOM_DOOR.x - ROOM_DOOR.w / 2 + 0.02, 0, ROOM.zBack - 0.04];
+const HINGE: V3 = [ROOM_DOOR.x + ROOM_DOOR.w / 2 - 0.02, 0, ROOM.zBack - 0.04];
 /** Window in the back wall (centre x/y, size). */
-const WINDOW = { x: 2.3, y: 2.25, w: 1.25, h: 1.45 };
+const WINDOW = { x: 2.7, y: 2.55, w: 1.3, h: 1.6 };
 /** The swivel chair (its base) and the seat height. */
-export const ROOM_CHAIR: V3 = [0.65, 0, -0.15];
+export const ROOM_CHAIR: V3 = [1.0, 0, -0.15];
 export const ROOM_SEAT_Y = 0.6;
 /** Where a <Nubi size={2}> sits in the chair (it faces +z, the desk, at rotationY 0). */
 export const ROOM_SIT: V3 = [ROOM_CHAIR[0], ROOM_SEAT_Y, ROOM_CHAIR[2] + 0.2];
 /** Where the sitter is when the chair is swivelled by `yaw` (it turns round the column). */
 export const sitAt = (yaw: number): V3 => [ROOM_CHAIR[0] + 0.2 * Math.sin(yaw), ROOM_SEAT_Y, ROOM_CHAIR[2] + 0.2 * Math.cos(yaw)];
 /** The desk against the front wall. */
-const DESK = { x0: -1.2, x1: 2.6, z0: 1.4, z1: 2.38, top: 0.95 };
+const DESK = { x0: -0.95, x1: 2.95, z0: 1.4, z1: 2.38, top: 0.95 };
 /** The tripod camera's lens (it looks at the chair, along −z) and the ring light behind it. */
 export const ROOM_LENS: V3 = [ROOM_SIT[0], 1.72, 1.66];
 const RING: V3 = [ROOM_SIT[0], 1.76, 2.05];
-const MONITOR: V3 = [1.85, DESK.top, 2.0];
-const LAMP: V3 = [-0.75, DESK.top, 2.05];
+const MONITOR: V3 = [-0.2, DESK.top, 2.0];
+const LAMP: V3 = [2.25, DESK.top, 2.05];
 /** Nubi standing on the threshold of the door, in the doorway (faces +z, into the room). */
 export const ROOM_THRESHOLD: V3 = [ROOM_DOOR.x, 0, ROOM.zBack - 0.1];
 /** The hallway behind the door: x range and how far it runs (towards −z). */
-const HALL = { x0: ROOM_DOOR.x - 0.95, x1: ROOM_DOOR.x + 0.95, len: 6, h: 2.9 };
+const HALL = { x0: ROOM_DOOR.x - 1.35, x1: ROOM_DOOR.x + 1.35, len: 6, h: 4.0 };
 /** Turn (rotationY) for a Nubi in the chair to face the doorway. */
 export const FACE_DOOR_YAW = Math.atan2(ROOM_DOOR.x - ROOM_SIT[0], ROOM.zBack - ROOM_SIT[2]);
 /** Yaw from a seated Nubi towards a world point. */
@@ -545,15 +546,15 @@ const Door: React.FC<{ open: number; rattle?: number }> = ({ open, rattle = 0 })
   const { w, h } = ROOM_DOOR;
   const geos = useMemo(
     () => ({
-      slab: rbox(w - 0.02, h - 0.015, 0.05, 0.012),
-      panelTall: rbox(0.33, 0.95, 0.02, 0.012),
-      panelLow: rbox(0.33, 0.7, 0.02, 0.012),
-      rose: new THREE.CylinderGeometry(0.04, 0.045, 0.02, 20),
-      lever: rbox(0.15, 0.028, 0.028, 0.012),
+      slab: rbox(w - 0.02, h - 0.015, 0.07, 0.015),
+      panelTall: rbox(0.82, 1.2, 0.025, 0.015),
+      panelLow: rbox(0.82, 0.95, 0.025, 0.015),
+      rose: new THREE.CylinderGeometry(0.06, 0.065, 0.025, 20),
+      lever: rbox(0.24, 0.045, 0.045, 0.02),
       neck: new THREE.CylinderGeometry(0.012, 0.012, 0.05, 10),
-      hinge: rbox(0.03, 0.12, 0.03, 0.008),
-      casingV: rbox(0.1, h + 0.08, 0.035, 0.012),
-      casingH: rbox(w + 0.28, 0.12, 0.035, 0.012),
+      hinge: rbox(0.04, 0.16, 0.04, 0.01),
+      casingV: rbox(0.14, h + 0.1, 0.04, 0.015),
+      casingH: rbox(w + 0.36, 0.15, 0.04, 0.015),
       jambV: new THREE.PlaneGeometry(WALL_T, h),
       jambH: new THREE.PlaneGeometry(w, WALL_T),
     }),
@@ -566,17 +567,17 @@ const Door: React.FC<{ open: number; rattle?: number }> = ({ open, rattle = 0 })
   const zB = ROOM.zBack;
   const face = (sz: number) => (
     <group>
-      {[-0.19, 0.19].map((px) => (
+      {[-0.5, 0.5].map((px) => (
         <group key={px}>
-          <mesh geometry={geos.panelTall} material={panel} position={[px, 0.5, sz * 0.03]} />
-          <mesh geometry={geos.panelLow} material={panel} position={[px, -0.55, sz * 0.03]} />
+          <mesh geometry={geos.panelTall} material={panel} position={[px, 0.62, sz * 0.03]} />
+          <mesh geometry={geos.panelLow} material={panel} position={[px, -0.75, sz * 0.03]} />
         </group>
       ))}
-      {/* Lever handle near the free edge. */}
-      <group position={[w / 2 - 0.13, 1.08 - h / 2, sz * 0.035]}>
+      {/* Lever handle near the free edge (the −x edge). */}
+      <group position={[-w / 2 + 0.17, 1.15 - h / 2, sz * 0.035]}>
         <mesh geometry={geos.rose} material={metal} rotation={[Math.PI / 2, 0, 0]} />
         <mesh geometry={geos.neck} material={metal} position={[0, 0, sz * 0.03]} rotation={[Math.PI / 2, 0, 0]} />
-        <mesh geometry={geos.lever} material={metal} position={[-0.06, 0, sz * 0.055]} />
+        <mesh geometry={geos.lever} material={metal} position={[0.06, 0, sz * 0.055]} />
       </group>
     </group>
   );
@@ -584,21 +585,21 @@ const Door: React.FC<{ open: number; rattle?: number }> = ({ open, rattle = 0 })
   return (
     <group>
       {/* Slab pivots at the hinge; opens into the room (+z). */}
-      <group position={HINGE} rotation={[0, -open - shake, 0]}>
-        <group position={[w / 2 - 0.02, h / 2, 0]}>
+      <group position={HINGE} rotation={[0, open + shake, 0]}>
+        <group position={[-w / 2 + 0.02, h / 2, 0]}>
           <mesh geometry={geos.slab} material={white} />
           {face(1)}
           {face(-1)}
         </group>
-        <mesh geometry={geos.hinge} material={metal} position={[-0.01, 0.45, 0]} />
-        <mesh geometry={geos.hinge} material={metal} position={[-0.01, h - 0.4, 0]} />
+        <mesh geometry={geos.hinge} material={metal} position={[0.01, 0.45, 0]} />
+        <mesh geometry={geos.hinge} material={metal} position={[0.01, h - 0.4, 0]} />
       </group>
       {/* Casing on the room side and on the hallway side. */}
       {[zB + 0.017, zB - WALL_T - 0.017].map((z) => (
         <group key={z}>
-          <mesh geometry={geos.casingV} material={white} position={[ROOM_DOOR.x - w / 2 - 0.05, (h + 0.08) / 2, z]} />
-          <mesh geometry={geos.casingV} material={white} position={[ROOM_DOOR.x + w / 2 + 0.05, (h + 0.08) / 2, z]} />
-          <mesh geometry={geos.casingH} material={white} position={[ROOM_DOOR.x, h + 0.06, z]} />
+          <mesh geometry={geos.casingV} material={white} position={[ROOM_DOOR.x - w / 2 - 0.07, (h + 0.1) / 2, z]} />
+          <mesh geometry={geos.casingV} material={white} position={[ROOM_DOOR.x + w / 2 + 0.07, (h + 0.1) / 2, z]} />
+          <mesh geometry={geos.casingH} material={white} position={[ROOM_DOOR.x, h + 0.075, z]} />
         </group>
       ))}
       {/* Jambs and head (the wall's thickness). */}
@@ -908,11 +909,11 @@ const Desk: React.FC<{ lights: number; monitor: number; feedYaw: number; feed: b
         </group>
       ))}
       {/* Keyboard and a mug. */}
-      <group position={[1.3, DESK.top, 1.72]} rotation={[0, 0.25, 0]}>
+      <group position={[-0.15, DESK.top, 1.68]} rotation={[0, -0.2, 0]}>
         <mesh geometry={geos.keyboard} material={dark} position={[0, 0.018, 0]} />
         <mesh geometry={geos.keys} material={toy("#4A4F60", { glow: 0.1 })} position={[0, 0.037, 0]} rotation={[-Math.PI / 2, 0, 0]} />
       </group>
-      <group position={[-0.2, DESK.top, 1.65]}>
+      <group position={[1.75, DESK.top, 1.62]}>
         <mesh geometry={geos.mug} material={toy("#8EDCA2", { glow: 0.06 })} position={[0, 0.075, 0]} />
         <mesh geometry={geos.handle} material={toy("#8EDCA2", { glow: 0.06 })} position={[0.08, 0.075, 0]} />
       </group>
@@ -938,7 +939,7 @@ const Desk: React.FC<{ lights: number; monitor: number; feedYaw: number; feed: b
       <Monitor on={monitor} feedYaw={feedYaw} feed={feed} t={t} />
       <Glow color="#8FB6FF" size={1.6} opacity={0.22 * monitor} position={[MONITOR[0] - 0.05, MONITOR[1] + 0.62, MONITOR[2] - 0.15]} />
       {/* A little succulent. */}
-      <group position={[2.4, DESK.top, 2.15]}>
+      <group position={[2.7, DESK.top, 2.15]}>
         <mesh geometry={geos.succ} material={toy("#C2563F", { glow: 0.04 })} position={[0, 0.06, 0]} />
         {[0, 1, 2, 3, 4].map((i) => (
           <mesh key={i} geometry={geos.succLeaf} material={toy("#5FB878", { glow: 0.05 })} position={[Math.cos(i * 1.26) * 0.04, 0.14, Math.sin(i * 1.26) * 0.04]} scale={[0.7, 1.2, 0.7]} />
@@ -950,7 +951,7 @@ const Desk: React.FC<{ lights: number; monitor: number; feedYaw: number; feed: b
 
 /** The bed in the back-right corner. */
 const Bed: React.FC = () => {
-  const B = { x0: 2.0, x1: ROOM.x1, z0: ROOM.zBack, z1: -0.7, top: 0.62 };
+  const B = { x0: 2.75, x1: ROOM.x1, z0: ROOM.zBack, z1: -1.2, top: 0.62 };
   const geos = useMemo(
     () => ({
       base: rbox(B.x1 - B.x0, 0.32, B.z1 - B.z0, 0.06),
@@ -1039,18 +1040,18 @@ export const Room: React.FC<RoomProps> = ({ t = 0, lights = 1, monitor, door = 0
       <NightWindow t={t} />
 
       {/* Back wall: plant, ghost poster, the toy shelf above the chair, fairy lights. */}
-      <group position={[-2.85, 0, zBack + 0.42]} scale={1.2}>
+      <group position={[-3.55, 0, zBack + 0.45]} scale={1.3}>
         <PottedPlant />
       </group>
-      <Poster tex={posterGhostTex} k="ghost" position={[-2.8, 2.3, zBack + 0.02]} tilt={0.03} />
-      <ToyShelf position={[ROOM_CHAIR[0], 2.8, zBack + 0.16]} />
-      <FairyLights a={[x0 + 0.3, 3.62, zBack + 0.04]} b={[x1 - 0.3, 3.62, zBack + 0.04]} n={22} sag={0.22} on={lights} t={t} />
+      <Poster tex={posterGhostTex} k="ghost" position={[-3.55, 2.55, zBack + 0.02]} tilt={0.03} />
+      <ToyShelf position={[ROOM_CHAIR[0] + 0.15, 3.3, zBack + 0.16]} />
+      <FairyLights a={[x0 + 0.3, 4.1, zBack + 0.04]} b={[x1 - 0.3, 4.1, zBack + 0.04]} n={26} sag={0.24} on={lights} t={t} />
 
       {/* Front wall: posters, a second shelf, fairy lights. */}
-      <Poster tex={posterPlayTex} k="play" position={[-0.6, 2.45, zFront - 0.02]} rotationY={Math.PI} tilt={-0.04} />
-      <Poster tex={posterPlanetTex} k="planet" position={[2.05, 2.65, zFront - 0.02]} rotationY={Math.PI} tilt={0.03} w={0.7} h={0.92} />
-      <ToyShelf position={[ROOM_CHAIR[0], 3.0, zFront - 0.16]} rotationY={Math.PI} variant={1} />
-      <FairyLights a={[x1 - 0.3, 3.62, zFront - 0.04]} b={[x0 + 0.3, 3.62, zFront - 0.04]} n={20} sag={0.22} on={lights} t={t} seed={3} />
+      <Poster tex={posterPlayTex} k="play" position={[-0.25, 2.75, zFront - 0.02]} rotationY={Math.PI} tilt={-0.04} />
+      <Poster tex={posterPlanetTex} k="planet" position={[2.3, 2.85, zFront - 0.02]} rotationY={Math.PI} tilt={0.03} w={0.7} h={0.92} />
+      <ToyShelf position={[ROOM_CHAIR[0], 3.45, zFront - 0.16]} rotationY={Math.PI} variant={1} />
+      <FairyLights a={[x1 - 0.3, 4.1, zFront - 0.04]} b={[x0 + 0.3, 4.1, zFront - 0.04]} n={24} sag={0.24} on={lights} t={t} seed={3} />
 
       <Bed />
       <mesh geometry={geos.rug} material={texMat("rug", rugTex(), { glow: 0.03, rough: 0.95 })} rotation={[-Math.PI / 2, 0, 0]} position={[ROOM_CHAIR[0], 0.006, ROOM_CHAIR[2] + 0.1]} />
@@ -1080,8 +1081,8 @@ export const RoomLights: React.FC<{ lights?: number; moon?: number; ring?: numbe
       <pointLight position={[LAMP[0] + 0.2, LAMP[1] + 0.45, LAMP[2] - 0.2]} intensity={3.2 * L} distance={7} decay={1.4} color="#FFB060" />
       <pointLight position={[MONITOR[0] - 0.1, MONITOR[1] + 0.6, MONITOR[2] - 0.4]} intensity={1.6 * L} distance={4} decay={1.5} color="#8FB6FF" />
       {/* Fairy lights: a warm wash over the back wall (the door) and the front wall. */}
-      <pointLight position={[0, 3.3, ROOM.zBack + 0.9]} intensity={2.2 * L} distance={4.5} decay={1.4} color="#FFC27A" />
-      <pointLight position={[0, 3.3, ROOM.zFront - 0.9]} intensity={1.6 * L} distance={4.5} decay={1.4} color="#FFC27A" />
+      <pointLight position={[-0.4, 3.7, ROOM.zBack + 1.1]} intensity={2.4 * L} distance={5.5} decay={1.4} color="#FFC27A" />
+      <pointLight position={[0.6, 3.7, ROOM.zFront - 0.9]} intensity={1.6 * L} distance={5} decay={1.4} color="#FFC27A" />
     </>
   );
 };
