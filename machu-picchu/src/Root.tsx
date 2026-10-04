@@ -12,6 +12,9 @@ import { AguaShort, AguaSoundtrack } from "./agua/AguaShort";
 import { AGUA, AGUA_HEIGHT, AGUA_WIDTH } from "./agua/timeline";
 import { TiempoShort, TiempoSoundtrack } from "./tiempo/TiempoShort";
 import { TIEMPO, TIEMPO_HEIGHT, TIEMPO_WIDTH } from "./tiempo/timeline";
+import { MatusitaShort, MatusitaSoundtrack } from "./matusita/MatusitaShort";
+import { MATUSITA, MATUSITA_HEIGHT, MATUSITA_WIDTH } from "./matusita/timeline";
+import { MATUSITA_UI_SHEET_DURATION, MatusitaUISheet } from "./dev/MatusitaUISheet";
 import { OXI, OXI_HEIGHT, OXI_WIDTH } from "./oxigeno/timeline";
 import { INCA, INCA_HEIGHT, INCA_WIDTH } from "./inca/timeline";
 import { NubiShort, NubiSoundtrack } from "./nubi/NubiShort";
@@ -187,6 +190,24 @@ export const RemotionRoot: React.FC = () => {
         width={TIEMPO_WIDTH}
         height={TIEMPO_HEIGHT}
       />
+      {/* Nubi's vertical horror short: the night nobody wanted to spend in the Casa Matusita (68 s). */}
+      <Composition
+        id="MatusitaShort"
+        component={MatusitaShort}
+        durationInFrames={MATUSITA.DURATION}
+        fps={FPS}
+        width={MATUSITA_WIDTH}
+        height={MATUSITA_HEIGHT}
+        defaultProps={{ withAudio: true }}
+      />
+      <Composition
+        id="MatusitaShortAudio"
+        component={MatusitaSoundtrack}
+        durationInFrames={MATUSITA.DURATION}
+        fps={FPS}
+        width={MATUSITA_WIDTH}
+        height={MATUSITA_HEIGHT}
+      />
       <Folder name="Dev">
         <Composition
           id="WorldTest"
@@ -344,6 +365,14 @@ export const RemotionRoot: React.FC = () => {
           id="TiempoUISheet"
           component={TiempoUISheet}
           durationInFrames={TIEMPO_UI_SHEET_DURATION}
+          fps={30}
+          width={1080}
+          height={1920}
+        />
+        <Composition
+          id="MatusitaUISheet"
+          component={MatusitaUISheet}
+          durationInFrames={MATUSITA_UI_SHEET_DURATION}
           fps={30}
           width={1080}
           height={1920}

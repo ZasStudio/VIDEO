@@ -1,0 +1,18 @@
+{
+  "_title": "La noche que nadie quiso pasar en la Casa Matusita",
+  "_voices": "Magnific TTS, ElevenLabs v3. nubi = Nerea Escudero (Nubi's usual voice: stability 0.45, similarity 0.75, speed 0.95). In L04 Nubi plays the TV host (exaggerated announcer bravado).",
+  "_captions": "Same syntax as src/narration.json.",
+  "lines": [
+    {"id": "L01", "voice": "nubi", "scene": "gancho", "tts": "[whispers] Hay una casa en Lima donde, según la leyenda, alguien intentó pasar siete días… y no aguantó ni dos horas.", "captions": "HAY UNA CASA / EN LIMA^y / DONDE, SEGÚN / LA LEYENDA, / ALGUIEN INTENTÓ / PASAR 7^g DÍAS…^g / Y NO AGUANTÓ / NI 2^r HORAS.^r"},
+    {"id": "L02", "voice": "nubi", "scene": "lugar", "tts": "[mysterious] La Casa Matusita existe de verdad. Y por décadas, muchas personas evitaron mirar hacia ese segundo piso.", "captions": "LA CASA MATUSITA^y / EXISTE DE VERDAD. / Y POR DÉCADAS, / MUCHAS PERSONAS / EVITARON MIRAR / HACIA ESE / SEGUNDO^r PISO.^r"},
+    {"id": "L03", "voice": "nubi", "scene": "lugar", "tts": "[whispers] Porque decían que… a veces algo miraba de vuelta.", "captions": "PORQUE DECÍAN QUE… / A VECES / ALGO^r MIRABA^r / DE^r VUELTA.^r"},
+    {"id": "L04", "voice": "nubi", "scene": "reto", "tts": "[excited] [like a TV host] ¡Una semana aquí! Sin miedo. Sin salir.", "captions": "¡UNA SEMANA^y AQUÍ! / SIN MIEDO. / SIN SALIR."},
+    {"id": "L05", "voice": "nubi", "scene": "reto", "tts": "[deadpan] Yo ya habría pedido que me devuelvan mi dignidad… y mi linterna.", "captions": "YO YA HABRÍA PEDIDO / QUE ME DEVUELVAN / MI DIGNIDAD…^o / Y MI LINTERNA.^y"},
+    {"id": "L06", "voice": "nubi", "scene": "miedo", "tts": "[mysterious] La leyenda cuenta que, poco después, empezó a escuchar pasos. No venían de adelante…", "captions": "LA LEYENDA CUENTA / QUE, POCO DESPUÉS, / EMPEZÓ A ESCUCHAR / PASOS.^r / NO VENÍAN / DE ADELANTE…"},
+    {"id": "L07", "voice": "nubi", "scene": "miedo", "tts": "[whispers] Venían detrás de él.", "captions": "VENÍAN^r DETRÁS^r / DE^r ÉL.^r"},
+    {"id": "L08", "voice": "nubi", "scene": "susto", "tts": "[nervous] Dicen que salió dos horas después, gritando que había visto algo que no debía estar ahí.", "captions": "DICEN QUE SALIÓ / 2^y HORAS^y DESPUÉS, / GRITANDO QUE / HABÍA VISTO ALGO / QUE NO DEBÍA / ESTAR^r AHÍ.^r"},
+    {"id": "L09", "voice": "nubi", "scene": "verdad", "tts": "[calm] Con el tiempo, el conductor dijo que ese reto nunca ocurrió… y que era parte de una historia para televisión.", "captions": "CON EL TIEMPO, / EL CONDUCTOR DIJO / QUE ESE RETO / NUNCA^g OCURRIÓ…^g / Y QUE ERA PARTE / DE UNA HISTORIA / PARA TELEVISIÓN.^c"},
+    {"id": "L10", "voice": "nubi", "scene": "verdad", "tts": "[relieved] Así que tal vez todo fue una mentira…", "captions": "ASÍ QUE TAL VEZ / TODO FUE / UNA MENTIRA…^g"},
+    {"id": "L11", "voice": "nubi", "scene": "final", "tts": "[whispers] Pero si nunca pasó nada… entonces, ¿por qué siento que alguien acaba de entrar?", "captions": "PERO SI NUNCA / PASÓ NADA… / ENTONCES, / ¿POR QUÉ SIENTO / QUE ALGUIEN^r / ACABA DE ENTRAR?^r"}
+  ]
+}
