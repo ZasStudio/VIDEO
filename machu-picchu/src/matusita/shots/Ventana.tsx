@@ -89,8 +89,8 @@ export const VentanaShot: React.FC = () => {
     // Low, well behind Nubi: Nubi below the window, the beam climbing between them; a slow push
     // towards the window (it grows for the eyes).
     const u = EASE_IN_OUT(ramp(g, RAISE, EYES + 10, [0, 1], (x) => x));
-    const pos: Vec3 = lerp3([N[0] + 0.6, 0.5, N[2] + 11], [N[0] + 0.7, 0.52, N[2] + 10], u);
-    cam = aim(pos, 40 - 4 * u, CASA_EYES, 470, 500 - 10 * u, 17);
+    const pos: Vec3 = lerp3([N[0] + 0.6, 0.5, N[2] + 11], [N[0] + 0.65, 0.52, N[2] + 10.3], u);
+    cam = aim(pos, 40 - 2 * u, CASA_EYES, 470, 500 - 5 * u, 17);
   } else {
     const u = ramp(g, POV, END, [0, 1], (x) => x);
     const pos: Vec3 = [CASA_EYES[0] + 0.02 * Math.sin(t * 9), CASA_EYES[1] - 0.05, -0.15];
