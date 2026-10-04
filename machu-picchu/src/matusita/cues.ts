@@ -82,7 +82,8 @@ const susto = (): Cue[] => {
     [L08_GRITANDO, "matusita/scream", 0.3],
     [TURN, "matusita/whisper", 0.45],
     [OFF - 1, "matusita/click", 0.9],
-    [OFF + 2, "matusita/glitch", 0.9],
+    // The tape tears for a beat only, so the real room lands in silence before the breath.
+    [OFF + 2, "matusita/glitch", 0.9, 10],
   ];
 };
 
