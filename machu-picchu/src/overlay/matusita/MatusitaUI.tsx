@@ -213,14 +213,15 @@ const BrainIcon: React.FC<{ size?: number; frame: number }> = ({ size = 100, fra
 // =============================================================================================
 // HorrorTitle
 
-// "CASA MATUSITA" (Montserrat Black 90 px, 2 px tracking) is ~833 px wide; drips hang from the
-// bottoms of C, S, M, T and I (x in px from the left of the line, length, start delay).
+// "CASA MATUSITA" (Montserrat Black 90 px, 2 px tracking) is ~833 px wide; drips run from the
+// stems (first A's right leg, M's left leg, T, I, last A's right leg): under a curve (C, S) they
+// would read as a cedilla. x in px from the left of the line, length, width, start delay.
 const DRIPS = [
-  { x: 33, len: 16, w: 5, d: 0 },
-  { x: 172, len: 30, w: 7, d: 10 },
-  { x: 320, len: 12, w: 5, d: 22 },
-  { x: 500, len: 34, w: 7, d: 4 },
-  { x: 680, len: 22, w: 6, d: 16 },
+  { x: 130, len: 20, w: 5.5, d: 6 },
+  { x: 322, len: 13, w: 5, d: 22 },
+  { x: 500, len: 34, w: 7, d: 0 },
+  { x: 680, len: 24, w: 6, d: 14 },
+  { x: 820, len: 15, w: 5, d: 30 },
 ];
 
 /**
@@ -366,7 +367,7 @@ const SPLATS = [
  * green); at `realAt` a blood-red rubber stamp "DURÓ: / MENOS DE 2 HORAS" (speckled ink, rough
  * double border, rotated) slams down from 2.3x in 4 frames (shake, ink splats, a dust ring) and
  * a red marker line crosses the 7 DÍAS line out. At `out` it flickers off (~9 frames). `x`, `y`
- * = centre; ~640 x 230: tape x ± 260, y - 118 … y - 48; stamp x ± 300, y - 52 … y + 112 (the
+ * = centre; ~640 x 230: tape x ± 260, y - 118 … y - 48; stamp x ± 300, y - 40 … y + 112 (the
  * splats reach x ± 330). Suggested: x 500, y 1060 (below Nubi's eyes, above the captions),
  * goalAt GANCHO.SIETE, realAt GANCHO.DOS, out GANCHO.END - 6.
  */
@@ -382,7 +383,8 @@ export const GoalStamp: React.FC<{ frame: number; goalAt: number; realAt: number
   if (frame < goalAt || frame > out + 10) return null;
   const chars = Array.from(GOAL_TEXT);
   const typed = Math.min(chars.length, Math.floor((frame - goalAt) / 2) + 1);
-  const fresh = (frame - goalAt) % 2 === 0 ? typed - 1 : -1;
+  const step = Math.floor((frame - goalAt) / 2) + 1;
+  const fresh = (frame - goalAt) % 2 === 0 && step <= chars.length ? typed - 1 : -1;
   const cursorOn = frame < realAt && (typed < chars.length || blink(frame, goalAt, 8, 7) === 1);
   const hit = realAt + 4;
   const sk = frame < realAt ? 0 : ramp(frame, realAt, hit, [0, 1], EASE_IN);
@@ -396,7 +398,7 @@ export const GoalStamp: React.FC<{ frame: number; goalAt: number; realAt: number
   const TAPE_W = 520;
   const TAPE_TOP = -118;
   const TAPE_H = 70;
-  const ST_TOP = -36;
+  const ST_TOP = -30;
   const cursor = (
     <span
       style={{
@@ -441,7 +443,7 @@ export const GoalStamp: React.FC<{ frame: number; goalAt: number; realAt: number
             alignItems: "center",
             justifyContent: "center",
             transform: "rotate(-1.2deg)",
-            opacity: 1 - 0.3 * strike,
+            opacity: 1 - 0.15 * strike,
             filter: chroma(1 + Math.abs(jit(frame, 61, 2)) * 1.2, 0.45),
           }}
         >
@@ -486,10 +488,10 @@ export const GoalStamp: React.FC<{ frame: number; goalAt: number; realAt: number
             viewBox={`0 0 ${TAPE_W} ${TAPE_H}`}
             style={{ position: "absolute", left: -TAPE_W / 2, top: TAPE_TOP, overflow: "visible", transform: "rotate(-1.2deg)" }}
           >
-            <path d={`M30 40 Q${TAPE_W / 2} 28 ${TAPE_W - 40} 33`} stroke="#1A0204" strokeWidth={15} strokeLinecap="round" fill="none" pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - strike} />
-            <path d={`M30 40 Q${TAPE_W / 2} 28 ${TAPE_W - 40} 33`} stroke={STAMP_RED} strokeWidth={9} strokeLinecap="round" fill="none" pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - strike} />
+            <path d={`M30 40 Q${TAPE_W / 2} 28 ${TAPE_W - 40} 33`} stroke="#1A0204" strokeWidth={11} strokeLinecap="round" fill="none" pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - strike} />
+            <path d={`M30 40 Q${TAPE_W / 2} 28 ${TAPE_W - 40} 33`} stroke={STAMP_RED} strokeWidth={6.5} strokeLinecap="round" fill="none" pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - strike} />
             {strike2 > 0 ? (
-              <path d={`M48 47 Q${TAPE_W / 2} 39 ${TAPE_W - 56} 44`} stroke={STAMP_RED} strokeWidth={4.5} strokeLinecap="round" fill="none" pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - strike2} opacity={0.9} />
+              <path d={`M48 49 Q${TAPE_W / 2} 41 ${TAPE_W - 56} 46`} stroke={STAMP_RED} strokeWidth={3.5} strokeLinecap="round" fill="none" pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - strike2} opacity={0.9} />
             ) : null}
           </svg>
         ) : null}
@@ -545,9 +547,8 @@ export const GoalStamp: React.FC<{ frame: number; goalAt: number; realAt: number
               width: 660,
               height: 200,
               borderRadius: "50%",
-              border: `${(9 * (1 - ring)).toFixed(1)}px solid rgba(237,230,211,0.32)`,
-              boxSizing: "border-box",
-              transform: `rotate(-3deg) scale(${0.9 + 0.35 * ring})`,
+              background: "radial-gradient(closest-side, rgba(237,230,211,0) 62%, rgba(237,230,211,0.26) 86%, rgba(237,230,211,0) 100%)",
+              transform: `rotate(-3deg) scale(${0.85 + 0.4 * ring})`,
               opacity: 1 - ring,
             }}
           />
