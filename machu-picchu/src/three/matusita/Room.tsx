@@ -425,7 +425,6 @@ const screenTex = () =>
 const bulbMat = new THREE.MeshStandardMaterial({ color: "#FFE2A0", emissive: new THREE.Color("#FFC870"), roughness: 0.4 });
 const lampGlowMat = new THREE.MeshStandardMaterial({ color: "#FFE7B8", emissive: new THREE.Color("#FFC27A"), roughness: 0.5, side: THREE.DoubleSide });
 const ringMat = new THREE.MeshStandardMaterial({ color: "#FFF8EC", emissive: new THREE.Color("#FFF1DA"), roughness: 0.4, toneMapped: false });
-const screenGlowMat = new THREE.MeshBasicMaterial({ color: "#ffffff", toneMapped: false });
 const recMat = new THREE.MeshBasicMaterial({ color: "#FF2A2A", toneMapped: false });
 
 /** A garland of fairy lights hanging between a and b with `n` bulbs (sagging `sag`). */

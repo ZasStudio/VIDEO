@@ -230,7 +230,7 @@ const DRIPS = [
  * and right and blinks. Each line catches like a failing bulb at `at` (staggered, ~11 frames)
  * with a light chromatic split that keeps jittering; now and then a line dips for two frames.
  * At `out` the lines flicker off one by one and the eye shuts (gone ~12 frames later). A soft
- * dark scrim behind keeps it readable on any shot. Footprint fixed: eye y 240-276, lines
+ * dark scrim behind keeps it readable on any shot. Footprint fixed: eye y 236-280, lines
  * y 285-462 (drips to ~490), x 85-915. Suggested: at GANCHO.LIGHT + 4, out GANCHO.SIETE - 10
  * (it leaves before the GoalStamp), or keep it longer over the dark opening.
  */
@@ -329,7 +329,7 @@ export const HorrorTitle: React.FC<{ frame: number; at: number; out: number }> =
             opacity: eyeVis,
           }}
         >
-          <EyeIcon size={66} open={eyeOpen} look={look} glow="rgba(169,212,107,0.55)" />
+          <EyeIcon size={78} open={eyeOpen} look={look} glow="rgba(169,212,107,0.55)" />
         </div>
       ) : null}
     </AbsoluteFill>
@@ -341,31 +341,34 @@ export const HorrorTitle: React.FC<{ frame: number; at: number; out: number }> =
 
 const STAMP_RED = "#E3172E";
 const GOAL_TEXT = "META: 7 DÍAS";
-// Speckles of missing ink in the rubber stamp (x, y in the 640 x 150 box, radius).
+// The rubber stamp's box (px) and the speckles of missing ink in it (x, y, radius).
+const ST_W = 600;
+const ST_H = 132;
 const SPECKS = Array.from({ length: 90 }, (_, i) => ({
-  x: rand(i * 3.17 + 0.4) * 640,
-  y: rand(i * 5.71 + 1.3) * 150,
-  r: 0.6 + Math.pow(rand(i * 7.33 + 2.2), 2) * 2.6,
+  x: rand(i * 3.17 + 0.4) * ST_W,
+  y: rand(i * 5.71 + 1.3) * ST_H,
+  r: 0.6 + Math.pow(rand(i * 7.33 + 2.2), 2) * 2.4,
 }));
+// Ink splats around the stamp (relative to its centre).
 const SPLATS = [
-  { x: -300, y: -40, r: 7 },
-  { x: -326, y: 22, r: 4 },
-  { x: 306, y: -56, r: 6 },
-  { x: 334, y: 6, r: 9 },
-  { x: 290, y: 70, r: 4 },
-  { x: -250, y: 76, r: 5 },
-  { x: 40, y: -88, r: 4 },
+  { x: -284, y: -46, r: 7 },
+  { x: -312, y: 14, r: 4 },
+  { x: 290, y: -60, r: 6 },
+  { x: 318, y: 4, r: 9 },
+  { x: 276, y: 58, r: 4 },
+  { x: -236, y: 66, r: 5 },
+  { x: 60, y: -78, r: 4 },
 ];
 
 /**
- * The challenge vs. the legend: at `goalAt` "META: 7 DÍAS" types itself in on a dark tape (a
- * character every 2 frames, a blinking block cursor; "7 DÍAS" in pale sickly green); at `realAt`
- * a blood-red rubber stamp "DURÓ: / MENOS DE 2 HORAS" (speckled ink, double border, rotated)
- * slams down from 2.3x in 4 frames (shake, ink splats, a dust ring) and a red marker line
- * crosses the 7 DÍAS line out, which then fades back. At `out` it flickers off (~9 frames).
- * `x`, `y` = centre; ~720 x 220 (tape x ± 260, y - 100 … y - 24; stamp x ± 330, y - 35 …
- * y + 120). Suggested: x 500, y 1060 (below Nubi's eyes, above the captions), goalAt
- * GANCHO.SIETE, realAt GANCHO.DOS, out GANCHO.END - 6.
+ * The challenge vs. the legend: at `goalAt` "META: 7 DÍAS" types itself in on a strip of dark
+ * tape (a character every 2 frames behind a blinking block cursor; "7 DÍAS" in pale sickly
+ * green); at `realAt` a blood-red rubber stamp "DURÓ: / MENOS DE 2 HORAS" (speckled ink, rough
+ * double border, rotated) slams down from 2.3x in 4 frames (shake, ink splats, a dust ring) and
+ * a red marker line crosses the 7 DÍAS line out. At `out` it flickers off (~9 frames). `x`, `y`
+ * = centre; ~640 x 230: tape x ± 260, y - 118 … y - 48; stamp x ± 300, y - 52 … y + 112 (the
+ * splats reach x ± 330). Suggested: x 500, y 1060 (below Nubi's eyes, above the captions),
+ * goalAt GANCHO.SIETE, realAt GANCHO.DOS, out GANCHO.END - 6.
  */
 export const GoalStamp: React.FC<{ frame: number; goalAt: number; realAt: number; out: number; x: number; y: number }> = ({
   frame,
@@ -380,7 +383,7 @@ export const GoalStamp: React.FC<{ frame: number; goalAt: number; realAt: number
   const chars = Array.from(GOAL_TEXT);
   const typed = Math.min(chars.length, Math.floor((frame - goalAt) / 2) + 1);
   const fresh = (frame - goalAt) % 2 === 0 ? typed - 1 : -1;
-  const cursorOn = frame < realAt && blink(frame, goalAt, 8, 7) === 1;
+  const cursorOn = frame < realAt && (typed < chars.length || blink(frame, goalAt, 8, 7) === 1);
   const hit = realAt + 4;
   const sk = frame < realAt ? 0 : ramp(frame, realAt, hit, [0, 1], EASE_IN);
   const landed = frame >= hit;
@@ -390,8 +393,24 @@ export const GoalStamp: React.FC<{ frame: number; goalAt: number; realAt: number
   const vis = die(frame, out);
   const tapeIn = ramp(frame, goalAt, goalAt + 6);
   const ring = landed ? clamp01((frame - hit) / 12) : 0;
-  const goalDim = 1 - 0.45 * strike;
   const TAPE_W = 520;
+  const TAPE_TOP = -118;
+  const TAPE_H = 70;
+  const ST_TOP = -36;
+  const cursor = (
+    <span
+      style={{
+        position: "absolute",
+        left: 0,
+        top: "4%",
+        width: 26,
+        height: "88%",
+        background: M.sickPale,
+        boxShadow: "0 0 12px rgba(169,212,107,0.6)",
+        opacity: 0.9,
+      }}
+    />
+  );
   return (
     <AbsoluteFill style={{ pointerEvents: "none", opacity: vis }}>
       <div style={{ position: "absolute", left: x, top: y, transform: `translate(${sh.x.toFixed(1)}px, ${sh.y.toFixed(1)}px) rotate(${sh.r.toFixed(2)}deg)` }}>
@@ -400,12 +419,12 @@ export const GoalStamp: React.FC<{ frame: number; goalAt: number; realAt: number
           style={{
             position: "absolute",
             left: -TAPE_W / 2,
-            top: -100,
+            top: TAPE_TOP,
             width: TAPE_W,
-            height: 76,
+            height: TAPE_H,
             transform: `rotate(-1.2deg) scaleX(${tapeIn})`,
             transformOrigin: "0% 50%",
-            background: "linear-gradient(180deg, rgba(20,18,14,0.86), rgba(8,7,6,0.86))",
+            background: "linear-gradient(180deg, rgba(22,20,16,0.88), rgba(8,7,6,0.88))",
             border: "2px solid rgba(237,230,211,0.18)",
             borderRadius: 6,
             boxShadow: "0 8px 22px rgba(0,0,0,0.5)",
@@ -415,19 +434,18 @@ export const GoalStamp: React.FC<{ frame: number; goalAt: number; realAt: number
           style={{
             position: "absolute",
             left: -TAPE_W / 2,
-            top: -100,
+            top: TAPE_TOP,
             width: TAPE_W,
-            height: 76,
+            height: TAPE_H,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             transform: "rotate(-1.2deg)",
-            opacity: goalDim,
+            opacity: 1 - 0.3 * strike,
             filter: chroma(1 + Math.abs(jit(frame, 61, 2)) * 1.2, 0.45),
           }}
         >
           {chars.map((ch, i) => {
-            const on = i < typed;
             const isNew = i === fresh;
             const green = i >= 6;
             return (
@@ -435,41 +453,43 @@ export const GoalStamp: React.FC<{ frame: number; goalAt: number; realAt: number
                 key={i}
                 style={{
                   position: "relative",
+                  display: "inline-block",
                   fontFamily: FONT.heavy,
                   fontWeight: 800,
-                  fontSize: 54,
+                  fontSize: 52,
                   lineHeight: 1,
                   letterSpacing: 4,
                   whiteSpace: "pre",
-                  color: isNew ? "#FFFFFF" : green ? M.sickPale : M.boneDim,
-                  opacity: on ? 1 : 0,
                   transform: `translateY(${((rand(i * 3.3) - 0.5) * 4).toFixed(1)}px) rotate(${((rand(i * 7.9) - 0.5) * 5).toFixed(1)}deg)`,
-                  display: "inline-block",
-                  textShadow: isNew ? "0 0 14px rgba(255,255,255,0.9)" : green ? "0 0 16px rgba(169,212,107,0.45)" : "none",
                 }}
               >
-                {ch}
+                {cursorOn && i === typed ? cursor : null}
+                <span
+                  style={{
+                    position: "relative",
+                    color: isNew ? "#FFFFFF" : green ? M.sickPale : M.bone,
+                    opacity: i < typed ? 1 : 0,
+                    textShadow: isNew ? "0 0 14px rgba(255,255,255,0.9)" : green ? "0 0 16px rgba(169,212,107,0.45)" : "none",
+                  }}
+                >
+                  {ch}
+                </span>
               </span>
             );
           })}
-          <span
-            style={{
-              display: "inline-block",
-              width: 26,
-              height: 46,
-              marginLeft: 4,
-              background: M.sickPale,
-              opacity: cursorOn ? 0.9 : 0,
-              boxShadow: "0 0 12px rgba(169,212,107,0.6)",
-            }}
-          />
+          <span style={{ position: "relative", display: "inline-block", width: 26, height: 46, marginLeft: 2 }}>{cursorOn && typed >= chars.length ? cursor : null}</span>
         </div>
         {strike > 0 ? (
-          <svg width={TAPE_W} height={76} viewBox={`0 0 ${TAPE_W} 76`} style={{ position: "absolute", left: -TAPE_W / 2, top: -100, overflow: "visible", transform: "rotate(-1.2deg)" }}>
-            <path d={`M22 44 Q${TAPE_W / 2} 30 ${TAPE_W - 18} 36`} stroke="#1A0204" strokeWidth={16} strokeLinecap="round" fill="none" pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - strike} />
-            <path d={`M22 44 Q${TAPE_W / 2} 30 ${TAPE_W - 18} 36`} stroke={STAMP_RED} strokeWidth={10} strokeLinecap="round" fill="none" pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - strike} />
+          <svg
+            width={TAPE_W}
+            height={TAPE_H}
+            viewBox={`0 0 ${TAPE_W} ${TAPE_H}`}
+            style={{ position: "absolute", left: -TAPE_W / 2, top: TAPE_TOP, overflow: "visible", transform: "rotate(-1.2deg)" }}
+          >
+            <path d={`M30 40 Q${TAPE_W / 2} 28 ${TAPE_W - 40} 33`} stroke="#1A0204" strokeWidth={15} strokeLinecap="round" fill="none" pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - strike} />
+            <path d={`M30 40 Q${TAPE_W / 2} 28 ${TAPE_W - 40} 33`} stroke={STAMP_RED} strokeWidth={9} strokeLinecap="round" fill="none" pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - strike} />
             {strike2 > 0 ? (
-              <path d={`M40 52 Q${TAPE_W / 2} 44 ${TAPE_W - 40} 50`} stroke={STAMP_RED} strokeWidth={5} strokeLinecap="round" fill="none" pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - strike2} opacity={0.9} />
+              <path d={`M48 47 Q${TAPE_W / 2} 39 ${TAPE_W - 56} 44`} stroke={STAMP_RED} strokeWidth={4.5} strokeLinecap="round" fill="none" pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - strike2} opacity={0.9} />
             ) : null}
           </svg>
         ) : null}
@@ -478,38 +498,38 @@ export const GoalStamp: React.FC<{ frame: number; goalAt: number; realAt: number
           <div
             style={{
               position: "absolute",
-              left: -320,
-              top: -32,
-              width: 640,
-              height: 150,
-              transform: `rotate(-4deg) scale(${1 + 1.3 * (1 - sk)})`,
+              left: -ST_W / 2,
+              top: ST_TOP,
+              width: ST_W,
+              height: ST_H,
+              transform: `rotate(-3deg) scale(${1 + 1.3 * (1 - sk)})`,
               opacity: Math.min(1, sk * 1.6),
               filter: landed ? "drop-shadow(0 6px 16px rgba(0,0,0,0.6))" : "drop-shadow(0 30px 30px rgba(0,0,0,0.5))",
             }}
           >
-            <svg width={640} height={150} viewBox="0 0 640 150" style={{ display: "block", overflow: "visible" }}>
+            <svg width={ST_W} height={ST_H} viewBox={`0 0 ${ST_W} ${ST_H}`} style={{ display: "block", overflow: "visible" }}>
               <defs>
                 <mask id={`gm${uid}`}>
-                  <rect x={-10} y={-10} width={660} height={170} fill="#FFFFFF" />
+                  <rect x={-10} y={-10} width={ST_W + 20} height={ST_H + 20} fill="#FFFFFF" />
                   {SPECKS.map((s, i) => (
                     <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="#000000" />
                   ))}
-                  <path d="M60 30 L140 26 M420 128 L560 122 M250 70 L300 66" stroke="#000" strokeWidth={1.6} opacity={0.8} />
+                  <path d="M60 26 L140 22 M400 114 L530 108 M240 62 L290 58" stroke="#000" strokeWidth={1.6} opacity={0.8} />
                 </mask>
                 <filter id={`gr${uid}`} x="-5%" y="-10%" width="110%" height="120%">
                   <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves={2} seed={7} />
                   <feDisplacementMap in="SourceGraphic" scale={4} />
                 </filter>
               </defs>
-              <rect x={6} y={6} width={628} height={138} rx={16} fill="rgba(16,6,7,0.62)" />
+              <rect x={6} y={6} width={ST_W - 12} height={ST_H - 12} rx={15} fill="rgba(16,6,7,0.64)" />
               <g mask={`url(#gm${uid})`} filter={`url(#gr${uid})`}>
-                <rect x={6} y={6} width={628} height={138} rx={16} fill="none" stroke={STAMP_RED} strokeWidth={8} />
-                <rect x={19} y={19} width={602} height={112} rx={9} fill="none" stroke={STAMP_RED} strokeWidth={3} />
-                <path d="M44 43 L244 43 M396 43 L596 43" stroke={STAMP_RED} strokeWidth={4} />
-                <text x={320} y={53} textAnchor="middle" fontFamily={FONT.heavy} fontWeight={900} fontSize={30} letterSpacing={8} fill={STAMP_RED}>
+                <rect x={6} y={6} width={ST_W - 12} height={ST_H - 12} rx={15} fill="none" stroke={STAMP_RED} strokeWidth={8} />
+                <rect x={18} y={18} width={ST_W - 36} height={ST_H - 36} rx={9} fill="none" stroke={STAMP_RED} strokeWidth={3} />
+                <path d={`M40 39 L${ST_W / 2 - 72} 39 M${ST_W / 2 + 72} 39 L${ST_W - 40} 39`} stroke={STAMP_RED} strokeWidth={4} />
+                <text x={ST_W / 2 + 4} y={48} textAnchor="middle" fontFamily={FONT.heavy} fontWeight={900} fontSize={27} letterSpacing={8} fill={STAMP_RED}>
                   DURÓ:
                 </text>
-                <text x={320} y={119} textAnchor="middle" fontFamily={FONT.heavy} fontWeight={900} fontSize={57} textLength={576} lengthAdjust="spacingAndGlyphs" fill={STAMP_RED}>
+                <text x={ST_W / 2} y={105} textAnchor="middle" fontFamily={FONT.heavy} fontWeight={900} fontSize={52} textLength={540} lengthAdjust="spacingAndGlyphs" fill={STAMP_RED}>
                   MENOS DE 2 HORAS
                 </text>
               </g>
@@ -520,23 +540,23 @@ export const GoalStamp: React.FC<{ frame: number; goalAt: number; realAt: number
           <div
             style={{
               position: "absolute",
-              left: -360,
-              top: -60,
-              width: 720,
+              left: -330,
+              top: ST_TOP + ST_H / 2 - 100,
+              width: 660,
               height: 200,
               borderRadius: "50%",
-              border: `${(10 * (1 - ring)).toFixed(1)}px solid rgba(237,230,211,0.5)`,
+              border: `${(9 * (1 - ring)).toFixed(1)}px solid rgba(237,230,211,0.32)`,
               boxSizing: "border-box",
-              transform: `rotate(-4deg) scale(${0.9 + 0.35 * ring})`,
+              transform: `rotate(-3deg) scale(${0.9 + 0.35 * ring})`,
               opacity: 1 - ring,
             }}
           />
         ) : null}
         {landed ? (
-          <svg width={800} height={300} viewBox="-400 -110 800 300" style={{ position: "absolute", left: -400, top: -110, overflow: "visible" }}>
+          <svg width={800} height={300} viewBox="-400 -150 800 300" style={{ position: "absolute", left: -400, top: ST_TOP + ST_H / 2 - 150, overflow: "visible" }}>
             {SPLATS.map((s, i) => {
               const p = clamp01((frame - hit + 1) / 3);
-              return <circle key={i} cx={s.x * (0.8 + 0.2 * p)} cy={s.y * (0.8 + 0.2 * p) + 40} r={s.r * p} fill={STAMP_RED} opacity={0.9 - 0.15 * ring} />;
+              return <circle key={i} cx={s.x * (0.8 + 0.2 * p)} cy={s.y * (0.8 + 0.2 * p)} r={s.r * p} fill={STAMP_RED} opacity={0.9 - 0.15 * ring} />;
             })}
           </svg>
         ) : null}
@@ -776,14 +796,14 @@ export const VHSOverlay: React.FC<{ frame: number; from: number; to: number; jum
     secs = base + jumpBy * Math.pow((e + 1) / 6, 2);
     tc = hms(secs)
       .split("")
-      .map((ch, i) => (ch !== ":" && i >= 3 && e < 5 && rand(frame * 3.1 + i * 7.7) < 0.55 ? String(Math.floor(rand(frame * 1.3 + i * 2.1) * 10)) : ch))
+      .map((ch, i) => (ch !== ":" && i >= 3 && e < 5 && rand(frame * 3.1 + i * 7.7) < 0.55 ? String(Math.floor(rand(frame * 1.3 + i * 2.1) * (i === 3 || i === 6 ? 6 : 10))) : ch))
       .join("");
   }
   const clock = (23 * 3600 + 47 * 60 + secs) % 86400;
   const stamp = `NOCHE 1  ${two(Math.floor(clock / 3600))}:${two(Math.floor(clock / 60) % 60)}`;
   // Power on: the OSD blinks in while a tracking roll locks the picture.
   const osdOn = pattern(frame, from, [0, 0, 1, 0, 1, 1, 1], 1);
-  const lockY = d < 7 ? -320 + d * 220 : -1;
+  const lockY = d < 7 ? -320 + d * 220 : null;
   const glitchK = jumping ? (e < 2 ? 1 : 1 - (e - 2) / 6) : 0;
   const rareJolt = rand(Math.floor(frame / 3) * 1.7 + 0.2) < 0.05;
   const osdDx = jumping ? jit(frame, 3, 1) * 12 * glitchK : rareJolt ? jit(frame, 5, 1) * 3 : 0;
@@ -829,7 +849,7 @@ export const VHSOverlay: React.FC<{ frame: number; from: number; to: number; jum
       {bands.map((b, i) => (
         <TrackBand key={i} frame={frame} y={b.y} h={b.h} k={b.k} seed={b.seed} />
       ))}
-      {lockY > -320 ? <TrackBand frame={frame} y={lockY} h={300} k={1} seed={77} /> : null}
+      {lockY !== null ? <TrackBand frame={frame} y={lockY} h={300} k={1} seed={77} /> : null}
       {jumping && e < 6 ? <div style={{ position: "absolute", left: 0, top: -80 + e * 190, width: 1080, height: 70, background: "rgba(0,0,0,0.85)" }} /> : null}
       {jumping && e < 2 ? <AbsoluteFill style={{ background: "#FFFFFF", opacity: e === 0 ? 0.24 : 0.1 }} /> : null}
       <AbsoluteFill style={{ background: "radial-gradient(ellipse 80% 66% at 50% 46%, rgba(0,0,0,0) 56%, rgba(0,0,0,0.3) 82%, rgba(0,0,0,0.62) 100%)" }} />
@@ -1054,11 +1074,11 @@ export const FilmGrain: React.FC<{ frame: number; strength?: number }> = ({ fram
         height={1944}
         viewBox="0 0 552 972"
         preserveAspectRatio="none"
-        style={{ position: "absolute", left: -12 + ox, top: -12 + oy, mixBlendMode: "overlay", opacity: Math.min(1, 0.6 * s) }}
+        style={{ position: "absolute", left: -12 + ox, top: -12 + oy, mixBlendMode: "overlay", opacity: Math.min(1, 0.45 * s) }}
       >
         <filter id={`fg${uid}`} x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
           <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves={2} seed={seed} />
-          <feColorMatrix type="matrix" values="2 0 0 0 -0.5  2 0 0 0 -0.5  2 0 0 0 -0.5  0 0 0 0 1" />
+          <feColorMatrix type="matrix" values="1.7 0 0 0 -0.35  1.7 0 0 0 -0.35  1.7 0 0 0 -0.35  0 0 0 0 1" />
         </filter>
         <rect x={0} y={0} width={552} height={972} filter={`url(#fg${uid})`} />
       </svg>
@@ -1117,7 +1137,7 @@ const HorrorBubble: React.FC<{ label: string; tone: "red" | "green"; tail: "left
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          gap: 8,
+          gap: 2,
         }}
       >
         {children}
@@ -1258,7 +1278,7 @@ export const EndCard: React.FC<{ frame: number; at: number }> = ({ frame, at }) 
             }}
           >
             <HorrorBubble label={b.label} tone={b.tone} tail={b.tail}>
-              {b.tone === "red" ? <GhostIcon size={78} frame={frame} /> : <BrainIcon size={76} frame={frame} />}
+              {b.tone === "red" ? <GhostIcon size={92} frame={frame} /> : <BrainIcon size={88} frame={frame} />}
             </HorrorBubble>
           </div>
         );
@@ -1307,7 +1327,7 @@ export const EndCard: React.FC<{ frame: number; at: number }> = ({ frame, at }) 
             left: TAP.x - 47 * HAND_K,
             top: TAP.y - 4 * HAND_K,
             transformOrigin: `${47 * HAND_K}px ${4 * HAND_K}px`,
-            transform: `translate(${((1 - handIn) * 220 + (1 - push) * 8).toFixed(1)}px, ${((1 - handIn) * 160 + (1 - push) * 16).toFixed(1)}px) rotate(-28deg) scale(${1 - 0.05 * push})`,
+            transform: `translate(${((1 - handIn) * 110 + (1 - push) * 8).toFixed(1)}px, ${((1 - handIn) * 70 + (1 - push) * 16).toFixed(1)}px) rotate(-28deg) scale(${1 - 0.05 * push})`,
             opacity: Math.min(1, handIn * 2),
           }}
         >
