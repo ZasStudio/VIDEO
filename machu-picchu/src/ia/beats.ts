@@ -92,8 +92,13 @@ export const GIRO = {
   L13: lineStart("L13"),
   /** "Ya estudiábamos, creábamos y trabajábamos": the boy writes his own message. */
   YA: wordAt("L13", 4),
+  /** His own «te extraño» is sent; her «yo también ❤️» arrives. */
+  SENT: wordAt("L13", 4) + 40,
+  REPLY: wordAt("L13", 4) + 92,
   /** "La pregunta es…": Nubi pushes the switch back ON. */
   PREGUNTA: wordAt("L13", 13),
+  /** The lever clunks back to ON. */
+  ON: wordAt("L13", 13) + 10,
   /** "…a que lo hagan todo". */
   TODO: wordAt("L13", 26),
   /** «¿Qué almuerzo?» typed to the AI, a full plate right beside the laptop. */
