@@ -13,6 +13,8 @@ import { AGUA, AGUA_HEIGHT, AGUA_WIDTH } from "./agua/timeline";
 import { TiempoShort, TiempoSoundtrack } from "./tiempo/TiempoShort";
 import { TIEMPO, TIEMPO_HEIGHT, TIEMPO_WIDTH } from "./tiempo/timeline";
 import { MatusitaShort, MatusitaSoundtrack } from "./matusita/MatusitaShort";
+import { IaShort, IaSoundtrack } from "./ia/IaShort";
+import { IA } from "./ia/timeline";
 import { MATUSITA, MATUSITA_HEIGHT, MATUSITA_WIDTH } from "./matusita/timeline";
 import { MATUSITA_UI_SHEET_DURATION, MatusitaUISheet } from "./dev/MatusitaUISheet";
 import { OXI, OXI_HEIGHT, OXI_WIDTH } from "./oxigeno/timeline";
@@ -207,6 +209,24 @@ export const RemotionRoot: React.FC = () => {
         fps={FPS}
         width={MATUSITA_WIDTH}
         height={MATUSITA_HEIGHT}
+      />
+      {/* Nubi's vertical comedy short: what if AI didn't exist (76 s). */}
+      <Composition
+        id="IaShort"
+        component={IaShort}
+        durationInFrames={IA.DURATION}
+        fps={FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{ withAudio: true }}
+      />
+      <Composition
+        id="IaShortAudio"
+        component={IaSoundtrack}
+        durationInFrames={IA.DURATION}
+        fps={FPS}
+        width={1080}
+        height={1920}
       />
       <Folder name="Dev">
         <Composition

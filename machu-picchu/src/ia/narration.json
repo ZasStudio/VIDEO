@@ -1,0 +1,22 @@
+{
+  "_title": "¿Qué pasaría si la IA no existiera?",
+  "_voices": "Magnific TTS, ElevenLabs v3. nubi = Nerea Escudero (1081: stability 0.45, similarity 0.75, speed 0.95); chico = Joaquín Arrieta (1080, young, shy); estudiante = Alejo Vargas (76, energetic); jefe = Ernesto Calderón (643, middle-aged authority); trabajador = Gonzalo Bermúdez (888, tired); influencer = Ana Belén Torres (108, young social-media voice). The girl only answers by text.",
+  "_captions": "Same syntax as src/narration.json. Nubi: white with highlights; chico cyan (^c), estudiante orange (^o), jefe red (^r), trabajador green (^g), influencer yellow (^y).",
+  "lines": [
+    {"id": "L01", "voice": "nubi", "scene": "gancho", "tts": "[mischievously] Si la IA nunca hubiera existido… ese «te extraño» habría tenido que salir de él. [pause 0.3s] [dramatic] Y eso apenas es el comienzo.", "captions": "SI LA IA^c / NUNCA HUBIERA EXISTIDO… / ESE «TE EXTRAÑO»^y / HABRÍA TENIDO / QUE SALIR DE ÉL.^y / Y ESO APENAS / ES EL COMIENZO.^r"},
+    {"id": "L02", "voice": "chico", "scene": "mensaje", "tts": "[nervous] Hola… [hesitant] ¿ya comiste?", "captions": "HOLA…^c / ¿YA^c COMISTE?^c"},
+    {"id": "L03", "voice": "nubi", "scene": "mensaje", "tts": "[deadpan] Tres párrafos de amor… reducidos a una pregunta sobre el almuerzo.", "captions": "3^y PÁRRAFOS^y DE AMOR… / REDUCIDOS A / UNA PREGUNTA / SOBRE EL ALMUERZO.^o"},
+    {"id": "L04", "voice": "chico", "scene": "mensaje", "tts": "[defeated] Ya no sé cómo seguir.", "captions": "YA^c NO^c SÉ^c / CÓMO^c SEGUIR.^c"},
+    {"id": "L05", "voice": "nubi", "scene": "tarea", "tts": "[amused] Ese trabajo que dejaste para el último minuto… [pause 0.2s] ahora sí se quedó para el último minuto.", "captions": "ESE TRABAJO / QUE DEJASTE PARA / EL ÚLTIMO MINUTO…^y / AHORA SÍ^r SE QUEDÓ / PARA EL ÚLTIMO MINUTO.^r"},
+    {"id": "L06", "voice": "estudiante", "scene": "tarea", "tts": "[excited] [proudly] ¡Ya tengo cuatro palabras!", "captions": "¡YA^o TENGO^o / 4^o PALABRAS!^o"},
+    {"id": "L07", "voice": "jefe", "scene": "jefe", "tts": "[casual] Hazme una presentación rapidita.", "captions": "HAZME^r UNA^r / PRESENTACIÓN^r / RAPIDITA.^r"},
+    {"id": "L08", "voice": "nubi", "scene": "jefe", "tts": "Y en la oficina, «rapidito» volvería a significar…", "captions": "Y EN LA OFICINA, / «RAPIDITO»^y / VOLVERÍA A / SIGNIFICAR…"},
+    {"id": "L09", "voice": "trabajador", "scene": "jefe", "tts": "[exhausted] ¿Para cuándo la quería?", "captions": "¿PARA^g CUÁNDO^g / LA^g QUERÍA?^g"},
+    {"id": "L10", "voice": "jefe", "scene": "jefe", "tts": "[matter-of-fact] Era para ayer.", "captions": "ERA^r PARA^r AYER.^r"},
+    {"id": "L11", "voice": "nubi", "scene": "foto", "tts": "[sarcastic] Sin imágenes generadas por IA, algunas vidas de lujo necesitarían… [pause 0.3s] otro presupuesto.", "captions": "SIN IMÁGENES / GENERADAS POR IA,^c / ALGUNAS VIDAS / DE LUJO^y / NECESITARÍAN… / OTRO PRESUPUESTO.^r"},
+    {"id": "L12", "voice": "influencer", "scene": "foto", "tts": "[confident] Todo es cuestión de perspectiva.", "captions": "TODO^y ES^y CUESTIÓN^y / DE^y PERSPECTIVA.^y"},
+    {"id": "L13", "voice": "nubi", "scene": "giro", "tts": "[sincere] Pero tampoco seríamos inútiles. Ya estudiábamos, creábamos y trabajábamos antes de estos asistentes. [thoughtful] La pregunta es cuánto nos ayudan… y cuánto nos acostumbramos a que lo hagan todo.", "captions": "PERO TAMPOCO / SERÍAMOS INÚTILES. / YA ESTUDIÁBAMOS,^g / CREÁBAMOS^g / Y TRABAJÁBAMOS^g / ANTES DE / ESTOS ASISTENTES. / LA PREGUNTA ES / CUÁNTO NOS AYUDAN…^c / Y CUÁNTO / NOS ACOSTUMBRAMOS / A QUE LO HAGAN TODO.^o"},
+    {"id": "L14", "voice": "nubi", "scene": "final", "tts": "[playful] Confiesa: ¿qué fue lo último que le pediste a una IA? ¿Una tarea, algo del trabajo… [suspicious] o un mensaje que luego mandaste como si fuera tuyo?", "captions": "CONFIESA:^y / ¿QUÉ FUE LO ÚLTIMO / QUE LE PEDISTE / A UNA IA?^c / ¿UNA TAREA,^o / ALGO DEL TRABAJO…^g / ¿O UN MENSAJE^r / QUE LUEGO MANDASTE / COMO SI FUERA TUYO?^r"},
+    {"id": "L15", "voice": "nubi", "scene": "final", "tts": "[teasing] Te leo, poeta.", "captions": "TE LEO, / POETA.^y"}
+  ]
+}
