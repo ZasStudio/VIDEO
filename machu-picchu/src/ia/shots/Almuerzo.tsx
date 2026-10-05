@@ -14,11 +14,9 @@ import { SHOTS } from "../shots";
 // — and RIGHT NEXT to the laptop, on the near corner of the desk, sits a big served plate (rice,
 // chicken, salad), steaming and well lit. A slow push-in so the gag reads: the plate is obvious,
 // he doesn't notice it (eyes on the screen; after sending, a curious head tilt, waiting).
-// Set ≈ y 760–1180; the plate ≈ x 640–860, y 950–1100 at the end.
+// The plate is centred ≈ (680, 1175) (no captions after L13 ends); the boy is on its left.
 
 const FOV = 40;
-/** Between the boy and the plate: the framing point. */
-const MID: Vec3 = [2.25, 1.45, -0.05];
 
 export const AlmuerzoShot: React.FC = () => {
   const g = useCurrentFrame() + SHOTS.almuerzo.from;
@@ -28,8 +26,8 @@ export const AlmuerzoShot: React.FC = () => {
 
   // ---- Camera: slow push-in, drifting a touch towards the plate.
   const push = ramp(g, from, END, [0, 1], Easing.inOut(Easing.sin));
-  const pos: Vec3 = lerp3([3.5, 3.3, 11.2], [3.35, 2.75, 8.0], push);
-  const cam = aim(pos, FOV, MID, lerpN(560, 520, push), lerpN(1000, 1010, push));
+  const pos: Vec3 = lerp3([2.6, 3.3, 11.2], [2.75, 2.9, 9.0], push);
+  const cam = aim(pos, FOV, BOY.plate, lerpN(690, 680, push), lerpN(1165, 1175, push));
 
   // ---- The boy: types, hits enter on ALMUERZO, then waits with a curious tilt (not seeing the plate).
   const typing = 1 - ramp(g, ALMUERZO - 4, ALMUERZO);

@@ -21,16 +21,18 @@ import { influencerTalk } from "../talk";
 // «Todo es cuestión de perspectiva.»
 
 const INF = LOT.influencer;
-const CAR: Vec3 = [LOT.stool[0], LOT.stoolTop + 0.12, LOT.stool[2]];
-/** The phone's view (the "post", a tele lens): the influencer behind the car, y ≈ 460-1180. */
-const POST: Cam = aim([LOT.phone[0], LOT.phone[1], LOT.phone[2] - 0.05], 36, [INF[0], 1.05, INF[2]], 570, 820, 8);
-const POST_IN: Cam = aim([LOT.phone[0], LOT.phone[1], LOT.phone[2] - 0.2], 35, [INF[0], 1.05, INF[2]], 570, 820, 8);
-/** Behind-the-scenes (wide lens), from the left of the phone: the toy car big in the foreground
- * on its stool, the influencer small behind, the backdrop's edge, its stand and the friend. */
-const REVEAL: Cam = aim([-0.75, 1.35, 6.3], 50, CAR, 660, 1000, 10);
-const L12CAM: Cam = aim([-0.65, 1.35, 6.0], 48, CAR, 690, 1030, 10);
+/** The phone's view (the "post", a tele lens): the influencer slightly left (face y ≈ 450-700),
+ * the "sports car" beside it on the right (body y ≈ 750-1040), the printed sunset all around. */
+const POST: Cam = aim([LOT.phone[0], LOT.phone[1], LOT.phone[2] - 0.05], 36, [INF[0], 1.15, INF[2]], 430, 575, 8);
+const POST_IN: Cam = aim([LOT.phone[0], LOT.phone[1], LOT.phone[2] - 0.12], 36, [INF[0], 1.15, INF[2]], 430, 575, 8);
+/** Behind the scenes, high and far back: the whole trick in one frame — the parking lot, the
+ * printed backdrop on its stands with the friend holding it, the road mat, the influencer (full
+ * body) and, in front, the tiny toy car on its stool next to the phone on its tripod. */
+const SET_MID: Vec3 = [0.5, 1.6, 0.0];
+const REVEAL: Cam = aim([1.8, 2.8, 12.5], 50, SET_MID, 540, 640, 10);
+const L12CAM: Cam = aim([1.7, 2.7, 12.0], 49, SET_MID, 540, 650, 10);
 /** Mid-point of the pull-back: up and back (a swooping rewind). */
-const MID_POS: Vec3 = [-0.6, 1.9, 7.6];
+const MID_POS: Vec3 = [0.5, 2.2, 9.5];
 
 export const FotoShot: React.FC = () => {
   const g = useCurrentFrame() + SHOTS.foto.from;
@@ -76,12 +78,12 @@ export const FotoShot: React.FC = () => {
   // ---- The friend holding the backdrop: bored, then a little wave at the reveal.
   const wave = Math.sin(Math.PI * ramp(g, REV + 6, REV + 30, [0, 1], Easing.linear));
   const friendPose: NubiPose = {
-    finL: 0.75,
-    finR: 0.1 + 0.9 * wave + 0.3 * wave * Math.sin(g * 0.8),
+    finR: 0.75,
+    finL: 0.1 + 0.9 * wave + 0.3 * wave * Math.sin(g * 0.8),
     eyeScale: 0.8,
     blink: (g % 70) < 3 ? 1 : 0.25,
     roll: -0.05 + 0.02 * Math.sin(t),
-    lookX: 0.5,
+    lookX: -0.3,
   };
 
   return (

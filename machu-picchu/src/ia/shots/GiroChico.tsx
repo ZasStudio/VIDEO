@@ -59,13 +59,13 @@ export const GiroChicoShot: React.FC = () => {
   };
 
   // Phone: held low in front, screen up towards his eyes; then hugged to his body.
-  const phonePos: Vec3 = lerp3([0.4, 3.1 + 0.15 * Math.sin(t * 9) * typeK, 6.4], [0, 3.9, 5.0], hug);
-  const phoneRot: Vec3 = [-0.85 * (1 - hug) - 0.05 * hug, 0.15 * (1 - hug), 0.1 * hug * sway];
+  const phonePos: Vec3 = lerp3([0.9, 2.2 + 0.15 * Math.sin(t * 9) * typeK, 6.6], [0, 3.6, 5.0], hug);
+  const phoneRot: Vec3 = [-1.0 * (1 - hug) - 0.05 * hug, 0.3 * (1 - hug), 0.1 * hug * sway];
 
   return (
     <AbsoluteFill style={{ background: "#FFE2C2" }}>
       <Stage cam={cam} near={0.1}>
-        <BoyLights warm={1.5} lampAt={[BOY.nightstand[0] - 0.3, 1.5, BOY.nightstand[2] + 0.9]} screen={0.8 + 0.4 * read} screenAt={[sit[0] + 0.4, sit[1] + 1.2, sit[2] + 1.4]} keyFrom={[-4, 6, 8]} />
+        <BoyLights warm={1.5} lampAt={[BOY.nightstand[0] - 0.3, 1.5, BOY.nightstand[2] + 0.9]} screen={0.8 + 0.4 * read} screenAt={[sit[0] + 0.4, sit[1] + 1.2, sit[2] + 1.4]} keyFrom={[-4, 6, 8]} cozy />
         <BoyRoom t={t} lamp={1.3} />
         <Chico position={sit} rotationY={0.12} pose={pose} shadow={false}>
           <group position={phonePos} rotation={phoneRot} scale={M * 1.35}>

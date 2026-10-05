@@ -333,6 +333,23 @@ const roadBoardTex = () =>
     ctx.fillRect(0, h - 6, w, 6);
   });
 
+/** The road mat: glossy dark road with a yellow centre line and white edges (lines along u). */
+const roadMatTex = () =>
+  canvasTexture("ia-roadmat", 512, 256, (ctx, w, h) => {
+    const g = ctx.createLinearGradient(0, 0, w, 0);
+    g.addColorStop(0, "#2E2440");
+    g.addColorStop(1, "#4A3050");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = "rgba(255,170,120,0.18)";
+    ctx.fillRect(0, h * 0.3, w, h * 0.4);
+    ctx.fillStyle = "#FFD23F";
+    for (let x = 10; x < w; x += 80) ctx.fillRect(x, h / 2 - 5, 46, 10);
+    ctx.fillStyle = "#F4F4F4";
+    ctx.fillRect(0, 10, w, 7);
+    ctx.fillRect(0, h - 17, w, 7);
+  });
+
 // =======================================================================================
 // Studio pieces
 
@@ -960,13 +977,15 @@ export const ToyCar: React.FC<{ spin?: number }> = ({ spin = 0 }) => {
 /** Layout of the photo set (parking lot). The phone's lens is where the "post" camera sits. */
 export const LOT = {
   influencer: [0.7, 0, -2.4] as V3,
-  backdrop: { x: 0.5, z: -3.4, w: 3.7, h: 4.1, bottom: 0.05 },
-  stool: [-0.1, 0, 4.6] as V3,
-  stoolTop: 0.77,
+  backdrop: { x: 0.5, z: -3.4, w: 4.4, h: 4.1, bottom: 0.05 },
+  /** The printed road mat on the ground in front of the backdrop (z from the backdrop to matZ). */
+  matZ: 2.0,
+  stool: [0.26, 0, 4.18] as V3,
+  stoolTop: 0.75,
   carScale: 0.3,
   carYaw: -0.75,
   phone: [-0.05, 1.0, 6.0] as V3,
-  friend: [2.6, 0, -3.65] as V3,
+  friend: [-2.25, 0, -3.6] as V3,
 };
 
 /** A boring parked car (box-ish hatchback). */
@@ -1039,6 +1058,7 @@ export const LuxurySet: React.FC<{ t?: number; friendPose?: NubiPose; phone?: bo
     () => ({
       ground: worldPlane(80, 80),
       line: new THREE.PlaneGeometry(0.12, 4.5),
+      mat: new THREE.PlaneGeometry(LOT.matZ - B.z, B.w),
       poster: new THREE.PlaneGeometry(B.w, B.h),
       posterBack: new THREE.PlaneGeometry(B.w, B.h),
       pole: new THREE.CylinderGeometry(0.035, 0.035, B.h + B.bottom + 0.3, 8),
@@ -1055,7 +1075,7 @@ export const LuxurySet: React.FC<{ t?: number; friendPose?: NubiPose; phone?: bo
       signPole: new THREE.CylinderGeometry(0.04, 0.04, 2.6, 8),
       bin: rbox(1.6, 1.2, 1.0, 0.06),
     }),
-    [B.w, B.h, B.bottom],
+    [B.w, B.h, B.bottom, B.z],
   );
   const asphalt = texMat("ia-asphalt", repeat(asphaltTex(), 0.25, 0.25), { glow: 0.06, rough: 0.9 });
   const S = LOT.stool;
@@ -1099,8 +1119,10 @@ export const LuxurySet: React.FC<{ t?: number; friendPose?: NubiPose; phone?: bo
           </group>
         ))}
       </group>
+      {/* The printed glossy road mat the influencer stands on. */}
+      <mesh geometry={geos.mat} material={texMat("ia-roadmat", roadMatTex(), { glow: 0.12, rough: 0.35 })} rotation={[-Math.PI / 2, 0, Math.PI / 2]} position={[B.x, 0.012, (B.z + LOT.matZ) / 2]} />
       {/* The friend holding the backdrop's edge, peeking out. */}
-      <Nubi size={1.7} position={LOT.friend} rotationY={-0.5} pose={friendPose} palette={{ body: "#7FB8FF", eyeRough: 0.6 }} />
+      <Nubi size={1.7} position={LOT.friend} rotationY={0.45} pose={friendPose} palette={{ body: "#7FB8FF", eyeRough: 0.6 }} />
 
       {/* Stool with the road-painted board and the toy car. */}
       <group position={S}>

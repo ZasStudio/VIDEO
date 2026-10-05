@@ -198,11 +198,11 @@ export const JefeShot: React.FC = () => {
 
   // ---- Cameras ------------------------------------------------------------------------------
   const wEyes = eyesOf(WORKER_AT);
-  const mid: Vec3 = [1.5, 1.0, -1.75];
+  const mid: Vec3 = [1.25, 1.0, -2.2];
   let cam: Cam;
   if (g < SLIDES) {
     const u = ramp(g, START, SLIDES, [0, 1], (x) => x);
-    cam = aim(lerp3([1.1, 2.6, 7.4], [1.2, 2.5, 6.8], u), 40, mid, 520, 930);
+    cam = aim(lerp3([0.9, 3.3, 11.4], [1.0, 3.2, 10.8], u), 40, mid, 500, 960);
   } else if (g < COFFEE1) {
     // Over the worker's head onto the monitor, nearly square-on.
     const u = ramp(g, SLIDES, COFFEE1, [0, 1], EASE_IN_OUT);
@@ -210,9 +210,9 @@ export const JefeShot: React.FC = () => {
     const n: Vec3 = [Math.sin(MONITOR_RY), 0, Math.cos(MONITOR_RY)];
     // Beside the worker's head (p: sideways, towards the open side of the office).
     const p: Vec3 = [-n[2], 0, n[0]];
-    const dist = mix(2.75, 2.5, u);
-    const side = mix(1.25, 1.15, u);
-    const pos: Vec3 = [scr[0] + n[0] * dist + p[0] * side, scr[1] + mix(1.6, 1.45, u), scr[2] + n[2] * dist + p[2] * side];
+    const dist = mix(3.1, 2.85, u);
+    const side = mix(1.4, 1.3, u);
+    const pos: Vec3 = [scr[0] + n[0] * dist + p[0] * side, scr[1] + mix(0.9, 0.85, u), scr[2] + n[2] * dist + p[2] * side];
     cam = aim(pos, 40, scr, 520, 660);
   } else if (g < COFFEE2) {
     const u = ramp(g, COFFEE1, COFFEE2, [0, 1], (x) => x);
@@ -225,12 +225,16 @@ export const JefeShot: React.FC = () => {
     cam = aim(lerp3([0.2, 1.9, 5.6], [0.2, 1.85, 5.2], u), 40, wEyes, 560, 1020);
   } else if (g < STARE) {
     const u = ramp(g, L09, STARE, [0, 1], EASE_IN_OUT);
-    cam = aim(lerp3([1.2, 2.5, 7.0], [1.3, 2.4, 6.2], u), 40, mid, 520, 930);
+    cam = aim(lerp3([0.9, 3.2, 11.0], [1.05, 3.1, 10.2], u), 40, mid, 500, 960);
   } else {
     const u = ramp(g, STARE, END, [0, 1], (x) => x);
-    cam = aim(lerp3([0.75, 1.6, 2.9], [0.72, 1.58, 2.55], u), 40, wEyes, 540, 860);
+    cam = aim(lerp3([0.2, 1.65, 2.9], [0.2, 1.63, 2.55], u), 40, wEyes, 540, 860);
   }
 
+  // Over-the-shoulder cheat: in B the worker steps a little aside (away from the camera), so his
+  // head frames the monitor instead of hiding it.
+  const inB = g >= SLIDES && g < COFFEE1;
+  const workerAt: Vec3 = inB ? [WORKER_AT[0] + 0.62 * Math.cos(MONITOR_RY), 0, WORKER_AT[2] - 0.62 * Math.sin(MONITOR_RY)] : WORKER_AT;
   const bg = mixHex("#BFC8DA", "#FFC9A0", sun);
   const boss = bossIn ? <Boss position={BOSS_AT} rotationY={BOSS_RY} pose={bPose} holdR={mug} smug={0.4} /> : null;
   return (
@@ -239,7 +243,7 @@ export const JefeShot: React.FC = () => {
         <Stage cam={cam} near={0.1}>
           <OfficeLights sun={sun} night={night} />
           <OfficeSet sun={sun} cups={cups} cupPop={cupPop} t={t} front={g >= SLIDES && g < COFFEE1} />
-          <Worker position={WORKER_AT} rotationY={wRy} pose={wPose} droop={droop} bags={bags} holdR={wHoldR} holdL={wHoldL} shadowOpacity={0.25} />
+          <Worker position={workerAt} rotationY={wRy} pose={wPose} droop={droop} bags={bags} holdR={wHoldR} holdL={wHoldL} shadowOpacity={0.25} />
           {boss}
         </Stage>
       </Shake>

@@ -692,12 +692,12 @@ export const WORKER_AT: V3 = [0.25, 0, -2.45];
 export const WORKER_RY = -0.62;
 export const MONITOR_AT: V3 = [-0.75, OFFICE_DESK.top, -1.05];
 export const MONITOR_RY = 2.5;
-export const BOSS_AT: V3 = [2.9, 0, -1.05];
-export const BOSS_RY = -0.95;
+export const BOSS_AT: V3 = [2.3, 0, -2.15];
+export const BOSS_RY = -0.85;
 /** Monitor screen (local to the monitor group): centre and size, facing local +z. */
 export const MONITOR_SCREEN = { y: 0.62, w: 1.12, h: 0.66 };
 export const OFF_WINDOW = { x: -0.2, y: 2.05, w: 4.6, h: 2.3 };
-export const CUPS_AT: V3 = [OFFICE_DESK.x - 0.05, OFFICE_DESK.top, OFFICE_DESK.z - 0.35];
+export const CUPS_AT: V3 = [OFFICE_DESK.x + 0.4, OFFICE_DESK.top, OFFICE_DESK.z - 0.35];
 
 const officeNightTex = () =>
   canvasTexture("ia-office-night", 512, 256, (ctx, w, h) => {

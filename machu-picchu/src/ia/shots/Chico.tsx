@@ -26,7 +26,7 @@ export const ChicoShot: React.FC = () => {
   // ---- Camera: over the shoulder, a slow push-in.
   const push = ramp(g, TYPE, NUBI, [0, 1], EASE_IN_OUT);
   const pos = lerp3([-1.4, 3.6, 11.2], [-0.9, 3.3, 9.8], push);
-  const cam = aim(pos, FOV, MID, 560, 980);
+  const cam = aim(pos, FOV, MID, 560, 1110);
 
   // ---- The boy: types (fins tapping), a big enter on SEND, then turns proudly to the camera.
   const typing = 1 - ramp(g, SEND - 3, SEND);

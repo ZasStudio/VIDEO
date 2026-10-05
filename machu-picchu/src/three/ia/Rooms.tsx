@@ -688,7 +688,7 @@ const Rug: React.FC<{ position: V3; r: number; color: string; ring: string }> = 
 };
 
 /** Walls (back, left, right), floor; one-sided planes facing in. */
-const Shell: React.FC<{ x0: number; x1: number; z0: number; z1: number; h: number; wall: THREE.Material; floor: THREE.Material; trim: string }> = ({ x0, x1, z0, z1, h, wall, floor, trim }) => {
+const Shell: React.FC<{ x0: number; x1: number; z0: number; z1: number; h: number; wall: THREE.Material; floor: THREE.Material; trim: string; rightZ1?: number }> = ({ x0, x1, z0, z1, h, wall, floor, trim, rightZ1 }) => {
   const W = x1 - x0;
   const D = z1 - z0;
   const geos = useMemo(
@@ -696,17 +696,27 @@ const Shell: React.FC<{ x0: number; x1: number; z0: number; z1: number; h: numbe
       floor: worldPlane(W + 6, D + 10),
       back: worldPlane(W, h),
       side: worldPlane(D, h),
+      right: worldPlane((rightZ1 ?? z1) - z0, h),
+      jut: worldPlane(5, h),
       skirt: rbox(1, 0.14, 0.05, 0.02),
     }),
-    [W, D, h],
+    [W, D, h, rightZ1, z0, z1],
   );
   const sk = toy(trim, { glow: 0.12 });
+  const rz = rightZ1 ?? z1;
   return (
     <group>
       <mesh geometry={geos.floor} material={floor} rotation={[-Math.PI / 2, 0, 0]} position={[(x0 + x1) / 2, 0, (z0 + z1) / 2 + 3]} />
       <mesh geometry={geos.back} material={wall} position={[(x0 + x1) / 2, h / 2, z0]} />
       <mesh geometry={geos.side} material={wall} position={[x0, h / 2, (z0 + z1) / 2]} rotation={[0, Math.PI / 2, 0]} />
-      <mesh geometry={geos.side} material={wall} position={[x1, h / 2, (z0 + z1) / 2]} rotation={[0, -Math.PI / 2, 0]} />
+      <mesh geometry={geos.right} material={wall} position={[x1, h / 2, (z0 + rz) / 2]} rotation={[0, -Math.PI / 2, 0]} />
+      {/* Where the right wall stops short, a wall jut runs out to the right (an alcove for the desk). */}
+      {rightZ1 !== undefined ? (
+        <>
+          <mesh geometry={geos.jut} material={wall} position={[x1 + 2.5, h / 2, rz]} />
+          <mesh geometry={geos.skirt} material={sk} position={[x1 + 2.5, 0.07, rz + 0.03]} scale={[5, 1, 1]} />
+        </>
+      ) : null}
       <mesh geometry={geos.skirt} material={sk} position={[(x0 + x1) / 2, 0.07, z0 + 0.03]} scale={[W, 1, 1]} />
       <mesh geometry={geos.skirt} material={sk} position={[x0 + 0.03, 0.07, (z0 + z1) / 2]} rotation={[0, Math.PI / 2, 0]} scale={[D, 1, 1]} />
     </group>
@@ -725,7 +735,7 @@ export const BOY = {
   x0: -4.6,
   x1: 3.6,
   z0: -3.0,
-  z1: 14,
+  z1: 6.5,
   h: 7,
   desk: { x0: 2.4, x1: 3.55, z0: -1.75, z1: 1.3, top: 1.25 },
   /** Stool base, and where a <Chico> sits on it (Nubi's feet), turned by `face` (rotationY:
@@ -736,7 +746,7 @@ export const BOY = {
   /** Laptop base centre on the desk (its screen faces the stool, turned 0.4 towards +z). */
   laptop: [2.98, 1.25, -0.2] as V3,
   /** The served plate (on the desk, beside the laptop, towards +z). */
-  plate: [2.92, 1.25, 0.6] as V3,
+  plate: [2.9, 1.25, 0.72] as V3,
   lamp: [3.2, 1.25, -1.4] as V3,
   window: { x: 0.35, y: 2.5, w: 1.8, h: 1.45 },
   bed: { x0: -4.55, x1: -1.95, z0: -3.0, z1: -1.2, top: 0.66 },
@@ -911,7 +921,7 @@ export const BoyRoom: React.FC<BoyRoomProps> = ({ t = 0, laptopOpen = 1, laptopG
   const BOOKS = ["#FF5A79", "#4FC3F7", "#FFD23F", "#7C5CFF", "#58C27D", "#FF8A65"];
   return (
     <group>
-      <Shell x0={B.x0} x1={B.x1} z0={B.z0} z1={B.z1} h={B.h} wall={boyWall()} floor={woodFloor("boy-floor", ["#E3B07B", "#D9A36C", "#EAB985", "#DDA874"])} trim="#FFFFFF" />
+      <Shell x0={B.x0} x1={B.x1} z0={B.z0} z1={B.z1} h={B.h} rightZ1={B.desk.z1 + 0.7} wall={boyWall()} floor={woodFloor("boy-floor", ["#E3B07B", "#D9A36C", "#EAB985", "#DDA874"])} trim="#FFFFFF" />
       <NightWindow position={[B.window.x, B.window.y, B.z0 + 0.02]} w={B.window.w} h={B.window.h} />
       {/* Posters: over the bed (back wall), beside the window, and on the left wall. */}
       <Poster k="rocket" draw={posterRocket} position={[-3.75, 2.15, B.z0 + 0.02]} tilt={0.04} />
@@ -945,7 +955,7 @@ export const BoyRoom: React.FC<BoyRoomProps> = ({ t = 0, laptopOpen = 1, laptopG
         </group>
       ) : null}
       {plate ? (
-        <group position={B.plate} rotation={[0, -0.6, 0]}>
+        <group position={B.plate} rotation={[0, -0.6, 0]} scale={1.3}>
           <Plate t={t} steam={steam} />
         </group>
       ) : null}
@@ -960,10 +970,10 @@ export const BoyRoom: React.FC<BoyRoomProps> = ({ t = 0, laptopOpen = 1, laptopG
  * Lights of the boy's room (4, no shadows): a bright warm hemisphere, a key from the front-right,
  * the warm lamp (desk or nightstand, `lampAt`) and a cool screen glow at `screenAt`.
  */
-export const BoyLights: React.FC<{ warm?: number; screen?: number; screenAt?: V3; lampAt?: V3; keyFrom?: V3 }> = ({ warm = 1, screen = 0, screenAt = BOY.laptop, lampAt = [BOY.lamp[0] - 0.3, BOY.lamp[1] + 0.7, BOY.lamp[2] + 0.3], keyFrom = [7, 8, 7] }) => (
+export const BoyLights: React.FC<{ warm?: number; screen?: number; screenAt?: V3; lampAt?: V3; keyFrom?: V3; cozy?: boolean }> = ({ warm = 1, screen = 0, screenAt = BOY.laptop, lampAt = [BOY.lamp[0] - 0.3, BOY.lamp[1] + 0.7, BOY.lamp[2] + 0.3], keyFrom = [7, 8, 7], cozy = false }) => (
   <>
-    <hemisphereLight args={["#FFF3E6", "#B08A70", 1.35]} />
-    <directionalLight position={keyFrom} intensity={1.55} color="#FFF0DC" />
+    <hemisphereLight args={[cozy ? "#FFDDB0" : "#FFF3E6", "#B08A70", 1.35]} />
+    <directionalLight position={keyFrom} intensity={1.55} color={cozy ? "#FFD29A" : "#FFF0DC"} />
     <pointLight position={lampAt} intensity={2.2 * warm} distance={7} decay={1.3} color="#FFB868" />
     <pointLight position={[screenAt[0] - 0.4, screenAt[1] + 0.5, screenAt[2]]} intensity={1.6 * screen} distance={3.5} decay={1.5} color="#A9CBFF" />
   </>

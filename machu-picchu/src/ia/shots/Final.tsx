@@ -20,8 +20,8 @@ const FOV = 40;
 const FRONT: Vec3 = [0.15, 0, 1.25];
 const START_AT: Vec3 = [NUBI_SPOT[0], 0, 0.1];
 const BODY: Vec3 = [FRONT[0], 1.24, FRONT[2]];
-const C0: Cam = aim([0.35, 1.45, 9.6], FOV, BODY, 540, 890, 10);
-const C1: Cam = aim([0.25, 1.4, 9.1], FOV, BODY, 540, 890, 10);
+const C0: Cam = aim([0.35, 1.45, 10.5], FOV, BODY, 540, 880, 10);
+const C1: Cam = aim([0.25, 1.4, 10.0], FOV, BODY, 540, 880, 10);
 
 export const FinalShot: React.FC = () => {
   const g = useCurrentFrame() + SHOTS.final.from;
@@ -39,7 +39,7 @@ export const FinalShot: React.FC = () => {
   const landSq = Math.sin(Math.PI * ramp(g, HOP_END - 1, HOP_END + 6, [0, 1], Easing.linear));
   // Teasing lean towards the camera on L15.
   const lean = ramp(g, L15 - 2, L15 + 10, [0, 1], EASE_OUT) * (1 - ramp(g, CARD - 8, CARD, [0, 1], EASE_IN_OUT));
-  const at: Vec3 = [lerp(START_AT[0], FRONT[0], go), 0, lerp(START_AT[2], FRONT[2], go) + 0.22 * lean];
+  const at: Vec3 = [lerp(START_AT[0], FRONT[0], go), 0, lerp(START_AT[2], FRONT[2], go) + 0.12 * lean];
 
   // ---- Glances at the three cards (left, centre, right) as they pop up, then back to the camera.
   const k = (a: number) => [a - 3, a + 5, a + 26, a + 32];

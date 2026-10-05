@@ -24,7 +24,9 @@ import { FINAL, FOTO, GANCHO, GIRO, JEFE, MENSAJE, TAREA } from "./beats";
 export const IaOverlays: React.FC = () => {
   const frame = useCurrentFrame();
   return (
-    <AbsoluteFill style={{ pointerEvents: "none" }}>
+    // Opacity just under 1: the cards are then never "opaque" to Chrome's compositor, which otherwise
+    // culls a misplaced strip of the WebGL canvas under them (it showed the scene's background colour).
+    <AbsoluteFill style={{ pointerEvents: "none", opacity: 0.995 }}>
       {/* Hook: her endless message, his request to the AI, the title, the switch going OFF. */}
       <LoveMessage frame={frame} at={GANCHO.START} out={GANCHO.TYPE - 4} />
       <AIChat
@@ -53,6 +55,8 @@ export const IaOverlays: React.FC = () => {
 
       <SocialPost frame={frame} at={FOTO.POST} out={FOTO.REWIND} />
       <RewindFX frame={frame} at={FOTO.REWIND} out={FOTO.REWIND + 30} />
+      {/* The toy car is tiny in the wide reveal: point it out. */}
+      <MontageLabel frame={frame} at={FOTO.REVEAL + 8} out={FOTO.END - 12} text="¡ES DE JUGUETE!" x={500} y={1080} color={2} rotate={-4} />
 
       {/* The turn: his own message; the switch back ON; «¿Qué almuerzo?» beside a full plate. */}
       <MessageCallback frame={frame} at={GIRO.YA} sentAt={GIRO.SENT} replyAt={GIRO.REPLY} out={GIRO.PREGUNTA - 4} />

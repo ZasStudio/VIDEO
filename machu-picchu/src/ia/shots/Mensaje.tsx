@@ -54,7 +54,7 @@ export const MensajeShot: React.FC = () => {
   // =====================================================================================
   // Top: CON IA — relaxed, the laptop does the work.
   const drift = ramp(g, START, END, [0, 1], (x) => x);
-  const topCam = halfAim(lerp3([3.3, 3.7, 12.4], [3.2, 3.6, 11.6], drift), BODY, 400, 640, 0);
+  const topCam = halfAim(lerp3([2.3, 3.7, 12.4], [2.2, 3.6, 11.6], drift), BODY, 400, 640, 0);
   const sipAt = [START + 40, L03 + 30, L04 + 20];
   const sip = Math.max(...sipAt.map((s) => windowIn(g, s, s + 34, 8)));
   const shrug = g >= SI + 4 ? windowIn(g, SI + 4, SI + 26, 6) : 0;
@@ -109,7 +109,7 @@ export const MensajeShot: React.FC = () => {
   if (g >= L04) hunched = chicoTalk(g, hunched, 0.4 * (1 - slump) + 0.15);
   // The camera: a slow creep in; a small snap closer on the «Sí».
   const creep = ramp(g, START, SI, [0, 0.5], (x) => x) + ramp(g, SI, SI + 8, [0, 0.5], EASE_OUT);
-  const botCam = halfAim(lerp3([3.4, 3.9, 14.6], [3.25, 3.6, 12.6], creep), BODY, 450, 1115, 960);
+  const botCam = halfAim(lerp3([2.4, 3.9, 15.2], [2.3, 3.6, 13.2], creep), BODY, 450, 1135, 960);
   const phoneOn = 1;
 
   return (
