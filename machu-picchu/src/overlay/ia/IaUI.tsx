@@ -175,9 +175,15 @@ export const SparkleIcon: React.FC<IconProps & { crossed?: boolean; sad?: boolea
 };
 
 /** Glossy heart (100 x 100 box). */
-export const HeartIcon: React.FC<IconProps & { color?: string }> = ({ size = 100, color = "#FF3B5C", style }) => (
+export const HeartIcon: React.FC<IconProps & { color?: string; outline?: string }> = ({ size = 100, color = "#FF3B5C", outline, style }) => (
   <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: "block", overflow: "visible", ...style }}>
-    <path d="M50 90 C22 70 6 54 6 33 C6 18 17 8 31 8 C40 8 47 13 50 21 C53 13 60 8 69 8 C83 8 94 18 94 33 C94 54 78 70 50 90 Z" fill={color} />
+    <path
+      d="M50 90 C22 70 6 54 6 33 C6 18 17 8 31 8 C40 8 47 13 50 21 C53 13 60 8 69 8 C83 8 94 18 94 33 C94 54 78 70 50 90 Z"
+      fill={color}
+      stroke={outline}
+      strokeWidth={outline ? 9 : 0}
+      paintOrder="stroke"
+    />
     <ellipse cx={27} cy={29} rx={10} ry={6.5} transform="rotate(-38 27 29)" fill="#FFFFFF" opacity={0.55} />
   </svg>
 );
@@ -340,13 +346,13 @@ const RewindGlyph: React.FC<{ size: number; color?: string }> = ({ size, color =
 
 const EMOJI_RE = /(💙|❤️|❤|👀|📚|💼|💌|☀️|☀|💬|✨)/u;
 
-const EmojiGlyph: React.FC<{ ch: string; size: number }> = ({ ch, size }) => {
+const EmojiGlyph: React.FC<{ ch: string; size: number; light?: boolean }> = ({ ch, size, light }) => {
   switch (ch) {
     case "💙":
-      return <HeartIcon size={size} color="#3B82F6" />;
+      return <HeartIcon size={size} color="#3B82F6" outline={light ? "#FFFFFF" : undefined} />;
     case "❤️":
     case "❤":
-      return <HeartIcon size={size} />;
+      return <HeartIcon size={size} outline={light ? "#FFFFFF" : undefined} />;
     case "👀":
       return <EyesIcon size={size * 1.25} />;
     case "📚":
@@ -369,16 +375,17 @@ const EmojiGlyph: React.FC<{ ch: string; size: number }> = ({ ch, size }) => {
 
 /**
  * Text with its emoji (💙 ❤️ 👀 📚 💼 💌 ☀️ 💬 ✨) replaced by inline SVG icons of `size` px (about
- * the font size). Works inside any styled text block (wraps like text).
+ * the font size). Works inside any styled text block (wraps like text). `light`: hearts get a
+ * white outline (for text on blue bubbles).
  */
-export const RichText: React.FC<{ text: string; size: number }> = ({ text, size }) => {
+export const RichText: React.FC<{ text: string; size: number; light?: boolean }> = ({ text, size, light }) => {
   const parts = text.split(EMOJI_RE);
   return (
     <>
       {parts.map((p, i) =>
         i % 2 === 1 ? (
           <span key={i} style={{ display: "inline-block", verticalAlign: `${-size * 0.16}px`, margin: `0 ${size * 0.06}px`, lineHeight: 0 }}>
-            <EmojiGlyph ch={p} size={size} />
+            <EmojiGlyph ch={p} size={size} light={light} />
           </span>
         ) : (
           <React.Fragment key={i}>{p}</React.Fragment>
@@ -628,7 +635,7 @@ export const AIChat: React.FC<{
                   opacity: clamp01(ub * 3),
                 }}
               >
-                <RichText text={prompt} size={34} />
+                <RichText text={prompt} size={34} light />
               </div>
             </div>
           ) : null}
@@ -845,7 +852,20 @@ export const IaSwitchBadge: React.FC<{ frame: number; at: number; out: number; t
         <div style={{ fontWeight: 900, fontSize: 92, color: "#FFFFFF", lineHeight: 1, letterSpacing: 1 }}>IA:</div>
         <div style={{ ...tile(fromCol, off ? 160 : 210), filter: `grayscale(${dimOld}) brightness(${1 - 0.35 * dimOld})`, transform: `scale(${1 - 0.18 * dimOld})` }}>
           {fromLbl}
-          <div style={{ position: "absolute", left: 14, right: 14, top: 60, height: 10, borderRadius: 10, background: "#FFFFFF", transform: `scaleX(${strike}) rotate(-8deg)`, transformOrigin: "0% 50%" }} />
+          <div
+            style={{
+              position: "absolute",
+              left: -6,
+              right: -6,
+              top: 58,
+              height: 14,
+              borderRadius: 14,
+              background: K.red,
+              border: "4px solid #FFFFFF",
+              transform: `rotate(-24deg) scaleX(${strike})`,
+              transformOrigin: "0% 50%",
+            }}
+          />
         </div>
         <svg width={80 * arrowK + 1} height={60} viewBox={`0 0 ${80 * arrowK + 1} 60`} style={{ display: "block", overflow: "visible" }}>
           <path d={`M4 30 H${Math.max(4, 80 * arrowK - 10)}`} stroke="#FFFFFF" strokeWidth={10} strokeLinecap="round" />
@@ -1064,8 +1084,20 @@ export const SplitLabels: React.FC<{ frame: number; at: number; out: number; sen
             transformOrigin: "100% 0%",
           }}
         >
-          <div style={{ fontFamily: UI, fontWeight: 700, fontSize: 29, lineHeight: 1.32, color: "#FFFFFF", whiteSpace: "pre-wrap", flexShrink: 0 }}>
-            <RichText text={poem.text} size={27} />
+          <div
+            style={{
+              fontFamily: UI,
+              fontWeight: 700,
+              fontSize: 29,
+              lineHeight: 1.32,
+              color: "#FFFFFF",
+              whiteSpace: "pre-wrap",
+              flexShrink: 0,
+              WebkitMaskImage: poem.text.length > 300 ? "linear-gradient(180deg, transparent 0px, black 70px)" : undefined,
+              maskImage: poem.text.length > 300 ? "linear-gradient(180deg, transparent 0px, black 70px)" : undefined,
+            }}
+          >
+            <RichText text={poem.text} size={27} light />
             {!poem.done ? <Caret frame={frame} color="#FFFFFF" h={30} solid /> : null}
           </div>
         </div>
@@ -1176,10 +1208,10 @@ export const MessageCallback: React.FC<{ frame: number; at: number; out: number;
   if (frame >= replyAt) {
     const d = frame - replyAt;
     for (let i = 0; i < 12; i++) {
-      const a = -Math.PI * 0.95 + (i / 11) * Math.PI * 1.1 + (rand(i * 2.3) - 0.5) * 0.3;
+      const a = -Math.PI * 0.2 + (i / 11) * Math.PI * 0.5 + (rand(i * 2.3) - 0.5) * 0.25;
       const sp = 9 + rand(i * 4.1) * 8;
-      const x = Math.cos(a) * sp * d * Math.pow(0.95, d) * 1.4;
-      const y = Math.sin(a) * sp * d * Math.pow(0.95, d) - d * 1.2;
+      const x = Math.cos(a) * sp * d * Math.pow(0.94, d) * 2.4;
+      const y = Math.sin(a) * sp * d * Math.pow(0.94, d) * 1.6 - d * 0.6;
       const o = 1 - ramp(frame, replyAt + 14 + (i % 4) * 3, replyAt + 30 + (i % 4) * 3);
       if (o <= 0) continue;
       const s = 26 + rand(i * 7.7) * 26;
@@ -1248,7 +1280,7 @@ export const MessageCallback: React.FC<{ frame: number; at: number; out: number;
             style={{
               position: "absolute",
               left: 30,
-              top: top + 146,
+              top: top + 170,
               padding: "18px 30px",
               borderRadius: 34,
               borderBottomLeftRadius: 8,
@@ -1279,9 +1311,9 @@ export const MessageCallback: React.FC<{ frame: number; at: number; out: number;
       </div>
       {/* Heart burst from her bubble */}
       {frame >= replyAt && c.opacity > 0 ? (
-        <div style={{ position: "absolute", left: 290, top: 270 + top + 186, opacity: c.opacity }}>
+        <div style={{ position: "absolute", left: 500, top: 270 + top + 212, opacity: c.opacity }}>
           {bigHeart > 0.001 ? (
-            <div style={{ position: "absolute", left: 220, top: -40, transform: `translate(-50%, -50%) scale(${bigHeart}) rotate(${-10 + 10 * Math.sin((frame - replyAt) * 0.3)}deg)`, opacity: clamp01(bigHeart * 1.5) }}>
+            <div style={{ position: "absolute", left: 130, top: 0, transform: `translate(-50%, -50%) scale(${bigHeart}) rotate(${-10 + 10 * Math.sin((frame - replyAt) * 0.3)}deg)`, opacity: clamp01(bigHeart * 1.5) }}>
               <HeartIcon size={150} />
             </div>
           ) : null}
@@ -1459,7 +1491,10 @@ export const AIErrorPage: React.FC<{ frame: number; at: number; out: number; y?:
         </div>
         <div style={{ padding: "34px 50px 44px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
           <SparkleIcon size={150} sad style={{ transform: `rotate(${droop}deg)` }} />
-          <div style={{ marginTop: 18, fontWeight: 900, fontSize: 50, lineHeight: 1.1, color: K.ink }}>No se puede acceder a la IA</div>
+          <div style={{ marginTop: 18, fontWeight: 900, fontSize: 50, lineHeight: 1.1, color: K.ink }}>
+            No se puede acceder
+            <br />a la IA
+          </div>
           <div style={{ marginTop: 16, fontWeight: 700, fontSize: 34, lineHeight: 1.2, color: K.sub }}>Este asistente nunca existió.</div>
           <div style={{ marginTop: 16, fontWeight: 800, fontSize: 22, letterSpacing: 2, color: "#A0A7B8" }}>ERR_IA_NO_EXISTE</div>
           <div
@@ -1589,7 +1624,7 @@ export const TypedDoc: React.FC<{ frame: number; at: number; out: number; y?: nu
           >
             Palabras: {n}
           </div>
-          <div style={{ fontWeight: 700, fontSize: 26, color: "#A0A7B8", marginLeft: done ? 26 : 0 }}>meta: 2 000</div>
+          <div style={{ fontWeight: 700, fontSize: 26, color: "#A0A7B8", marginLeft: done ? 64 : 0 }}>meta: 2 000</div>
         </div>
       </div>
       {confetti.length > 0 ? <div style={{ position: "absolute", left: 230, top: y + 400, opacity: c.opacity }}>{confetti}</div> : null}
@@ -2055,7 +2090,7 @@ export const EndCard: React.FC<{ frame: number; at: number }> = ({ frame, at }) 
   });
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>
-      <AbsoluteFill style={{ clipPath: `circle(${open * 1150}px at 500px 760px)`, overflow: "hidden" }}>
+      <AbsoluteFill style={{ clipPath: `circle(${open * 1500}px at 500px 760px)`, overflow: "hidden" }}>
         <AbsoluteFill style={{ background: "radial-gradient(circle at 50% 40%, #9B5CFF 0%, #6A3CFF 40%, #C2309A 80%, #FF4F9A 100%)" }} />
         <div
           style={{

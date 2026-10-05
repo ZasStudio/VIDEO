@@ -20,16 +20,17 @@ import { influencerTalk } from "../talk";
 // REVEAL the trick is clear. L12: the influencer turns to us, unbothered, lowers its sunglasses:
 // «Todo es cuestión de perspectiva.»
 
-const FOV = 40;
 const INF = LOT.influencer;
-/** The phone's view (the "post"): the influencer and the car framed between y ≈ 420 and 1180. */
-const POST: Cam = aim([LOT.phone[0], LOT.phone[1], LOT.phone[2] - 0.05], FOV, [INF[0], 1.05, INF[2]], 600, 790, 8);
-const POST_IN: Cam = aim([LOT.phone[0], LOT.phone[1], LOT.phone[2] - 0.35], FOV, [INF[0], 1.05, INF[2]], 600, 790, 8);
-/** Behind-the-scenes: the toy car big in the foreground, the influencer small behind it. */
-const REVEAL: Cam = aim([1.75, 1.75, 6.2], FOV, [LOT.stool[0], LOT.stoolTop + 0.1, LOT.stool[2]], 420, 1080, 10);
-const L12CAM: Cam = aim([1.55, 1.65, 5.6], FOV, [LOT.stool[0], LOT.stoolTop + 0.1, LOT.stool[2]], 400, 1110, 10);
-/** Mid-point of the pull-back: up and out to the side (a swooping rewind). */
-const MID_POS: Vec3 = [1.1, 1.9, 5.4];
+const CAR: Vec3 = [LOT.stool[0], LOT.stoolTop + 0.12, LOT.stool[2]];
+/** The phone's view (the "post", a tele lens): the influencer behind the car, y ≈ 460-1180. */
+const POST: Cam = aim([LOT.phone[0], LOT.phone[1], LOT.phone[2] - 0.05], 36, [INF[0], 1.05, INF[2]], 640, 820, 8);
+const POST_IN: Cam = aim([LOT.phone[0], LOT.phone[1], LOT.phone[2] - 0.2], 35, [INF[0], 1.05, INF[2]], 640, 820, 8);
+/** Behind-the-scenes (wide lens), from the left of the phone: the toy car big in the foreground
+ * on its stool, the influencer small behind, the backdrop's edge, its stand and the friend. */
+const REVEAL: Cam = aim([-0.7, 1.45, 6.6], 50, CAR, 690, 990, 10);
+const L12CAM: Cam = aim([-0.55, 1.45, 6.2], 48, CAR, 720, 1010, 10);
+/** Mid-point of the pull-back: up and back (a swooping rewind). */
+const MID_POS: Vec3 = [-0.6, 1.9, 7.6];
 
 export const FotoShot: React.FC = () => {
   const g = useCurrentFrame() + SHOTS.foto.from;
@@ -47,7 +48,8 @@ export const FotoShot: React.FC = () => {
   // Quadratic Bézier through MID_POS for the position; the target slides straight.
   const b = back;
   const pos: Vec3 = [0, 1, 2].map((i) => (1 - b) * (1 - b) * p0[i] + 2 * (1 - b) * b * MID_POS[i] + b * b * p1[i]) as Vec3;
-  const cam: Cam = { position: pos, target: lerp3(t0, t1, back), fov: FOV, roll: 0.06 * Math.sin(Math.PI * back) };
+  const fov = POST.fov + (REVEAL.fov - POST.fov) * back + (L12CAM.fov - REVEAL.fov) * settle * back;
+  const cam: Cam = { position: pos, target: lerp3(t0, t1, back), fov, roll: 0.06 * Math.sin(Math.PI * back) };
 
   // ---- Influencer: the pose for the photo; on L12 it turns to us and lowers the sunglasses.
   const toCam = Math.atan2(cam.position[0] - INF[0], cam.position[2] - INF[2]);

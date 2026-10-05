@@ -72,9 +72,9 @@ export const STUDIO = { x0: -7, x1: 7, wallZ: -1.3, height: 7 };
 export const NUBI_SPOT: V3 = [0, 0, -0.2];
 /** The IA switch: plate centre on the wall, the lever's pivot and arm length. */
 export const SWITCH = {
-  x: 1.75,
+  x: 1.98,
   plateY: 1.3,
-  pivot: [1.75, 1.15, STUDIO.wallZ + 0.36] as V3,
+  pivot: [1.22, 1.15, STUDIO.wallZ + 0.36] as V3,
   arm: 0.42,
   /** Lever angle (radians above horizontal) at ON / OFF. */
   on: 0.6,
@@ -603,7 +603,7 @@ export const IaSwitch: React.FC<{ lever: number; led: number; t: number; jolt?: 
       back: rbox(1.15, 1.62, 0.14, 0.08),
       plate: rbox(1.0, 1.46, 0.08, 0.07),
       stripe: new THREE.BoxGeometry(1.0, 0.07, 0.02),
-      slot: rbox(0.2, 0.86, 0.05, 0.05),
+      bracket: rbox(0.5, 0.3, 0.28, 0.05),
       ear: rbox(0.08, 0.26, 0.26, 0.03),
       hub: new THREE.CylinderGeometry(0.1, 0.1, 0.34, 20),
       arm: rbox(0.1, 0.1, SWITCH.arm, 0.04),
@@ -623,7 +623,7 @@ export const IaSwitch: React.FC<{ lever: number; led: number; t: number; jolt?: 
   const a = leverAngle(lever);
   const z0 = STUDIO.wallZ;
   const P = SWITCH.pivot;
-  const lampX = SWITCH.x + 0.33;
+  const lampX = SWITCH.x - 0.24;
   return (
     <group>
       <group position={[SWITCH.x, SWITCH.plateY, z0 + 0.07]} rotation={[0, 0, jolt * 0.04]}>
@@ -633,7 +633,6 @@ export const IaSwitch: React.FC<{ lever: number; led: number; t: number; jolt?: 
         {[-0.66, 0.66].map((y) => (
           <mesh key={y} geometry={geos.stripe} material={toy("#24262E", { glow: 0.05 })} position={[0, y, 0.125]} />
         ))}
-        <mesh geometry={geos.slot} material={toy("#24262E", { rough: 0.6 })} position={[-0.12, -0.1, 0.12]} />
         {[
           [-0.42, 0.6],
           [0.42, 0.6],
@@ -643,28 +642,29 @@ export const IaSwitch: React.FC<{ lever: number; led: number; t: number; jolt?: 
           <mesh key={i} geometry={geos.screw} material={toy("#C9CED8", { metal: 0.5, rough: 0.3 })} rotation={[Math.PI / 2, 0, 0]} position={[x, y, 0.13]} />
         ))}
         <Text3D text="IA" size={0.3} look={LOOKS.white} position={[0, 0.43, 0.15]} />
-        <Text3D text="ON" size={0.13} look={LOOKS.green} position={[lampX - SWITCH.x, 0.12, 0.15]} />
-        <Text3D text="OFF" size={0.11} look={LOOKS.red} position={[lampX - SWITCH.x, -0.52, 0.15]} />
+        <Text3D text="ON" size={0.17} look={LOOKS.green} position={[0.18, 0.0, 0.15]} />
+        <Text3D text="OFF" size={0.15} look={LOOKS.red} position={[0.18, -0.4, 0.15]} />
       </group>
       {/* Lamps: ON (green, top), OFF (red, bottom). */}
-      <group position={[lampX, SWITCH.plateY - 0.05, z0 + 0.22]}>
+      <group position={[lampX, SWITCH.plateY, z0 + 0.22]}>
         <mesh geometry={geos.bezel} material={toy("#C9CED8", { metal: 0.5, rough: 0.3 })} />
         <mesh geometry={geos.lamp} material={green} />
         <Glow color="#2EE86A" size={0.9} opacity={0.75 * led} position={[0, 0, 0.08]} />
       </group>
-      <group position={[lampX, SWITCH.plateY - 0.33, z0 + 0.22]}>
+      <group position={[lampX, SWITCH.plateY - 0.4, z0 + 0.22]}>
         <mesh geometry={geos.bezel} material={toy("#C9CED8", { metal: 0.5, rough: 0.3 })} />
         <mesh geometry={geos.lamp} material={red} />
         <Glow color="#FF3030" size={0.9} opacity={0.8 * (1 - led)} position={[0, 0, 0.08]} />
       </group>
-      {/* Lever: ears, hub, arm and the red handle bar. */}
-      {[-0.2, 0.2].map((dx) => (
-        <mesh key={dx} geometry={geos.ear} material={toy("#3C4358", { metal: 0.2 })} position={[P[0] - 0.12 + dx, P[1], P[2] - 0.12]} />
+      {/* Lever on the left side of the box: bracket, ears, hub, arm and the red handle bar. */}
+      <mesh geometry={geos.bracket} material={toy("#3C4358", { metal: 0.2, glow: 0.08 })} position={[(P[0] + SWITCH.x - 0.55) / 2 + 0.02, P[1], z0 + 0.14]} />
+      {[-0.17, 0.17].map((dx) => (
+        <mesh key={dx} geometry={geos.ear} material={toy("#3C4358", { metal: 0.2 })} position={[P[0] + dx, P[1], P[2] - 0.12]} />
       ))}
-      <group position={[P[0] - 0.12, P[1], P[2]]} rotation={[-a, 0, 0]}>
+      <group position={[P[0], P[1], P[2]]} rotation={[-a, 0, 0]}>
         <mesh geometry={geos.hub} material={toy("#C9CED8", { metal: 0.5, rough: 0.3 })} rotation={[0, 0, Math.PI / 2]} />
         <mesh geometry={geos.arm} material={toy("#C9CED8", { metal: 0.5, rough: 0.3 })} position={[0, 0, SWITCH.arm / 2]} />
-        <mesh geometry={geos.handle} material={toy("#FF3B3B", { rough: 0.3, glow: 0.2 })} rotation={[0, 0, Math.PI / 2]} position={[0.12, 0, SWITCH.arm]} />
+        <mesh geometry={geos.handle} material={toy("#FF3B3B", { rough: 0.3, glow: 0.2 })} rotation={[0, 0, Math.PI / 2]} position={[0, 0, SWITCH.arm]} />
       </group>
     </group>
   );
@@ -763,11 +763,11 @@ export const StudioSet: React.FC<StudioSetProps> = ({ t = 0, power = POWER_ON, l
 
       <IaSwitch lever={lever} led={power.led} t={t} jolt={jolt} />
       {/* Cable from the switch up into the ceiling. */}
-      <mesh geometry={geos.cable} material={toy("#30333C")} position={[SWITCH.x - 0.35, SWITCH.plateY + 0.81 + 2.5, STUDIO.wallZ + 0.05]} scale={[1, 5, 1]} />
+      <mesh geometry={geos.cable} material={toy("#30333C")} position={[SWITCH.x + 0.35, SWITCH.plateY + 0.81 + 2.5, STUDIO.wallZ + 0.05]} scale={[1, 5, 1]} />
       {sparks >= 0 ? (
         <>
-          <SparkBurst t={sparks} position={[SWITCH.x, SWITCH.plateY + 0.1, STUDIO.wallZ + 0.4]} size={0.9} count={60} seed={4} color="#FFB02E" up={0.5} />
-          <SparkBurst t={sparks - 0.12} position={[SWITCH.x - 0.35, SWITCH.plateY + 0.75, STUDIO.wallZ + 0.2]} size={0.6} count={30} seed={9} color="#7FD8FF" hot="#FFFFFF" up={0.3} />
+          <SparkBurst t={sparks} position={[SWITCH.pivot[0] + 0.15, SWITCH.pivot[1], STUDIO.wallZ + 0.4]} size={0.9} count={60} seed={4} color="#FFB02E" up={0.5} />
+          <SparkBurst t={sparks - 0.12} position={[SWITCH.x + 0.35, SWITCH.plateY + 0.75, STUDIO.wallZ + 0.2]} size={0.6} count={30} seed={9} color="#7FD8FF" hot="#FFFFFF" up={0.3} />
         </>
       ) : null}
 
@@ -821,7 +821,7 @@ export const SquintEyes: React.FC<{ pose: NubiPose; squintR?: number; squintL?: 
         const sq = side > 0 ? squintR : squintL;
         const h = Math.max(0.1, (1 - blink) * eyeScale * (1 - 0.52 * sq));
         // A squinting eye keeps its top lower (the lid comes down) — sits a touch lower.
-        return <mesh key={side} geometry={geo} material={mat} position={[side * 2.3 + lookX * 0.5, 5.5 + lookY * 0.4 - 0.32 * sq, 4.45]} scale={[eyeW * (1 + 0.12 * sq), h, 1]} />;
+        return <mesh key={side} geometry={geo} material={mat} position={[side * 2.3 + lookX * 0.5, 5.5 + lookY * 0.4 - 0.15 * sq, 4.45]} scale={[eyeW * (1 + 0.12 * sq), h, 1]} />;
       })}
     </>
   );
@@ -962,14 +962,14 @@ export const ToyCar: React.FC<{ spin?: number }> = ({ spin = 0 }) => {
 
 /** Layout of the photo set (parking lot). The phone's lens is where the "post" camera sits. */
 export const LOT = {
-  influencer: [0.5, 0, -2.4] as V3,
-  backdrop: { x: 0.35, z: -3.4, w: 3.8, h: 3.9, bottom: 0.05 },
-  stool: [-0.22, 0, 2.55] as V3,
+  influencer: [0.7, 0, -2.4] as V3,
+  backdrop: { x: 0.5, z: -3.4, w: 3.7, h: 4.1, bottom: 0.05 },
+  stool: [-0.02, 0, 4.6] as V3,
   stoolTop: 0.82,
-  carScale: 0.62,
-  carYaw: -0.55,
-  phone: [-0.08, 1.0, 3.75] as V3,
-  friend: [2.55, 0, -3.65] as V3,
+  carScale: 0.36,
+  carYaw: -0.75,
+  phone: [-0.05, 1.0, 6.0] as V3,
+  friend: [2.6, 0, -3.65] as V3,
 };
 
 /** A boring parked car (box-ish hatchback). */

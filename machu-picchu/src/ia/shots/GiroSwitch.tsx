@@ -26,9 +26,9 @@ import { nubiTalk } from "../talk";
 // and finishes the thought with a little head tilt.
 
 const FOV = 38;
-const MID: Vec3 = [1.0, 1.05, -0.6];
-const C0: Cam = aim([2.1, 1.55, 7.6], FOV, MID, 520, 920, 10);
-const C1: Cam = aim([1.9, 1.5, 7.0], FOV, MID, 520, 920, 10);
+const FEET: Vec3 = [0.85, 0, -0.4];
+const C0: Cam = aim([2.6, 1.7, 10.6], FOV, FEET, 520, 1215, 10);
+const C1: Cam = aim([2.3, 1.6, 9.6], FOV, FEET, 520, 1215, 10);
 
 export const GiroSwitchShot: React.FC = () => {
   const g = useCurrentFrame() + SHOTS.giroSwitch.from;

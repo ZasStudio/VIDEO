@@ -236,6 +236,34 @@ export const HeldPhone: React.FC<{ raise: number; turn?: number; tilt?: number; 
   </group>
 );
 
+/** Any object (world units, centred) at a <Nubi size={2}>'s screen-right fin tip, kept upright. */
+export const HeldThing: React.FC<{ raise: number; scale?: number; lift?: number; children: React.ReactNode }> = ({ raise, scale = 1, lift = 0.15, children }) => (
+  <group rotation={[0, 0.12, -raise * 0.55]}>
+    <group scale={M * scale} position={[0, lift * M * scale, 0.1 * M]}>
+      {children}
+    </group>
+  </group>
+);
+
+/** A juice box with a bendy straw (world units, base at the origin). */
+export const JuiceBox: React.FC = () => {
+  const geos = useMemo(
+    () => ({
+      box: rbox(0.2, 0.3, 0.13, 0.025),
+      label: new THREE.CircleGeometry(0.055, 20),
+      straw: new THREE.CylinderGeometry(0.012, 0.012, 0.16, 8),
+    }),
+    [],
+  );
+  return (
+    <group>
+      <mesh geometry={geos.box} material={toy("#FFD23F", { glow: 0.16 })} position={[0, 0.15, 0]} />
+      <mesh geometry={geos.label} material={toy("#FF7043", { glow: 0.2 })} position={[0, 0.15, 0.0655]} />
+      <mesh geometry={geos.straw} material={toy("#FF5A79", { glow: 0.2 })} position={[0.04, 0.36, 0]} rotation={[0, 0, -0.25]} />
+    </group>
+  );
+};
+
 export const LAPTOP = { w: 1.04, d: 0.7, lidH: 0.66 };
 
 /**
@@ -549,7 +577,7 @@ const NightWindow: React.FC<{ position: V3; w: number; h: number; rotationY?: nu
     [w, h],
   );
   const frame = toy("#FFFFFF", { glow: 0.12, rough: 0.5 });
-  const curtain = toy("#FFB74D", { glow: 0.14, rough: 0.9 });
+  const curtain = toy("#FFF1C9", { glow: 0.16, rough: 0.9 });
   return (
     <group position={position} rotation={[0, rotationY, 0]}>
       <mesh geometry={geos.glass} material={texMat("night", 360, 260, nightDraw, { glow: 0.85, rough: 0.3 })} />
@@ -697,7 +725,7 @@ export const BOY = {
   x0: -4.6,
   x1: 3.6,
   z0: -3.0,
-  z1: 3.0,
+  z1: 14,
   h: 7,
   desk: { x0: 2.4, x1: 3.55, z0: -1.75, z1: 1.3, top: 1.25 },
   /** Stool base, and where a <Chico> sits on it (Nubi's feet), turned by `face` (rotationY:
@@ -1040,6 +1068,30 @@ const HeartPillow: React.FC<{ color: string; size?: number }> = ({ color, size =
     return g;
   }, []);
   return <mesh geometry={geo} material={toy(color, { glow: 0.16, rough: 0.8 })} scale={size} />;
+};
+
+/**
+ * Little hearts that pop out and float up from `at` (world units), from `start` seconds on
+ * (`t` in seconds). Deterministic.
+ */
+export const FloatingHearts: React.FC<{ t: number; start: number; at: V3; n?: number; color?: string }> = ({ t, start, at, n = 6, color = "#FF5C93" }) => {
+  if (t < start) return null;
+  return (
+    <group position={at}>
+      {Array.from({ length: n }, (_, i) => {
+        const u = t - start - i * 0.18;
+        if (u <= 0 || u > 1.6) return null;
+        const k = u / 1.6;
+        const grow = Math.min(1, u / 0.18);
+        const side = (i % 2 ? 1 : -1) * (0.25 + 0.12 * (i % 3));
+        return (
+          <group key={i} position={[side + 0.08 * Math.sin(u * 7 + i), 0.2 + 1.3 * k, 0.1 * i * 0.2]} rotation={[0, 0, 0.25 * Math.sin(u * 5 + i)]} scale={(0.22 + 0.05 * (i % 3)) * grow * (1 - k * k)}>
+            <HeartPillow color={i % 3 === 2 ? "#FF9EC7" : color} size={1} />
+          </group>
+        );
+      })}
+    </group>
+  );
 };
 
 export const GirlRoom: React.FC<{ t?: number }> = ({ t = 0 }) => {

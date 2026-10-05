@@ -29,9 +29,9 @@ import { nubiTalk } from "../talk";
 
 const FOV = 40;
 /** Composition: Nubi left of centre, the switch on the right; feet just above the captions. */
-const MID: Vec3 = [0.8, 1.0, -0.6];
-const C0: Cam = aim([0.55, 1.55, 9.6], FOV, MID, 520, 905, 12);
-const C1: Cam = aim([0.7, 1.45, 8.7], FOV, MID, 520, 905, 12);
+const FEET: Vec3 = [0.95, 0, -0.3];
+const C0: Cam = aim([1.2, 1.7, 12.6], FOV, FEET, 530, 1225, 12);
+const C1: Cam = aim([1.25, 1.6, 11.4], FOV, FEET, 530, 1225, 12);
 
 export const NubiShot: React.FC = () => {
   const g = useCurrentFrame() + SHOTS.nubi.from;

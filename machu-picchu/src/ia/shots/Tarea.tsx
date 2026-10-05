@@ -152,11 +152,11 @@ export const TareaShot: React.FC = () => {
     cam = wideA(ramp(g, START, L05, [0, 1], (x) => x));
   } else if (g < TYPE) {
     const u = ramp(g, L05 + 4, AHORA + 20, [0, 1], EASE_IN_OUT);
-    const pos = lerp3([0.85, 2.8, 8.1], [0.5, 1.75, 1.75], u);
+    const pos = lerp3([0.85, 2.8, 8.1], [0.55, 2.0, 3.4], u);
     cam = aim(pos, 40, [eyes[0], eyes[1] - 0.05, eyes[2]], mix(600, 545, u), mix(1010, 930, u));
   } else {
     const u = ramp(g, TYPE, END, [0, 1], (x) => x);
-    cam = aim(lerp3([-0.4, 2.7, 7.0], [-0.3, 2.6, 6.5], u), 40, [0.05, 1.0, -1.9], 560, 1000);
+    cam = aim(lerp3([-0.4, 3.6, 7.0], [-0.3, 3.5, 6.5], u), 40, [0.05, 1.0, -1.9], 560, 1000);
   }
 
   return (
@@ -174,9 +174,13 @@ export const TareaShot: React.FC = () => {
           <group position={LAPTOP_AT} rotation={[0, LAPTOP_RY, 0]}>
             <Laptop screen={screen} glow={g >= ERROR && g < TYPE ? 1.4 : 1} />
           </group>
-          <group position={hinge} rotation={[fall, 0, 0]}>
-            <group position={[-hinge[0], -hinge[1], -hinge[2]]}>
-              <Student position={studentPos} rotationY={ry} pose={pose} shadowOpacity={0.25} />
+          <group position={hinge} rotation={[0, -0.5 * clamp01(fall), 0]}>
+            <group rotation={[fall, 0, 0.18 * fall]}>
+              <group rotation={[0, 0.5 * clamp01(fall), 0]}>
+                <group position={[-hinge[0], -hinge[1], -hinge[2]]}>
+                  <Student position={studentPos} rotationY={ry} pose={pose} shadowOpacity={0.25} />
+                </group>
+              </group>
             </group>
           </group>
           <SweatDrops g={g} from={L05 + 6} to={L06 - 2} head={head} every={3} seed={3} />

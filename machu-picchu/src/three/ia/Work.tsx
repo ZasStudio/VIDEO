@@ -692,7 +692,7 @@ export const WORKER_AT: V3 = [0.25, 0, -2.45];
 export const WORKER_RY = -0.62;
 export const MONITOR_AT: V3 = [-0.75, OFFICE_DESK.top, -1.05];
 export const MONITOR_RY = 2.5;
-export const BOSS_AT: V3 = [2.55, 0, -1.3];
+export const BOSS_AT: V3 = [2.9, 0, -1.05];
 export const BOSS_RY = -0.95;
 /** Monitor screen (local to the monitor group): centre and size, facing local +z. */
 export const MONITOR_SCREEN = { y: 0.62, w: 1.12, h: 0.66 };

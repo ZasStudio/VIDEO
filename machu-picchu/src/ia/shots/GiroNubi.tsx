@@ -15,9 +15,9 @@ import { nubiTalk } from "../talk";
 // it starts L13 "Pero tampoco seríamos inútiles." Calm, slow push-in.
 
 const FOV = 38;
-const BODY: Vec3 = [NUBI_SPOT[0], 1.15, NUBI_SPOT[2]];
-const C0: Cam = aim([1.9, 1.5, 7.2], FOV, BODY, 600, 930, 10);
-const C1: Cam = aim([1.6, 1.4, 6.2], FOV, BODY, 600, 930, 10);
+const FEET: Vec3 = [NUBI_SPOT[0], 0, NUBI_SPOT[2]];
+const C0: Cam = aim([2.3, 1.6, 9.6], FOV, FEET, 600, 1215, 10);
+const C1: Cam = aim([2.0, 1.5, 8.6], FOV, FEET, 600, 1215, 10);
 
 export const GiroNubiShot: React.FC = () => {
   const g = useCurrentFrame() + SHOTS.giroNubi.from;

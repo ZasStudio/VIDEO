@@ -143,7 +143,7 @@ export const IaUISheet: React.FC = () => {
       <RewindFX frame={frame} at={974} out={1004} />
 
       {/* GIRO: his own message, the switch back on, «¿Qué almuerzo?». */}
-      <MessageCallback frame={frame} at={1012} out={1100} sentAt={1046} replyAt={1068} />
+      <MessageCallback frame={frame} at={1012} out={1100} sentAt={1036} replyAt={1066} />
       <IaSwitchBadge frame={frame} at={1112} out={1158} to="on" />
       <AIChat
         frame={frame}
