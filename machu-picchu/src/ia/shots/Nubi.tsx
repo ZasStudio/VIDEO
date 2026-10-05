@@ -66,7 +66,7 @@ export const NubiShot: React.FC = () => {
     hop: 0.8 * shuffle + 2.2 * leap,
     squash: 1 - 0.12 * crouch + 0.08 * leap - 0.16 * land,
     eyeScale: (0.84 + 0.25 * aww) * (1 - dark) + 1.25 * dark,
-    lookX: -0.35 * go * (1 - dark) + 0.75 * dart * dark,
+    lookX: -0.15 * go * (1 - dark) + 0.75 * dart * dark,
     lookY: 0.1 + 0.35 * dark * (dart === 0 ? 1 : 0.2),
     finL: 0.15 + 0.6 * aww - 0.1 * go + 0.3 * dark,
     finR: 0.15 + 0.6 * aww,
