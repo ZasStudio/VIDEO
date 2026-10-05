@@ -17,6 +17,7 @@ import { IaShort, IaSoundtrack } from "./ia/IaShort";
 import { IA } from "./ia/timeline";
 import { MATUSITA, MATUSITA_HEIGHT, MATUSITA_WIDTH } from "./matusita/timeline";
 import { MATUSITA_UI_SHEET_DURATION, MatusitaUISheet } from "./dev/MatusitaUISheet";
+import { IA_UI_SHEET_DURATION, IaUISheet } from "./dev/IaUISheet";
 import { OXI, OXI_HEIGHT, OXI_WIDTH } from "./oxigeno/timeline";
 import { INCA, INCA_HEIGHT, INCA_WIDTH } from "./inca/timeline";
 import { NubiShort, NubiSoundtrack } from "./nubi/NubiShort";
@@ -393,6 +394,14 @@ export const RemotionRoot: React.FC = () => {
           id="MatusitaUISheet"
           component={MatusitaUISheet}
           durationInFrames={MATUSITA_UI_SHEET_DURATION}
+          fps={30}
+          width={1080}
+          height={1920}
+        />
+        <Composition
+          id="IaUISheet"
+          component={IaUISheet}
+          durationInFrames={IA_UI_SHEET_DURATION}
           fps={30}
           width={1080}
           height={1920}
