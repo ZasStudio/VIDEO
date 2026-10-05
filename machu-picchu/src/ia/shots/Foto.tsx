@@ -23,12 +23,12 @@ import { influencerTalk } from "../talk";
 const INF = LOT.influencer;
 const CAR: Vec3 = [LOT.stool[0], LOT.stoolTop + 0.12, LOT.stool[2]];
 /** The phone's view (the "post", a tele lens): the influencer behind the car, y ≈ 460-1180. */
-const POST: Cam = aim([LOT.phone[0], LOT.phone[1], LOT.phone[2] - 0.05], 36, [INF[0], 1.05, INF[2]], 640, 820, 8);
-const POST_IN: Cam = aim([LOT.phone[0], LOT.phone[1], LOT.phone[2] - 0.2], 35, [INF[0], 1.05, INF[2]], 640, 820, 8);
+const POST: Cam = aim([LOT.phone[0], LOT.phone[1], LOT.phone[2] - 0.05], 36, [INF[0], 1.05, INF[2]], 570, 820, 8);
+const POST_IN: Cam = aim([LOT.phone[0], LOT.phone[1], LOT.phone[2] - 0.2], 35, [INF[0], 1.05, INF[2]], 570, 820, 8);
 /** Behind-the-scenes (wide lens), from the left of the phone: the toy car big in the foreground
  * on its stool, the influencer small behind, the backdrop's edge, its stand and the friend. */
-const REVEAL: Cam = aim([-0.7, 1.45, 6.6], 50, CAR, 690, 990, 10);
-const L12CAM: Cam = aim([-0.55, 1.45, 6.2], 48, CAR, 720, 1010, 10);
+const REVEAL: Cam = aim([-0.75, 1.35, 6.3], 50, CAR, 660, 1000, 10);
+const L12CAM: Cam = aim([-0.65, 1.35, 6.0], 48, CAR, 690, 1030, 10);
 /** Mid-point of the pull-back: up and back (a swooping rewind). */
 const MID_POS: Vec3 = [-0.6, 1.9, 7.6];
 

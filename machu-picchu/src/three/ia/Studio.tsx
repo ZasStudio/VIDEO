@@ -605,19 +605,19 @@ export const IaSwitch: React.FC<{ lever: number; led: number; t: number; jolt?: 
       stripe: new THREE.BoxGeometry(1.0, 0.07, 0.02),
       bracket: rbox(0.5, 0.3, 0.28, 0.05),
       ear: rbox(0.08, 0.26, 0.26, 0.03),
-      hub: new THREE.CylinderGeometry(0.1, 0.1, 0.34, 20),
-      arm: rbox(0.1, 0.1, SWITCH.arm, 0.04),
-      handle: new THREE.CapsuleGeometry(0.075, 0.38, 6, 14),
+      hub: new THREE.CylinderGeometry(0.12, 0.12, 0.36, 20),
+      arm: rbox(0.13, 0.13, SWITCH.arm, 0.05),
+      handle: new THREE.CapsuleGeometry(0.1, 0.5, 6, 14),
       lamp: new THREE.SphereGeometry(0.085, 16, 12),
       bezel: new THREE.TorusGeometry(0.09, 0.025, 8, 20),
       screw: new THREE.CylinderGeometry(0.03, 0.03, 0.02, 10),
     }),
     [],
   );
-  const green = useMemo(() => new THREE.MeshStandardMaterial({ color: "#2EE86A", emissive: new THREE.Color("#2EE86A"), toneMapped: false, roughness: 0.25 }), []);
+  const green = useMemo(() => new THREE.MeshStandardMaterial({ color: "#25E04E", emissive: new THREE.Color("#25E04E"), toneMapped: false, roughness: 0.25 }), []);
   const red = useMemo(() => new THREE.MeshStandardMaterial({ color: "#FF3030", emissive: new THREE.Color("#FF3030"), toneMapped: false, roughness: 0.25 }), []);
   green.emissiveIntensity = 0.03 + 1.6 * led;
-  green.color.set("#2EE86A").multiplyScalar(0.25 + 0.75 * led);
+  green.color.set("#25E04E").multiplyScalar(0.25 + 0.75 * led);
   red.emissiveIntensity = 0.03 + 1.6 * (1 - led);
   red.color.set("#FF3030").multiplyScalar(0.25 + 0.75 * (1 - led));
   const a = leverAngle(lever);
@@ -649,7 +649,7 @@ export const IaSwitch: React.FC<{ lever: number; led: number; t: number; jolt?: 
       <group position={[lampX, SWITCH.plateY, z0 + 0.22]}>
         <mesh geometry={geos.bezel} material={toy("#C9CED8", { metal: 0.5, rough: 0.3 })} />
         <mesh geometry={geos.lamp} material={green} />
-        <Glow color="#2EE86A" size={0.9} opacity={0.75 * led} position={[0, 0, 0.08]} />
+        <Glow color="#25E04E" size={0.9} opacity={0.75 * led} position={[0, 0, 0.08]} />
       </group>
       <group position={[lampX, SWITCH.plateY - 0.4, z0 + 0.22]}>
         <mesh geometry={geos.bezel} material={toy("#C9CED8", { metal: 0.5, rough: 0.3 })} />
@@ -664,7 +664,7 @@ export const IaSwitch: React.FC<{ lever: number; led: number; t: number; jolt?: 
       <group position={[P[0], P[1], P[2]]} rotation={[-a, 0, 0]}>
         <mesh geometry={geos.hub} material={toy("#C9CED8", { metal: 0.5, rough: 0.3 })} rotation={[0, 0, Math.PI / 2]} />
         <mesh geometry={geos.arm} material={toy("#C9CED8", { metal: 0.5, rough: 0.3 })} position={[0, 0, SWITCH.arm / 2]} />
-        <mesh geometry={geos.handle} material={toy("#FF3B3B", { rough: 0.3, glow: 0.2 })} rotation={[0, 0, Math.PI / 2]} position={[0, 0, SWITCH.arm]} />
+        <mesh geometry={geos.handle} material={toy("#FF3B3B", { rough: 0.3, glow: 0.2 })} rotation={[0, 0, Math.PI / 2]} position={[-0.08, 0, SWITCH.arm]} />
       </group>
     </group>
   );
@@ -700,7 +700,6 @@ export const StudioSet: React.FC<StudioSetProps> = ({ t = 0, power = POWER_ON, l
       caseBack: new THREE.PlaneGeometry(BOOKCASE.x1 - BOOKCASE.x0, BOOKCASE.top),
       frame: rbox(0.6, 0.75, 0.04, 0.02),
       art: new THREE.PlaneGeometry(0.5, 0.65),
-      cable: new THREE.CylinderGeometry(0.02, 0.02, 1, 6),
     }),
     [W, H],
   );
@@ -762,8 +761,6 @@ export const StudioSet: React.FC<StudioSetProps> = ({ t = 0, power = POWER_ON, l
       </group>
 
       <IaSwitch lever={lever} led={power.led} t={t} jolt={jolt} />
-      {/* Cable from the switch up into the ceiling. */}
-      <mesh geometry={geos.cable} material={toy("#30333C")} position={[SWITCH.x + 0.35, SWITCH.plateY + 0.81 + 2.5, STUDIO.wallZ + 0.05]} scale={[1, 5, 1]} />
       {sparks >= 0 ? (
         <>
           <SparkBurst t={sparks} position={[SWITCH.pivot[0] + 0.15, SWITCH.pivot[1], STUDIO.wallZ + 0.4]} size={0.9} count={60} seed={4} color="#FFB02E" up={0.5} />
@@ -787,7 +784,7 @@ export const StudioLights: React.FC<{ power: PowerState; warm?: number }> = ({ p
   const m = clamp01(power.main);
   const sky = new THREE.Color("#4A62C0").lerp(new THREE.Color("#FFF1E2"), m);
   const ground = new THREE.Color("#1B1A33").lerp(new THREE.Color("#8A6A5A"), m);
-  const ledCol = power.led > 0.5 ? "#2EE86A" : "#FF3030";
+  const ledCol = power.led > 0.5 ? "#25E04E" : "#FF3030";
   return (
     <>
       <hemisphereLight args={[sky, ground, 0.75 + 0.75 * m + 0.25 * warm]} />
@@ -964,9 +961,9 @@ export const ToyCar: React.FC<{ spin?: number }> = ({ spin = 0 }) => {
 export const LOT = {
   influencer: [0.7, 0, -2.4] as V3,
   backdrop: { x: 0.5, z: -3.4, w: 3.7, h: 4.1, bottom: 0.05 },
-  stool: [-0.02, 0, 4.6] as V3,
-  stoolTop: 0.82,
-  carScale: 0.36,
+  stool: [-0.1, 0, 4.6] as V3,
+  stoolTop: 0.77,
+  carScale: 0.3,
   carYaw: -0.75,
   phone: [-0.05, 1.0, 6.0] as V3,
   friend: [2.6, 0, -3.65] as V3,
@@ -1087,7 +1084,7 @@ export const LuxurySet: React.FC<{ t?: number; friendPose?: NubiPose; phone?: bo
         <mesh geometry={geos.sign} material={toy("#2F6FE0", { glow: 0.2 })} position={[0, 2.45, 0.05]} />
         <Text3D text="P" size={0.55} look={LOOKS.white} position={[0, 2.45, 0.12]} />
       </group>
-      <Cone position={[1.6, 0, 0.6]} />
+      <Cone position={[2.3, 0, 2.6]} />
       <Cone position={[-2.4, 0, -1.2]} />
 
       {/* The printed backdrop on two stands. */}

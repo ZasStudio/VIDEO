@@ -20,8 +20,8 @@ const FOV = 40;
 const FRONT: Vec3 = [0.15, 0, 1.25];
 const START_AT: Vec3 = [NUBI_SPOT[0], 0, 0.1];
 const BODY: Vec3 = [FRONT[0], 1.24, FRONT[2]];
-const C0: Cam = aim([0.35, 1.45, 9.6], FOV, BODY, 540, 870, 10);
-const C1: Cam = aim([0.25, 1.4, 9.1], FOV, BODY, 540, 870, 10);
+const C0: Cam = aim([0.35, 1.45, 9.6], FOV, BODY, 540, 890, 10);
+const C1: Cam = aim([0.25, 1.4, 9.1], FOV, BODY, 540, 890, 10);
 
 export const FinalShot: React.FC = () => {
   const g = useCurrentFrame() + SHOTS.final.from;

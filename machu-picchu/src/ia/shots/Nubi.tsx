@@ -30,8 +30,8 @@ import { nubiTalk } from "../talk";
 const FOV = 40;
 /** Composition: Nubi left of centre, the switch on the right; feet just above the captions. */
 const FEET: Vec3 = [0.95, 0, -0.3];
-const C0: Cam = aim([1.2, 1.7, 12.6], FOV, FEET, 530, 1225, 12);
-const C1: Cam = aim([1.25, 1.6, 11.4], FOV, FEET, 530, 1225, 12);
+const C0: Cam = aim([3.6, 1.7, 12.2], FOV, FEET, 520, 1225, 12);
+const C1: Cam = aim([3.5, 1.6, 11.0], FOV, FEET, 520, 1225, 12);
 
 export const NubiShot: React.FC = () => {
   const g = useCurrentFrame() + SHOTS.nubi.from;
@@ -60,7 +60,7 @@ export const NubiShot: React.FC = () => {
   // Eyes dart around: left, right, up.
   const dart = g < SW + 10 ? 0 : Math.round(Math.sin((g - SW - 10) * 0.35) * 2) / 2;
   const base: NubiPose = {
-    yaw: REACH_YAW * go * (1 - 0.6 * dark) + 0.08 * Math.sin(t * 1.3) * (1 - go),
+    yaw: 0.25 * (1 - go) + REACH_YAW * go * (1 - 0.6 * dark) + 0.08 * Math.sin(t * 1.3) * (1 - go),
     roll: 0.07 * (1 - go) * Math.sin(t * 2.1) - 0.05 * aww,
     pitch: 0.06 * (1 - go),
     hop: 0.8 * shuffle + 2.2 * leap,
