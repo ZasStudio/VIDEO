@@ -202,7 +202,7 @@ export const JefeShot: React.FC = () => {
   let cam: Cam;
   if (g < SLIDES) {
     const u = ramp(g, START, SLIDES, [0, 1], (x) => x);
-    cam = aim(lerp3([0.9, 3.3, 11.4], [1.0, 3.2, 10.8], u), 40, mid, 500, 960);
+    cam = aim(lerp3([0.9, 3.4, 12.3], [1.0, 3.3, 11.7], u), 40, mid, 495, 960);
   } else if (g < COFFEE1) {
     // Over the worker's head onto the monitor, nearly square-on.
     const u = ramp(g, SLIDES, COFFEE1, [0, 1], EASE_IN_OUT);
@@ -225,7 +225,7 @@ export const JefeShot: React.FC = () => {
     cam = aim(lerp3([0.2, 1.9, 5.6], [0.2, 1.85, 5.2], u), 40, wEyes, 560, 1020);
   } else if (g < STARE) {
     const u = ramp(g, L09, STARE, [0, 1], EASE_IN_OUT);
-    cam = aim(lerp3([0.9, 3.2, 11.0], [1.05, 3.1, 10.2], u), 40, mid, 500, 960);
+    cam = aim(lerp3([0.9, 3.3, 12.1], [1.0, 3.25, 11.5], u), 40, mid, 495, 960);
   } else {
     const u = ramp(g, STARE, END, [0, 1], (x) => x);
     cam = aim(lerp3([0.2, 1.65, 2.9], [0.2, 1.63, 2.55], u), 40, wEyes, 540, 860);
