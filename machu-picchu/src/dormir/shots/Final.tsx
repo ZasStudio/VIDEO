@@ -69,10 +69,10 @@ export const FinalShot: React.FC = () => {
   else if (g >= SMASH) finR = lerp(0.42 + 0.15 * impact, -0.1, ramp(g, SMASH + 4, SLEEP + 2, [0, 1], EASE_IN_OUT));
   const lunge = windUp * 0.35 + slam * 0.65 - ramp(g, SMASH + 4, SLEEP, [0, 1], EASE_IN_OUT) * (g >= SMASH ? 1 : 0);
   const awakePose: NubiPose = {
-    blink: 0,
+    blink: 0.85 * windowIn(g, SMASH - 3, SMASH + 5, 2),
     eyeScale: 1.04 + 0.1 * lean - 0.08 * sly + 0.3 * ringJolt,
-    pitch: 0.08 + 0.12 * lean - 0.05 * turn,
-    yaw: 0.45 * turn + 0.15 * windowIn(g, SMASH - 12, SMASH + 6, 3) - 0.15 * Math.max(0, lunge),
+    pitch: 0.04 + 0.06 * lean - 0.04 * turn,
+    yaw: 0.45 * turn * (1 - Math.max(0, lunge)) - 0.18 * Math.max(0, lunge),
     roll: 0.06 * sly * Math.sin(g * 0.12) - 0.22 * Math.max(0, lunge),
     lookX: 0.4 * sly * Math.sin((g - MILLONARIO) * 0.09) + 0.75 * turn,
     lookY: -0.08 * turn,
@@ -142,7 +142,7 @@ export const FinalShot: React.FC = () => {
           </group>
           <Nubi size={2} position={[NUBI_BED[0] + 0.2 * Math.max(0, lunge), NUBI_BED[1], NUBI_BED[2]]} pose={pose} shadow={false} palette={{ eyeRough: 0.6 }}>
             <HugPillow shift={-2.6 * Math.max(0, lunge)} />
-            {g < SLEEP ? <Lids pose={pose} droop={0.3 * turn + 0.3 * squint} tilt={-0.32 * Math.max(turn, squint)} color={NUBI_GREEN} /> : null}
+            {g < SLEEP ? <Lids pose={pose} droop={(0.3 * turn + 0.3 * squint) * (1 - Math.max(0, lunge))} tilt={-0.32 * Math.max(turn, squint)} color={NUBI_GREEN} /> : null}
           </Nubi>
         </Stage>
         <Zzz g={seam} cam={cam} at={[-0.55, NUBI_EYES[1] + 0.75, NUBI_BED[2]]} on={asleep ? ramp(g, SLEEP + 4, SLEEP + 8) : 0} every={11} />

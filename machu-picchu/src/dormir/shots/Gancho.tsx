@@ -114,7 +114,8 @@ export const GanchoShot: React.FC = () => {
         ...sleep,
         squash: (sleep.squash ?? 1) * (1 - 0.06 * flinch - 0.12 * impact),
         roll: (sleep.roll ?? 0) * (1 - windUp) - 0.22 * lunge,
-        yaw: (sleep.yaw ?? 0) + 0.3 * lunge,
+        // Turned a touch away so the chopping fin swings in front of the body, not behind it.
+        yaw: (sleep.yaw ?? 0) - 0.18 * lunge,
         finR,
         finL: (sleep.finL ?? 0) - 0.15 * flinch,
         eyeScale: 1,
