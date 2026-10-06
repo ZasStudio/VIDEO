@@ -1,0 +1,25 @@
+{
+  "_title": "¿Y si dormir te pagara?",
+  "_voices": "Magnific TTS, ElevenLabs v3. nubi = Nerea Escudero (1081: stability 0.45, similarity 0.75, speed 0.95); jefe = Ernesto Calderón (643, the same boss as in the AI short); panadero = Rodrigo Bustamante (1180, sleepy and grumpy); vecino = Gonzalo Bermúdez (888, smug and ironic).",
+  "_captions": "Same syntax as src/narration.json. Nubi: white with highlights (money in green ^g); jefe red (^r), panadero orange (^o), vecino cyan (^c).",
+  "lines": [
+    {"id": "L01", "voice": "nubi", "scene": "gancho", "tts": "[groggy] [annoyed] ¡Esta alarma me acaba de costar trescientos soles!", "captions": "¡ESTA ALARMA / ME ACABA DE COSTAR / 300^r SOLES!^r"},
+    {"id": "L02", "voice": "nubi", "scene": "gancho", "tts": "[mischievously] En mi mundo, dormir te paga cien soles por hora… [dramatic] y el problema empezó cuando todos quisieron hacerse ricos.", "captions": "EN MI MUNDO, / DORMIR^c TE PAGA / 100^g SOLES^g POR HORA… / Y EL PROBLEMA EMPEZÓ / CUANDO TODOS / QUISIERON HACERSE RICOS.^y"},
+    {"id": "L03", "voice": "jefe", "scene": "oficina", "tts": "[stern] ¡Nubi! ¿Por qué sigues despierto?", "captions": "¡NUBI!^r / ¿POR^r QUÉ^r SIGUES^r / DESPIERTO?^r"},
+    {"id": "L04", "voice": "nubi", "scene": "oficina", "tts": "[apologetic] Perdón, jefe. Ya me pongo a trabajar.", "captions": "PERDÓN, JEFE. / YA ME PONGO / A TRABAJAR.^y"},
+    {"id": "L05", "voice": "nubi", "scene": "oficina", "tts": "[whispers] [proudly] Por fin… talento reconocido.", "captions": "POR FIN… / TALENTO^y RECONOCIDO.^y"},
+    {"id": "L06", "voice": "nubi", "scene": "problema", "tts": "Pero había una condición: solo cobrabas dormido. [pause 0.2s] Fingir no servía.", "captions": "PERO HABÍA / UNA CONDICIÓN: / SOLO COBRABAS / DORMIDO.^c / FINGIR^r NO SERVÍA.^r"},
+    {"id": "L07", "voice": "nubi", "scene": "problema", "tts": "[strained] Duérmete… duérmete… [shouting] ¡NO PIENSES EN EL DINERO!", "captions": "DUÉRMETE… / DUÉRMETE… / ¡NO PIENSES^r / EN EL DINERO!^g"},
+    {"id": "L08", "voice": "nubi", "scene": "mundo", "tts": "Y si todos ganaban durmiendo… [suspicious] ¿quién iba a preparar la comida?", "captions": "Y SI TODOS / GANABAN DURMIENDO… / ¿QUIÉN IBA A / PREPARAR LA COMIDA?^o"},
+    {"id": "L09", "voice": "panadero", "scene": "mundo", "tts": "[sleepy] [grumpy] Un pan… cien soles.", "captions": "UN^o PAN…^o / 100^o SOLES.^o"},
+    {"id": "L10", "voice": "nubi", "scene": "mundo", "tts": "[shocked] ¿Tiene oro?", "captions": "¿TIENE ORO?^y"},
+    {"id": "L11", "voice": "panadero", "scene": "mundo", "tts": "[annoyed] No. Me hiciste levantar.", "captions": "NO.^o / ME^o HICISTE^o / LEVANTAR.^o"},
+    {"id": "L12", "voice": "nubi", "scene": "enemigo", "tts": "[ominous] Entonces apareció el negocio más odiado.", "captions": "ENTONCES APARECIÓ / EL NEGOCIO / MÁS ODIADO.^r"},
+    {"id": "L13", "voice": "vecino", "scene": "enemigo", "tts": "[smug] Cincuenta soles… y hago silencio.", "captions": "50^c SOLES…^c / Y^c HAGO^c SILENCIO.^c"},
+    {"id": "L14", "voice": "nubi", "scene": "enemigo", "tts": "[deadpan] Este encontró cómo ganar despierto.", "captions": "ESTE ENCONTRÓ / CÓMO GANAR / DESPIERTO.^y"},
+    {"id": "L15", "voice": "nubi", "scene": "giro", "tts": "[excited] ¡Al fin gané mil soles! ¡Era rico! [pause 0.3s] [nervous] Hasta que abrí los ojos…", "captions": "¡AL FIN GANÉ / 1000^g SOLES!^g / ¡ERA RICO!^y / HASTA QUE / ABRÍ LOS OJOS…"},
+    {"id": "L16", "voice": "nubi", "scene": "giro", "tts": "[outraged] ¡Trabajé toda la noche para quedar en cero!", "captions": "¡TRABAJÉ / TODA LA NOCHE / PARA QUEDAR / EN CERO!^r"},
+    {"id": "L17", "voice": "nubi", "scene": "final", "tts": "[playful] Ahora dime: si te pagaran cien soles por hora de sueño… ¿cuánto ganarías tú? [mischievously] ¿Y quién sería millonario en tu casa?", "captions": "AHORA DIME: / SI TE PAGARAN / 100^g SOLES^g POR HORA / DE SUEÑO… / ¿CUÁNTO GANARÍAS TÚ?^y / ¿Y QUIÉN SERÍA / MILLONARIO^g / EN TU CASA?"},
+    {"id": "L18", "voice": "nubi", "scene": "final", "tts": "[threatening] Tú y yo tenemos un problema.", "captions": "TÚ Y YO / TENEMOS UN PROBLEMA.^r"}
+  ]
+}

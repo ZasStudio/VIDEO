@@ -14,6 +14,8 @@ import { TiempoShort, TiempoSoundtrack } from "./tiempo/TiempoShort";
 import { TIEMPO, TIEMPO_HEIGHT, TIEMPO_WIDTH } from "./tiempo/timeline";
 import { MatusitaShort, MatusitaSoundtrack } from "./matusita/MatusitaShort";
 import { IaShort, IaSoundtrack } from "./ia/IaShort";
+import { DormirShort, DormirSoundtrack } from "./dormir/DormirShort";
+import { DORMIR } from "./dormir/timeline";
 import { IA } from "./ia/timeline";
 import { MATUSITA, MATUSITA_HEIGHT, MATUSITA_WIDTH } from "./matusita/timeline";
 import { MATUSITA_UI_SHEET_DURATION, MatusitaUISheet } from "./dev/MatusitaUISheet";
@@ -225,6 +227,24 @@ export const RemotionRoot: React.FC = () => {
         id="IaShortAudio"
         component={IaSoundtrack}
         durationInFrames={IA.DURATION}
+        fps={FPS}
+        width={1080}
+        height={1920}
+      />
+      {/* Nubi's vertical comedy short: what if sleeping paid you (75 s). */}
+      <Composition
+        id="DormirShort"
+        component={DormirShort}
+        durationInFrames={DORMIR.DURATION}
+        fps={FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{ withAudio: true }}
+      />
+      <Composition
+        id="DormirShortAudio"
+        component={DormirSoundtrack}
+        durationInFrames={DORMIR.DURATION}
         fps={FPS}
         width={1080}
         height={1920}

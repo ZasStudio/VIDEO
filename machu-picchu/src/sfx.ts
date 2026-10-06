@@ -31,7 +31,8 @@ export type Sfx =
   | `agua/${string}`
   | `tiempo/${string}`
   | `matusita/${string}`
-  | `ia/${string}`;
+  | `ia/${string}`
+  | `dormir/${string}`;
 
 /** [global frame, sound, volume, optional max length in frames, optional frames skipped at its start] */
 export type Cue = [number, Sfx, number, number?, number?];
