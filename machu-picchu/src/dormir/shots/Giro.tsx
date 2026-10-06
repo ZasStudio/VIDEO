@@ -155,10 +155,15 @@ export const GiroShot: React.FC = () => {
   const dist = lerp(8.3, 7.3, orbit) * (1 - settle) + 7.9 * settle - 0.6 * ramp(g, L16, END, [0, 1], (x) => x);
   const focus: Vec3 = [0, 1.75, NUBI_BED[2]];
   const pos: Vec3 = [focus[0] + Math.sin(ang) * dist, 2.85 - 0.25 * orbit * (1 - settle), focus[2] + Math.cos(ang) * dist];
-  const camA: Cam = aim(pos, FOV, NUBI_EYES, 575, 1030);
-  const camPhone: Cam = aim([pos[0] - 0.4, pos[1], pos[2] + 0.3], FOV, [-0.25, NUBI_EYES[1], NUBI_EYES[2]], 560, 1030);
-  const k = g < MASK ? 1 - ramp(g, MASK - 6, MASK + 4, [0, 1], EASE_IN_OUT) : 0;
-  const cam: Cam = { position: lerp3(camA.position, camPhone.position, k), target: lerp3(camA.target, camPhone.target, k), fov: FOV };
+  const camA: Cam = aim(pos, FOV, NUBI_EYES, 560, 1030);
+  // Awake (paying, then the charges): wider, Nubi right of centre so the phone up in its
+  // screen-left fin stays in frame (and clear of the right-hand button column).
+  const camPhone = (push: number): Cam => aim([-0.15, 2.8, NUBI_BED[2] + 9.6 - push], FOV, NUBI_EYES, 655, 1040);
+  const kStart = g < MASK ? 1 - ramp(g, MASK - 6, MASK + 4, [0, 1], EASE_IN_OUT) : 0;
+  const kEnd = ramp(g, OJOS - 2, OJOS + 10, [0, 1], EASE_IN_OUT);
+  const camB = camPhone(g < MASK ? 0.3 * ramp(g, START, MASK) : 0.8 * ramp(g, L16, END, [0, 1], (x) => x));
+  const k = Math.max(kStart, kEnd);
+  const cam: Cam = { position: lerp3(camA.position, camB.position, k), target: lerp3(camA.target, camB.target, k), fov: FOV };
 
   // ---- Counter.
   const soles = solesAt(g);

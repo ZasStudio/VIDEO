@@ -284,7 +284,7 @@ export const MundoShot: React.FC = () => {
   const pullBack = ramp(g, START + 6, L08 + 18, [0, 1], EASE_IN_OUT);
   const twoCam: Cam = pullBack >= 1 ? wideCam : { ...wideCam, position: lerp3(openCam.position, wideCam.position, pullBack), target: lerp3(openCam.target, wideCam.target, pullBack) };
   const cookHead = nubiPoint(COOK, 0, COOK_SIZE, cookPose, [0, 6.2, 2]);
-  const cookCam = aim([RESTO.sign[0] + 0.05, 2.4, 8.6 - 0.6 * ramp(g, QUIEN, WHIP_BACK)], FOV, cookHead, 560, 1040);
+  const cookCam = aim([RESTO.sign[0], 2.4, 8.6 - 0.6 * ramp(g, QUIEN, WHIP_BACK)], FOV, [RESTO.sign[0], cookHead[1], cookHead[2]], 540, 1040);
   const CUT_BAKER = YAWN - 1;
   const CUT_NUBI = L10 - 3;
   const CUT_BAKER2 = L11 - 3;
@@ -310,11 +310,11 @@ export const MundoShot: React.FC = () => {
   const bakerSoles = g < frozenAt ? earning(START, g) : g < RESLEEP + 6 ? earning(START, frozenAt) : earning(START, frozenAt) + 0.42 * (g - RESLEEP - 6);
   const bakerState = g >= frozenAt && g < RESLEEP + 6 ? "frozen" : "earning";
   const bakerRaw = counterAt(cam, bakerTop);
-  const bakerC = { ...bakerRaw, x: Math.min(860, Math.max(200, bakerRaw.x)), y: Math.min(1150, Math.max(330, bakerRaw.y)) };
+  const bakerC = { ...bakerRaw, x: Math.min(860, Math.max(200, bakerRaw.x)), y: Math.min(1150, Math.max(395, bakerRaw.y)) };
   const pointPulse = 1 + 0.07 * point * Math.max(0, Math.sin((g - ME) * 0.55));
   const cookBody = nubiPoint(COOK, 0, COOK_SIZE, cookPose, [0, 6.2, 0]);
   const cookRaw = counterAt(cam, [cookBody[0], COOK[1] + (COOK_SIZE / 10) * COOK_HAT_TOP - 0.2, cookBody[2]]);
-  const cookC = { ...cookRaw, x: Math.min(860, Math.max(200, cookRaw.x)), y: Math.min(1150, Math.max(330, cookRaw.y)) };
+  const cookC = { ...cookRaw, x: Math.min(860, Math.max(200, cookRaw.x)), y: Math.min(1150, Math.max(395, cookRaw.y)) };
   const cookOn = clamp01((toCook - 0.35) / 0.4);
   const bakerOn = clamp01((0.65 - toCook) / 0.4);
   const bakerHead = counterAt(cam, nubiPoint(BAKER, BAKER_YAW, BAKER_SIZE, bakerPose, [5.5, 8.5, 2], BAKER_CHUB));
