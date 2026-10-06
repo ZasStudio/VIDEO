@@ -16,11 +16,11 @@ const at = (s: number) => Math.round(s * FPS);
  */
 export const MUSIC_PARTS: MusicPart[] = [
   [0, GANCHO.SMASH, at(2.5), 0, 1],
-  [GANCHO.L02 - 6, PROBLEMA.START + 2, at(20.0), 6, 4],
+  [GANCHO.L02 - 14, PROBLEMA.START + 2, at(20.0) - 8, 4, 4],
   [PROBLEMA.START, PROBLEMA.PEEK + 4, at(42.5), 6, 2],
   [MUNDO.START, MUNDO.END, at(57.0), 6, 4],
   [GIRO.MASK, GIRO.OJOS + 2, at(87.5), 4, 2],
-  [FINAL.START, FINAL.ALARM, at(110.0), 8, 3],
+  [GIRO.END - 10, FINAL.ALARM, at(110.0) - 10, 6, 3],
   [FINAL.SMASH + 6, FINAL.END, at(1.0), 6, 1],
 ];
 
@@ -37,7 +37,8 @@ const gancho = (): Cue[] => {
     [START, "dormir/chaching", 0.55],
     [START + 5, "dormir/chaching", 0.45],
     [START + 10, "dormir/chaching", 0.5],
-    [ALARM, "dormir/alarm", 0.85, SMASH - ALARM + 2],
+    // The bell rings at full until the smash, which covers its short fade.
+    [ALARM, "dormir/alarm", 0.85, SMASH - ALARM + 8],
     [SMASH - 1, "dormir/smash", 1.0],
     [SMASH, "impact", 0.3],
     [TRESCIENTOS, "tiempo/drain", 0.3, 30],
@@ -114,7 +115,9 @@ const final = (): Cue[] => {
   const { START, ALARM, SMASH, SLEEP, CARD } = FINAL;
   return [
     [START - 2, "whoosh-short", 0.3],
-    [ALARM, "dormir/alarm", 0.5, SMASH - ALARM + 2],
+    [ALARM, "dormir/alarm", 0.5, SMASH - ALARM + 8],
+    // The bell recording rings for ~1.6 s: ring it again so it keeps going until the smash.
+    [ALARM + 44, "dormir/alarm", 0.5, SMASH - ALARM - 36],
     [SMASH - 1, "dormir/smash", 1.0],
     [SMASH, "impact", 0.3],
     [CARD, "pop", 0.35],
@@ -132,6 +135,8 @@ export const BEDS: Bed[] = [
   [MUNDO.START, MUNDO.BELL, "dormir/snore", 0.45],
   [ENEMIGO.START, ENEMIGO.DRILL, "dormir/snore", 0.45],
   [ENEMIGO.REVEAL, ENEMIGO.L14, "dormir/construction", 0.55, 2],
+  // Back in Nubi's room the noise goes on through the wall until Nubi pays for the silence.
+  [ENEMIGO.L14, GIRO.PAY + 3, "dormir/construction", 0.2, 2],
   [GIRO.MASK + 4, GIRO.OJOS, "dormir/snore", 0.4],
   [FINAL.SLEEP, FINAL.END, "dormir/snore", 0.55],
 ];
