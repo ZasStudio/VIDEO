@@ -14,8 +14,9 @@ export const DormirOverlays: React.FC = () => {
       <TitleSticker frame={frame} at={-4} out={GANCHO.CIEN - 12} />
       <RuleStamp frame={frame} at={GANCHO.CIEN - 3} out={GANCHO.END - 8} />
 
-      <PriceTag frame={frame} at={MUNDO.L09 + 6} out={MUNDO.END - 10} />
-      <SilenceSign frame={frame} at={ENEMIGO.L13 + 4} out={ENEMIGO.L14 - 4} />
+      {/* Gone before "Me hiciste levantar", where the baker points at his frozen counter under it. */}
+      <PriceTag frame={frame} at={MUNDO.L09 + 6} out={MUNDO.L10 - 4} y={370} />
+      <SilenceSign frame={frame} at={ENEMIGO.L13 + 4} out={ENEMIGO.L14 - 4} y={400} />
 
       {/* The turn: paying for silence, the night flying by, the three charges. */}
       <PayToast frame={frame} at={GIRO.PAY} out={GIRO.MASK + 4} />

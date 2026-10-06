@@ -35,15 +35,16 @@ import { nubiTalk } from "../talk";
 // asleep. The MONEY MONTAGE: the counter races S/0 → S/1000 by MIL (cha-ching popups) while the
 // window goes from night to sunrise to morning (moon sets, sun rises) and the camera slowly circles
 // in; RICO: a happy wiggle in its sleep. OJOS: the mask flips up, eyes wide and happy, the phone
-// comes up — CHARGE1/2/3: three charges (−S/400, −S/500, −S/100: the 2D phone card lists them),
-// three flinches, the counter drains to S/0 by ZERO (grey). L16: outraged, fins up, shaking the
-// phone.
+// comes up — CHARGE1/2/3: three charges (−S/400, −S/300, −S/300, as on the 2D ChargesPhone card),
+// three flinches; the counter drains to S/0 by ZERO (grey). The ChargesPhone card covers x 150-850,
+// y 250-810 from OJOS + 8, so the counter over the bed bows out under it (the card's balance takes
+// over). L16: outraged, fins up, shaking the phone.
 
 const FOV = 40;
 const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 
 /** The charges that empty the counter (they add up to S/1000). */
-export const GIRO_CHARGES = [400, 500, 100];
+export const GIRO_CHARGES = [400, 300, 300];
 
 const RACE0 = GIRO.MASK + 4;
 const raceAt = (g: number) => 1000 * Math.pow(clamp01((g - RACE0) / (GIRO.MIL - RACE0)), 1.7);
@@ -59,8 +60,8 @@ const solesAt = (g: number) => {
   if (g < CHARGE1) return Math.round(raceAt(g));
   const drop = (at: number, from: number, to: number) => lerp(from, to, ramp(g, at, at + 5, [0, 1], EASE_OUT));
   if (g < CHARGE2) return Math.round(drop(CHARGE1, 1000, 600));
-  if (g < CHARGE3) return Math.round(drop(CHARGE2, 600, 100));
-  return Math.round(drop(CHARGE3, 100, 0));
+  if (g < CHARGE3) return Math.round(drop(CHARGE2, 600, 300));
+  return Math.round(drop(CHARGE3, 300, 0));
 };
 
 export const GiroShot: React.FC = () => {
@@ -155,7 +156,7 @@ export const GiroShot: React.FC = () => {
   const dist = lerp(8.3, 7.3, orbit) * (1 - settle) + 7.9 * settle - 0.6 * ramp(g, L16, END, [0, 1], (x) => x);
   const focus: Vec3 = [0, 1.75, NUBI_BED[2]];
   const pos: Vec3 = [focus[0] + Math.sin(ang) * dist, 2.85 - 0.25 * orbit * (1 - settle), focus[2] + Math.cos(ang) * dist];
-  const camA: Cam = aim(pos, FOV, NUBI_EYES, 560, 1030);
+  const camA: Cam = aim(pos, FOV, NUBI_EYES, 560, 1075);
   // Awake (paying, then the charges): wider, Nubi right of centre so the phone up in its
   // screen-left fin stays in frame (and clear of the right-hand button column).
   const camPhone = (push: number): Cam => aim([-0.15, 2.8, NUBI_BED[2] + 9.6 - push], FOV, NUBI_EYES, 655, 1040);
@@ -168,7 +169,8 @@ export const GiroShot: React.FC = () => {
   // ---- Counter.
   const soles = solesAt(g);
   const state = g >= ZERO ? "zero" : g >= CHARGE1 ? "alarm" : "earning";
-  const showCtr = g >= MASK + 2;
+  const showCtr = g >= MASK + 2 && g < OJOS + 12;
+  const bowOut = ramp(g, OJOS + 4, OJOS + 11, [0, 1], EASE_IN_OUT);
   const head: Vec3 = [COUNTER_AT[0], COUNTER_AT[1] + 0.2 * (pose.hop ?? 0) + 0.1, COUNTER_AT[2]];
   const ctr = counterAt(cam, head, { min: 0.9, max: 1.2 });
   const pulse = 0.25 * windowIn(g, MIL, MIL + 8, 2) + 0.12 * windowIn(g, RICO, RICO + 8, 2) + 0.1 * hit;
@@ -216,7 +218,8 @@ export const GiroShot: React.FC = () => {
             soles={soles}
             x={ctr.x}
             y={ctr.y}
-            scale={ctr.scale * (1 + pulse)}
+            scale={ctr.scale * (1 + pulse) * (1 - 0.5 * bowOut)}
+            opacity={1 - bowOut}
             state={state}
             appear={MASK + 2}
             events={[...RACE_EVENTS, ...CHARGE_EVENTS]}

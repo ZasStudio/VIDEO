@@ -178,7 +178,7 @@ export const GanchoShot: React.FC = () => {
             <PhoneProp screen="off" />
           </group>
           <Nubi size={2} position={nubiAt} pose={pose} shadow={false} palette={{ eyeRough: 0.6 }}>
-            <HugPillow />
+            <HugPillow shift={-2.6 * lunge} />
             {awake ? <Lids pose={pose} droop={0.55 * groggy * (1 - 0.7 * outrage)} tilt={-0.3 * glareClock - 0.1} color={NUBI_GREEN} /> : null}
           </Nubi>
         </Stage>

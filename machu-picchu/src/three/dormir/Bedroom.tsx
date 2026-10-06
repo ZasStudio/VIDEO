@@ -1240,9 +1240,10 @@ const hugPillowGeo = once(() => pillowGeometry(11.6, 2.2, 3.6).rotateX(Math.PI /
 /**
  * Nubi's pink polka-dot pillow, as a child of <Nubi>: hugged against the front (`over` 0) or
  * pulled over the head (`over` 1, squashed down by the fins); in between it swings up past the
- * face. `squash` flattens it (the fins pressing).
+ * face. `squash` flattens it (the fins pressing); `shift` slides it sideways (model units, + = screen
+ * right), e.g. away from a fin that leaves the hug to smash something.
  */
-export const HugPillow: React.FC<{ over?: number; squash?: number }> = ({ over = 0, squash = 0 }) => {
+export const HugPillow: React.FC<{ over?: number; squash?: number; shift?: number }> = ({ over = 0, squash = 0, shift = 0 }) => {
   const mat = texMat("hug-pillow", 256, 128, hugPillowDraw, { glow: 0.2, rough: 0.8 });
   const k = clamp01(over);
   // Front (hug) → up past the face → on top of the head (a quadratic Bézier in y-z).
@@ -1254,7 +1255,7 @@ export const HugPillow: React.FC<{ over?: number; squash?: number }> = ({ over =
   const z = b(1);
   const rot = -k * Math.PI * 0.5;
   return (
-    <group position={[0, y, z]} rotation={[rot, 0, 0]} scale={[1 + 0.06 * squash, 1, 1 - 0.3 * squash]}>
+    <group position={[shift, y, z]} rotation={[rot, 0, 0]} scale={[1 + 0.06 * squash, 1, 1 - 0.3 * squash]}>
       <mesh geometry={hugPillowGeo()} material={mat} />
     </group>
   );

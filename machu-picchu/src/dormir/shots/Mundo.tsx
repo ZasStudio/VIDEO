@@ -382,9 +382,7 @@ export const MundoShot: React.FC = () => {
             <group position={RESTO.pan} rotation={[0, 0.3, 0]}>
               <FryingPan />
             </group>
-            <Cook position={COOK} pose={cookPose} flop={0.9}>
-              <SnotBubble size={0.3 + 0.7 * snC.out} at={[0.6, 4.2, 4.5]} />
-            </Cook>
+            <Cook position={COOK} pose={cookPose} flop={0.9} />
           </Stage>
           {cookOn > 0 && !cookC.behind ? (
             <>

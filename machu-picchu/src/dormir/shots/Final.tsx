@@ -141,7 +141,7 @@ export const FinalShot: React.FC = () => {
             <PhoneProp screen="off" />
           </group>
           <Nubi size={2} position={[NUBI_BED[0] + 0.2 * Math.max(0, lunge), NUBI_BED[1], NUBI_BED[2]]} pose={pose} shadow={false} palette={{ eyeRough: 0.6 }}>
-            <HugPillow />
+            <HugPillow shift={-2.6 * Math.max(0, lunge)} />
             {g < SLEEP ? <Lids pose={pose} droop={0.3 * turn + 0.3 * squint} tilt={-0.32 * Math.max(turn, squint)} color={NUBI_GREEN} /> : null}
           </Nubi>
         </Stage>
