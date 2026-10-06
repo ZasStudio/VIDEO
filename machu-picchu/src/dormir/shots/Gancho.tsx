@@ -10,6 +10,7 @@ import {
   Bedroom,
   BedroomLights,
   CLOCK_AT,
+  CLOCK_SCALE,
   CLOCK_YAW,
   COUNTER_AT,
   FACADE_SLEEPERS,
@@ -21,7 +22,8 @@ import {
   Zzz,
   sleepingPose,
 } from "../../three/dormir/Bedroom";
-import { Nubi, NubiPose } from "../../three/Nubi";
+import { NUBI_GREEN, Nubi, NubiPose } from "../../three/Nubi";
+import { Lids } from "../../three/tiempo/Office";
 import { GANCHO } from "../beats";
 import { counterAt } from "../counter";
 import { SHOTS } from "../shots";
@@ -42,16 +44,20 @@ const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 const mixCam = (a: Cam, b: Cam, k: number): Cam => ({ position: lerp3(a.position, b.position, k), target: lerp3(a.target, b.target, k), fov: lerp(a.fov, b.fov, k) });
 
 /** The loop framing: close on sleeping Nubi, the clock just off-frame right. `d` frames from the seam. */
-export const camSleep = (d: number): Cam => aim([0.32, 2.55 - 0.0006 * d, NUBI_EYES[2] + 6.2 - 0.004 * d], FOV, NUBI_EYES, 540, 1035);
+export const camSleep = (d: number): Cam => aim([0.3, 2.65 - 0.0008 * d, NUBI_EYES[2] + 7.0 - 0.005 * d], FOV, NUBI_EYES, 565, 1085);
+/** The counter over the sleeping Nubi at the loop seam (shared with "final", so the frames match). */
+export const HOOK_COUNTER = { start: 220, opts: { min: 0.9, max: 1.1 } };
+/** Keeps the counter's top under the top band (the end text of "final" sits at y 230-520). */
+export const hookCounterY = (y: number) => Math.max(640, y);
 /** Wider, from the front right: Nubi and the alarm clock on the nightstand. */
-export const camClock = (push = 0): Cam => aim([2.75 - 0.3 * push, 2.85 - 0.1 * push, 6.6 - 0.9 * push], FOV, [0.82, 1.42, -1.05], 540, 1015);
+export const camClock = (push = 0): Cam => aim([2.0 - 0.25 * push, 2.95 - 0.1 * push, 7.9 - 0.5 * push], FOV, [0.74 - 0.08 * push, 1.5, -1.1], 540, 1000);
 /** Nubi to camera, medium close (counter gone, top band calm). */
-const camTalk = (push: number): Cam => aim([0.5 - 0.2 * push, 2.3, NUBI_EYES[2] + 6.4 - 1.1 * push], FOV, NUBI_EYES, 540, 1000);
+const camTalk = (push: number): Cam => aim([0.5 - 0.2 * push, 2.45, NUBI_EYES[2] + 7.2 - 1.2 * push], FOV, NUBI_EYES, 540, 1010);
 /** At the window, looking out at the building across the street. */
-const camWindow = (drift: number): Cam => aim([0.12 + 0.12 * drift, 3.35, -0.35 - 0.25 * drift], 44, [0, 2.4, -13.5], 520, 820);
+const camWindow = (drift: number): Cam => aim([0.25 + 0.1 * drift, 3.35, -0.5 - 0.3 * drift], 34, [0.25, 1.0, -20], 540, 900);
 
 /** The two rows of sleepers that get live counters in the reveal (middle three columns). */
-const REVEAL = FACADE_SLEEPERS.filter((s) => (s.row === 2 || s.row === 3) && s.col >= 3 && s.col <= 5);
+const REVEAL = FACADE_SLEEPERS.filter((s) => (s.row === 1 || s.row === 2) && s.col >= 2 && s.col <= 4);
 
 const HOOK_EVENTS: MoneyEvent[] = [
   { at: GANCHO.START, text: "+S/30", tone: "plus" },
@@ -75,7 +81,7 @@ export const GanchoShot: React.FC = () => {
   const flinch = windowIn(g, ALARM, ALARM + 7, 2);
   const windUp = ramp(g, ALARM + 3, SMASH - 3, [0, 1], EASE_IN_OUT);
   const slam = ramp(g, SMASH - 3, SMASH, [0, 1], (x) => x * x);
-  const lunge = (windUp * 0.5 + slam * 0.5) * (1 - ramp(g, L01 + 2, L01 + 14, [0, 1], EASE_IN_OUT));
+  const lunge = (windUp * 0.35 + slam * 0.65) * (1 - ramp(g, L01 + 2, L01 + 14, [0, 1], EASE_IN_OUT));
   const sitUp = ramp(g, L01, L01 + 12, [0, 1], EASE_OUT);
   const glareClock = ramp(g, L01 + 2, L01 + 10, [0, 1], EASE_OUT) * (1 - ramp(g, L01 + 22, L01 + 32, [0, 1], EASE_IN_OUT));
   const outrage = windowIn(g, TRESCIENTOS - 3, TRESCIENTOS + 26, 5);
@@ -87,13 +93,13 @@ export const GanchoShot: React.FC = () => {
 
   let finR: number;
   if (g < ALARM + 3) finR = sleep.finR;
-  else if (g < SMASH - 3) finR = lerp(sleep.finR, 1.6, windUp);
-  else if (g < SMASH) finR = lerp(1.6, -0.55, slam);
-  else finR = lerp(-0.55 + 0.12 * impact, 0.15, ramp(g, L01 + 2, L01 + 12, [0, 1], EASE_IN_OUT));
+  else if (g < SMASH - 3) finR = lerp(sleep.finR, 2.5, windUp);
+  else if (g < SMASH) finR = lerp(2.5, 0.42, slam);
+  else finR = lerp(0.42 + 0.15 * impact, 0.15, ramp(g, L01 + 2, L01 + 12, [0, 1], EASE_IN_OUT));
   const base: NubiPose = awake
     ? {
-        blink: 0.42 * groggy,
-        eyeScale: lerp(1.0, 0.72, groggy) + 0.22 * outrage,
+        blink: 0,
+        eyeScale: 1 + 0.18 * outrage,
         pitch: lerp(-0.13, 0.02, sitUp),
         roll: 0.05 * (1 - sitUp),
         yaw: 0.42 * glareClock + 0.04 * Math.sin(g * 0.05) * (1 - glareClock),
@@ -136,17 +142,17 @@ export const GanchoShot: React.FC = () => {
   }
 
   // ---- Nubi's counter: racing up, frozen red by the alarm, pulsing on TRESCIENTOS, gone for L02.
-  const soles = g < ALARM ? 220 + (80 * (g - START)) / (ALARM - START) : 300;
+  const soles = g < ALARM ? HOOK_COUNTER.start + ((300 - HOOK_COUNTER.start) * (g - START)) / (ALARM - START) : 300;
   const state = g < ALARM ? "earning" : "alarm";
   const pulse = g >= TRESCIENTOS ? 0.28 * Math.max(0, Math.sin(Math.PI * clamp01((g - TRESCIENTOS) / 10))) + 0.12 * windowIn(g, TRESCIENTOS, TRESCIENTOS + 30, 4) * Math.abs(Math.sin((g - TRESCIENTOS) * 0.5)) : 0;
   const leave = ramp(g, L02 + 2, L02 + 14, [0, 1], EASE_IN_OUT);
   const head: Vec3 = [nubiAt[0] + COUNTER_AT[0], COUNTER_AT[1] + 0.2 * (pose.hop ?? 0), COUNTER_AT[2]];
-  const ctr = counterAt(cam, head, { min: 0.9, max: 1.15 });
-  const ctrY = Math.max(470, ctr.y);
+  const ctr = counterAt(cam, head, HOOK_COUNTER.opts);
+  const ctrY = g < ALARM ? hookCounterY(ctr.y) : Math.max(470, ctr.y);
 
   // ---- The reveal: live counters over the sleepers across the street.
   const reveal = REVEAL.map((s, i) => {
-    const c = counterAt(cam, s.at, { ref: 7.2, min: 0.42, max: 0.62 });
+    const c = counterAt(cam, s.at, { ref: 9, min: 0.4, max: 0.56 });
     const appear = TODOS + 14 + i * 3;
     const value = 180 + Math.round((s.seed * 137) % 800) + (g - appear) * (2 + (s.seed % 3));
     return { c, appear, value, i };
@@ -165,7 +171,7 @@ export const GanchoShot: React.FC = () => {
         <Stage cam={cam} near={0.1} far={200}>
           <BedroomLights />
           <Bedroom t={t} />
-          <group position={CLOCK_AT} rotation={[0, CLOCK_YAW, 0]}>
+          <group position={CLOCK_AT} rotation={[0, CLOCK_YAW, 0]} scale={CLOCK_SCALE}>
             <AlarmClock t={t} ring={ring} crush={crush} crushAge={crushAge} />
           </group>
           <group position={[PHONE_AT[0], PHONE_AT[1] + 0.03 + 0.06 * impact, PHONE_AT[2]]} rotation={[-Math.PI / 2, 0, 0.5]}>
@@ -173,6 +179,7 @@ export const GanchoShot: React.FC = () => {
           </group>
           <Nubi size={2} position={nubiAt} pose={pose} shadow={false} palette={{ eyeRough: 0.6 }}>
             <HugPillow />
+            {awake ? <Lids pose={pose} droop={0.55 * groggy * (1 - 0.7 * outrage)} tilt={-0.3 * glareClock - 0.1} color={NUBI_GREEN} /> : null}
           </Nubi>
         </Stage>
         <Zzz g={g} cam={cam} at={[nubiAt[0] - 0.55, NUBI_EYES[1] + 0.75, NUBI_BED[2]]} on={1 - ramp(g, ALARM, ALARM + 3)} every={11} />

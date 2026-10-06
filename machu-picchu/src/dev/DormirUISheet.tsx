@@ -140,7 +140,7 @@ const GRID_EVENTS: MoneyEvent[] = [
 const MINUS_EVENTS: MoneyEvent[] = [{ at: 220, text: "−S/ 400" }];
 
 // Segment 7: the night montage (the counter earns S/ 100 per hour of the clock).
-const NIGHT = { at: 786, from: 796, to: 880, out: 890 };
+const NIGHT = { at: 786, from: 794, to: 846, out: 890 };
 const nightHours = (f: number) => 10 * EASE_IN_OUT(clamp01((f - NIGHT.from) / (NIGHT.to - NIGHT.from)));
 const NIGHT_EVENTS: MoneyEvent[] = [];
 for (let f = NIGHT.from; f <= NIGHT.to; f++) {
@@ -171,7 +171,7 @@ export const DormirUISheet: React.FC = () => {
           <MoneyCounter frame={f} soles={940 + 3 * (f - 130)} x={500} y={560} appear={132} events={GRID_EVENTS} />
           <MoneyCounter frame={f} soles={300} x={270} y={800} scale={0.75} state="frozen" appear={136} />
           <MoneyCounter frame={f} soles={300} x={730} y={800} scale={0.75} state="alarm" appear={140} />
-          <MoneyCounter frame={f} soles={800 + Math.floor((f - 130) * 0.5)} x={190} y={1010} scale={0.5} appear={144} />
+          <MoneyCounter frame={f} soles={792 + (f - 130) * 0.42} x={190} y={1010} scale={0.5} appear={144} />
           <MoneyCounter frame={f} soles={12800} x={410} y={1010} scale={0.5} state="frozen" appear={146} />
           <MoneyCounter frame={f} soles={f < 220 ? 1000 : 600} x={620} y={1010} scale={0.5} state="alarm" appear={148} events={MINUS_EVENTS} />
           <MoneyCounter frame={f} soles={0} x={820} y={1010} scale={0.5} state="zero" appear={150} />

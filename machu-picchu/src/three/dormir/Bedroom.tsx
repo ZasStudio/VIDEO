@@ -25,7 +25,7 @@ import { Vec3, projectToScreen } from "../CameraRig";
 /** The room: back wall at z = back (window in it), side walls at x0 / x1, floor y = 0. */
 export const ROOM = { x0: -3.9, x1: 3.9, back: -2.6, height: 5.6 };
 /** The bed: head against the back wall, mattress top at `top`. */
-export const BED = { x0: -1.45, x1: 1.45, z0: -2.5, z1: 0.9, top: 0.74 };
+export const BED = { x0: -1.38, x1: 1.38, z0: -2.5, z1: 0.9, top: 0.74 };
 /** Where Nubi (size 2) sits in bed: feet sunk in the mattress, back against the pillow. */
 export const NUBI_BED: V3 = [0, 0.5, -1.25];
 /** Top of Nubi's head in bed (upright, no hop). */
@@ -33,30 +33,32 @@ export const NUBI_HEAD_Y = NUBI_BED[1] + 1.98;
 /** Nubi's eyes in bed (world, on the face). */
 export const NUBI_EYES: V3 = [0, NUBI_BED[1] + 1.1, NUBI_BED[2] + 0.9];
 /** The nightstand right of the bed (top surface at `top`). */
-export const NIGHTSTAND = { x: 2.02, z: -1.3, w: 0.8, d: 0.74, top: 1.0 };
+export const NIGHTSTAND = { x: 1.94, z: -1.3, w: 0.8, d: 0.74, top: 1.0 };
 /** The alarm clock stands on the nightstand's near-left corner, within reach of Nubi's fin. */
-export const CLOCK_AT: V3 = [1.76, NIGHTSTAND.top, -1.08];
+export const CLOCK_AT: V3 = [1.8, NIGHTSTAND.top, -1.08];
+/** The alarm clock is drawn at this scale (a big cartoon clock next to a size-2 Nubi). */
+export const CLOCK_SCALE = 1.2;
 export const CLOCK_YAW = -0.32;
 /** The phone lies on the nightstand (front right). */
-export const PHONE_AT: V3 = [2.22, NIGHTSTAND.top, -0.98];
+export const PHONE_AT: V3 = [2.12, NIGHTSTAND.top, -0.82];
 /** The mushroom lamp (base) and its shade (where the warm light comes from). */
-export const LAMP_AT: V3 = [2.2, NIGHTSTAND.top, -1.55];
-export const LAMP_LIGHT: V3 = [2.2, NIGHTSTAND.top + 0.62, -1.45];
+export const LAMP_AT: V3 = [2.08, NIGHTSTAND.top, -1.52];
+export const LAMP_LIGHT: V3 = [2.08, NIGHTSTAND.top + 0.62, -1.42];
 /** The window above the headboard (an opening in the back wall). */
 export const WINDOW = { x0: -1.5, x1: 1.5, y0: 2.3, y1: 4.5 };
 /** The framed first sol, left of the window: it tilts when the neighbour drills. */
-export const PICTURE_AT: V3 = [-2.45, 2.55, ROOM.back + 0.03];
+export const PICTURE_AT: V3 = [-2.3, 1.95, ROOM.back + 0.03];
 /** The building across the street (its facade plane). */
-export const FACADE = { z: -13.5, x0: -7.25, x1: 7.25, y0: -4.2, y1: 5.2 };
-const FACADE_COLS = [-5.8, -4.35, -2.9, -1.45, 0, 1.45, 2.9, 4.35, 5.8];
-const FACADE_ROWS = [-2.4, -0.3, 1.8, 3.9];
-const FW = { w: 1.12, h: 1.2 };
+export const FACADE = { z: -20, x0: -8, x1: 8, y0: -5.2, y1: 6.0 };
+const FACADE_COLS = [-5.1, -3.4, -1.7, 0, 1.7, 3.4, 5.1];
+const FACADE_ROWS = [-2.6, -0.2, 2.2, 4.6];
+const FW = { w: 1.3, h: 1.3 };
 /**
  * Sleepers across the street: for each lit window, the world point just above the sleeper's head
  * (anchor for a MoneyCounter), its column/row and a seed (for its counter's value).
  */
 export const FACADE_SLEEPERS: { at: Vec3; col: number; row: number; seed: number }[] = FACADE_ROWS.flatMap((y, row) =>
-  FACADE_COLS.map((x, col) => ({ at: [x, y + 0.2, FACADE.z + 0.05] as Vec3, col, row, seed: row * 9 + col })),
+  FACADE_COLS.map((x, col) => ({ at: [x + 0.1 * FW.w, y + 0.22 * FW.h, FACADE.z + 0.05] as Vec3, col, row, seed: row * 7 + col })),
 );
 
 // =======================================================================================
@@ -287,8 +289,11 @@ const sheepDraw: Draw = (ctx, w, h) => {
     [0, -0.04, 0.13],
     [0.12, 0, 0.11],
     [0, 0.06, 0.12],
-  ])
-    ctx.beginPath(), ctx.arc(sx + dx * w, sy + dy * w, r * w, 0, Math.PI * 2), ctx.fill();
+  ]) {
+    ctx.beginPath();
+    ctx.arc(sx + dx * w, sy + dy * w, r * w, 0, Math.PI * 2);
+    ctx.fill();
+  }
   ctx.fillStyle = "#2B2B33";
   ctx.beginPath();
   ctx.ellipse(sx + 0.2 * w, sy - 0.05 * w, 0.075 * w, 0.06 * w, 0.3, 0, Math.PI * 2);
@@ -321,7 +326,7 @@ const coinDraw: Draw = (ctx, w, h) => {
 };
 
 // ---- Outside: the building across the street (wall + lit windows with sleepers) and the skyline.
-const PX = 100; // canvas pixels per world unit on the facade
+const PX = 80; // canvas pixels per world unit on the facade
 const fx = (x: number) => (x - FACADE.x0) * PX;
 const fy = (y: number) => (FACADE.y1 - y) * PX;
 const SLEEPER_COLORS = ["#FF9EC4", "#7FC8FF", "#FFD45C", "#B79BFF", "#FF9F6E", "#6FE0C8", "#FF7A8A", "#9ED36A"];
@@ -353,7 +358,7 @@ const facadeWallDraw: Draw = (ctx, w, h) => {
 const facadeWindowsDraw: Draw = (ctx) => {
   FACADE_ROWS.forEach((y, row) =>
     FACADE_COLS.forEach((x, col) => {
-      const seed = row * 9 + col;
+      const seed = row * 7 + col;
       const x0 = fx(x) - (FW.w / 2) * PX;
       const y0 = fy(y) - (FW.h / 2) * PX;
       const W = FW.w * PX;
@@ -398,20 +403,15 @@ const facadeWindowsDraw: Draw = (ctx) => {
       ctx.fillStyle = hash(seed + 3) > 0.5 ? "rgba(120,170,255,0.75)" : "rgba(255,130,170,0.7)";
       ctx.fillRect(x0, y0, W * 0.08, H);
       ctx.fillRect(x0 + W * 0.92, y0, W * 0.08, H);
-      // A tiny green money counter over the sleeper.
-      const cx = x0 + W * 0.56;
+      // A tiny green counter over the sleeper (no digits: the live ones are drawn in 2D).
+      const cx = x0 + W * 0.6;
       const cy = y0 + H * 0.2;
-      ctx.fillStyle = "rgba(10,14,20,0.85)";
-      roundRect(ctx, cx - W * 0.3, cy - H * 0.09, W * 0.6, H * 0.18, H * 0.09);
+      ctx.fillStyle = "rgba(10,14,20,0.8)";
+      roundRect(ctx, cx - W * 0.2, cy - H * 0.075, W * 0.4, H * 0.15, H * 0.075);
       ctx.fill();
-      ctx.strokeStyle = "#46E58A";
-      ctx.lineWidth = 3;
-      ctx.stroke();
       ctx.fillStyle = "#46E58A";
-      ctx.font = `900 ${Math.round(H * 0.13)}px ${FONT.heavy}`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(`S/${100 + Math.floor(hash(seed + 21) * 9) * 100}`, cx, cy + 1);
+      roundRect(ctx, cx - W * 0.15, cy - H * 0.03, W * 0.3, H * 0.06, H * 0.03);
+      ctx.fill();
       // Mullion.
       ctx.fillStyle = "#F4E9DA";
       ctx.fillRect(x0 + W / 2 - 2, y0, 4, H * 0.06);
@@ -629,7 +629,7 @@ const Sky: React.FC<{ dawn: number }> = ({ dawn }) => {
 const Moon: React.FC<{ dawn: number }> = ({ dawn }) => {
   const g = geos();
   const set = smooth(0.05, 0.45, dawn);
-  const pos: V3 = [mix(5.2, 9.5, set), mix(13.5, 2.0, set), -40];
+  const pos: V3 = [mix(4.2, 9.5, set), mix(9.6, 0.5, set), -40];
   const k = 1 - smooth(0.35, 0.5, dawn);
   if (k <= 0) return null;
   return (
@@ -646,7 +646,7 @@ const Sun: React.FC<{ dawn: number }> = ({ dawn }) => {
   const g = geos();
   const rise = smooth(0.3, 1, dawn);
   if (rise <= 0) return null;
-  const pos: V3 = [mix(-3.5, -5.5, rise), mix(-2, 13, rise), -40];
+  const pos: V3 = [mix(-3.0, -4.5, rise), mix(-1, 11.5, rise), -40];
   const col = mixColor("#FF8A4C", "#FFE27A", rise);
   return (
     <group position={pos}>
@@ -664,7 +664,7 @@ const Outside: React.FC<{ dawn: number }> = ({ dawn }) => {
     const tex = canvasTexture("dormir-facade-wall", (FACADE.x1 - FACADE.x0) * PX, (FACADE.y1 - FACADE.y0) * PX, facadeWallDraw);
     return new THREE.MeshBasicMaterial({ map: tex, toneMapped: false });
   }, []);
-  wallMat.color.copy(mixColor("#5D63A8", "#FFB79A", smooth(0.15, 0.6, dawn)).lerp(new THREE.Color("#FFFFFF"), smooth(0.6, 1, dawn)));
+  wallMat.color.copy(mixColor("#40457E", "#FFB79A", smooth(0.15, 0.6, dawn)).lerp(new THREE.Color("#FFFFFF"), smooth(0.6, 1, dawn)));
   const skyMat = useMemo(() => {
     const tex = canvasTexture("dormir-skyline", 2048, 512, skylineDraw);
     return new THREE.MeshBasicMaterial({ map: tex, toneMapped: false, transparent: true });
@@ -676,21 +676,22 @@ const Outside: React.FC<{ dawn: number }> = ({ dawn }) => {
       <Sky dawn={dawn} />
       <Moon dawn={dawn} />
       <Sun dawn={dawn} />
-      <mesh geometry={g.skyline} material={skyMat} position={[0, 3.5, -30]} />
+      <mesh geometry={g.skyline} material={skyMat} position={[0, 4.5, -32]} />
       <mesh geometry={facadeGeo()} material={wallMat} position={[0, 0, FACADE.z]} />
       {ready ? (
         <mesh
+          renderOrder={1}
           geometry={facadeGeo()}
           material={texBasic("facade-windows", (FACADE.x1 - FACADE.x0) * PX, (FACADE.y1 - FACADE.y0) * PX, facadeWindowsDraw, true)}
           position={[0, 0, FACADE.z + 0.02]}
         />
       ) : null}
       <mesh geometry={g.cornice} material={roof} position={[0, FACADE.y1, FACADE.z + 0.1]} />
-      <group position={[3.6, FACADE.y1 + 0.75, FACADE.z - 1.2]}>
+      <group position={[4.6, FACADE.y1 + 0.75, FACADE.z - 1.2]}>
         <mesh geometry={g.tank} material={toy("#7C4A44", { glow: 0.2 })} />
         <mesh geometry={g.frame} material={toy("#5B3433", { glow: 0.2 })} position={[0, -0.6, 0]} scale={[1.2, 0.3, 1.2]} />
       </group>
-      <mesh geometry={g.frame} material={toy("#7C4A44", { glow: 0.2 })} position={[-4.3, FACADE.y1 + 0.5, FACADE.z - 0.8]} scale={[0.12, 1.0, 0.12]} />
+      <mesh geometry={g.frame} material={toy("#7C4A44", { glow: 0.2 })} position={[-5.3, FACADE.y1 + 0.5, FACADE.z - 0.8]} scale={[0.12, 1.0, 0.12]} />
     </group>
   );
 };
@@ -824,12 +825,12 @@ export const Bedroom: React.FC<BedroomProps> = ({ t = 0, dawn = 0, rattle = 0, f
  */
 export const BedroomLights: React.FC<{ dawn?: number; lamp?: number; key?: number }> = ({ dawn = 0, lamp = 1, key = 1 }) => {
   const day = smooth(0.3, 1, dawn);
-  const sky = mixColor("#8D9BFF", "#FFE2C4", day);
+  const sky = mixColor("#B9C3FF", "#FFE9D2", day);
   const rim = mixColor("#9DB4FF", "#FFC27A", smooth(0.2, 0.7, dawn));
   return (
     <>
-      <hemisphereLight args={[sky, mixColor("#5A3A58", "#8A6050", day), 1.0 + 0.35 * day]} />
-      <directionalLight position={[-3.5, 5, 9]} intensity={0.95 * key} color="#FFE9D6" />
+      <hemisphereLight args={[sky, mixColor("#7A5A70", "#8A6050", day), 1.3 + 0.3 * day]} />
+      <directionalLight position={[-3, 5, 9]} intensity={1.9 * key} color="#FFF6EA" />
       <directionalLight position={[0.5, 6, -9]} intensity={0.9 + 0.8 * day} color={rim} />
       <pointLight position={LAMP_LIGHT} intensity={2.3 * lamp} distance={6} decay={1.3} color="#FFB45E" />
     </>
@@ -957,7 +958,7 @@ export const AlarmClock: React.FC<{ t?: number; ring?: number; crush?: number; c
   const jitter = ring * (1 - c);
   const rz = jitter * 0.14 * Math.sin(t * 95);
   const hop = jitter * 0.03 * Math.abs(Math.sin(t * 48));
-  const sx = 1 + 0.38 * c;
+  const sx = 1 + 0.25 * c;
   const sy = 1 - 0.72 * c;
   const faceKey = c > 0.4 ? "clock-face-cracked" : "clock-face";
   const faceMat = ready ? texMat(faceKey, 256, 256, clockFaceDraw(c > 0.4), { glow: 0.35, rough: 0.5 }) : basic("#FFFDF4");
@@ -1002,7 +1003,7 @@ export const AlarmClock: React.FC<{ t?: number; ring?: number; crush?: number; c
         </group>
       </group>
       {bells.map(({ s, blur, pos, rot }) =>
-        flying && s === 1 ? null : (
+        flying && s === -1 ? null : (
           <group key={s} position={pos} rotation={rot}>
             <mesh geometry={g.bell} material={goldMat} scale={[1, 1 - 0.3 * c, 1]} />
             <mesh geometry={g.bellPin} material={steel} position={[0, -0.04, 0]} />
@@ -1301,11 +1302,12 @@ export const Zzz: React.FC<{ g: number; cam: { position: Vec3; target: Vec3; fov
   if (p.behind) return null;
   const items: React.ReactNode[] = [];
   const life = every * 3;
+  // `g` may be negative (frames before a loop seam): spawn slots are continuous across it.
   const first = Math.floor((g - life) / every) + 1;
   for (let n = first; n <= Math.floor(g / every); n++) {
     const a = (g - n * every) / life;
     if (a < 0 || a > 1) continue;
-    const k = n % 3;
+    const k = ((n % 3) + 3) % 3;
     const fs = (34 + 14 * k) * size * (0.7 + 0.5 * a);
     items.push(
       <div

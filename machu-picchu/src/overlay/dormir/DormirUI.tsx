@@ -230,20 +230,19 @@ export const MuteIcon: React.FC<IconProps> = ({ size = 100, style }) => (
   </svg>
 );
 
-/** 👇: a yellow hand pointing down (100 x 124 at size 124). */
+/** 👇: a yellow hand pointing down, long index finger (100 x 124 at size 124). */
 export const PointDownIcon: React.FC<IconProps> = ({ size = 124, style }) => (
   <svg width={size * (100 / 124)} height={size} viewBox="0 0 100 124" style={svgStyle(style)}>
-    <g transform="translate(0 124) scale(1 -1)">
-      <Outlined w={7}>
-        <rect x={38} y={4} width={20} height={64} rx={10} fill="#FFCB3D" />
-        <rect x={26} y={46} width={56} height={58} rx={20} fill="#FFCB3D" />
-        <ellipse cx={25} cy={70} rx={10} ry={16} transform="rotate(-24 25 70)" fill="#FFCB3D" />
-        <rect x={55} y={42} width={17} height={30} rx={8.5} fill="#FFCB3D" />
-        <rect x={67} y={50} width={15} height={28} rx={7.5} fill="#FFCB3D" />
-      </Outlined>
-      <rect x={42} y={9} width={11} height={11} rx={4} fill="#FFF1BF" />
-      <path d="M57 60 Q63 63 69 60 M70 68 Q75 70 80 68" stroke="#D9921A" strokeWidth={2.5} fill="none" strokeLinecap="round" />
-    </g>
+    <Outlined w={7}>
+      <rect x={26} y={6} width={56} height={56} rx={20} fill="#FFCB3D" />
+      <rect x={40} y={36} width={21} height={82} rx={10.5} fill="#FFCB3D" />
+      <rect x={59} y={44} width={18} height={26} rx={9} fill="#FFCB3D" />
+      <rect x={70} y={36} width={15} height={24} rx={7.5} fill="#FFCB3D" />
+      <ellipse cx={25} cy={40} rx={11} ry={17} transform="rotate(20 25 40)" fill="#FFCB3D" />
+    </Outlined>
+    <rect x={44} y={99} width={13} height={14} rx={5} fill="#FFF1BF" />
+    <path d="M44 66 Q50.5 69 57 66" stroke="#D9921A" strokeWidth={2.5} fill="none" strokeLinecap="round" />
+    <path d="M36 14 Q52 9 70 14" stroke="#FFFFFF" strokeWidth={4} fill="none" strokeLinecap="round" opacity={0.55} />
   </svg>
 );
 
@@ -388,9 +387,10 @@ export const RichText: React.FC<{ text: string; size: number; frame?: number }> 
 // Rolling digits
 
 /**
- * One digit cell (`w` x `h`): rolls up from `from` to `to` as `k` goes 0 -> 1 (the old digit leaves
- * through the top, the new one comes in from below). `smear` (0..1) adds a vertical motion blur,
- * like a reel spinning. Only a rolling / smeared cell is clipped, so static digits keep their glow.
+ * One digit cell (`w` x `h`): rolls up from `from` to `to` as `k` goes 0 -> 1 (the old digit slides
+ * out through the top, squashing and fading, the new one slides in from below). `smear` (0..1)
+ * adds a vertical motion blur (ghost copies without glow), like a reel spinning. Nothing is
+ * clipped, so the LED glow is never cut into a box.
  */
 const Reel: React.FC<{ from: string; to: string; k: number; w: number; h: number; smear?: number; down?: boolean }> = ({
   from,
@@ -401,10 +401,10 @@ const Reel: React.FC<{ from: string; to: string; k: number; w: number; h: number
   smear = 0,
   down = false,
 }) => {
-  const e = EASE_OUT(clamp01(k));
+  const e = EASE_IN_OUT(clamp01(k));
   const rolling = from !== to && e < 0.999;
   const dir = down ? -1 : 1;
-  const glyph = (ch: string, dy: number, op: number, key: string) => (
+  const glyph = (ch: string, dy: number, op: number, sy: number, key: string, ghost = false) => (
     <span
       key={key}
       style={{
@@ -415,38 +415,36 @@ const Reel: React.FC<{ from: string; to: string; k: number; w: number; h: number
         height: h,
         lineHeight: `${h}px`,
         textAlign: "center",
-        transform: `translateY(${dy}px)`,
+        transform: `translateY(${dy}px) scaleY(${sy})`,
         opacity: op,
+        textShadow: ghost ? "none" : undefined,
       }}
     >
       {ch}
     </span>
   );
   return (
-    <span
-      style={{
-        position: "relative",
-        display: "inline-block",
-        flexShrink: 0,
-        width: w,
-        height: h,
-        clipPath: rolling || smear > 0 ? `inset(${-h * 0.04}px ${-w}px ${-h * 0.04}px ${-w}px)` : undefined,
-      }}
-    >
+    <span style={{ position: "relative", display: "inline-block", flexShrink: 0, width: w, height: h }}>
       {rolling ? (
         <>
-          {glyph(from, -e * h * dir, 1 - 0.5 * e, "a")}
-          {glyph(to, (1 - e) * h * dir, 0.5 + 0.5 * e, "b")}
+          {glyph(from, -e * h * 0.62 * dir, Math.pow(1 - e, 1.4), 1 - 0.4 * e, "a")}
+          {glyph(to, (1 - e) * h * 0.62 * dir, Math.min(1, e * 1.7), 0.6 + 0.4 * e, "b")}
         </>
       ) : (
         <>
-          {smear > 0 ? glyph(to, -h * 0.14, 0.3 * smear, "u") : null}
-          {smear > 0 ? glyph(to, h * 0.14, 0.3 * smear, "d") : null}
-          {glyph(to, 0, 1, "c")}
+          {smear > 0 ? glyph(to, -h * 0.13, 0.24 * smear, 1, "u", true) : null}
+          {smear > 0 ? glyph(to, h * 0.13, 0.24 * smear, 1, "d", true) : null}
+          {glyph(to, 0, 1, 1, "c")}
         </>
       )}
     </span>
   );
+};
+
+/** A coin that flips once every `period` frames (a quick turn of `dur` frames, then rests face up). */
+const flipSpin = (frame: number, period = 40, dur = 14) => {
+  const cyc = Math.floor(frame / period);
+  return (cyc + EASE_IN_OUT(clamp01((frame - cyc * period) / dur))) * Math.PI * 2;
 };
 
 // =============================================================================================
@@ -467,20 +465,25 @@ const COUNTER_PAL: Record<CounterState, CounterPal> = {
 const MC = { H: 100, TAIL: 16, BORDER: 5, PAD_L: 9, COIN: 80, GAP: 8, PAD_R: 30, MAX_W: 412, FONT: 74 };
 
 const eventTone = (e: MoneyEvent) => e.tone ?? (/^\s*[-−–]/.test(e.text) ? "minus" : "plus");
+const EV_LIFE = 44;
 
 /**
  * A floating money counter, a glossy LED pill «🪙 S/ 1 280», anchored at its bottom centre (x, y):
  * the tip of its little pointer, as returned by counterAt() in src/dormir/counter.ts; `scale`
  * multiplies its size from there (about 250-400 x 116 at scale 1, never wider than ~412: long
  * numbers shrink their digits; legible down to scale 0.5).
- * - soles: the value (rounded, never negative). Drive it continuously (e.g. +3 per frame): while
- *   `earning`, each digit column rolls like an odometer reel shortly before it changes, and the
- *   last digit spins (motion blur). A leading digit (999 -> 1 000) grows in smoothly.
+ * - soles: the value (never negative). Drive it continuously, as a fraction or as integers. While
+ *   `earning` the digits are odometer reels: a fractional value (e.g. 1180 + 0.42 per frame) rolls
+ *   them like a mechanical counter; integer steps (e.g. +3 per frame) spin the last digit and roll
+ *   the hundreds and up just before they change. A new leading digit (999 -> 1 000) grows in
+ *   smoothly. In the other states the value is rounded and still.
  * - state: "earning" (green glow, the coin spins, tiny coins pop out), "frozen" (yellow, a pause
  *   badge), "alarm" (red, flashing, shaking, a "!" badge), "zero" (grey, no glow).
  * - events: small labels ("+S/ 100" green, "−S/ 400" red; tone defaults from the sign) pop at
- *   their frame and float up ~200 px above the counter; the pill punches (and a + event bursts
- *   coins, a − event shakes it).
+ *   their frame and float up ~150 px above the pill for ~1.5 s; a newer label pushes the older
+ *   ones up (three at most), so events can come every few frames (e.g. one per hour of a
+ *   montage). The pill punches; a + event bursts coins, a − event shakes it. The labels do not
+ *   change `soles`: move the value yourself.
  * - appear: pops in at this frame (default: already there). opacity: multiplies.
  */
 export const MoneyCounter: React.FC<{
@@ -501,19 +504,29 @@ export const MoneyCounter: React.FC<{
   const alarm = state === "alarm";
   const frozen = state === "frozen";
   const zero = state === "zero";
-  const v = Math.max(0, Math.round(soles));
+  const xs = Math.max(0, soles);
+  // While earning the reels follow the continuous value (floor + fraction); otherwise the value
+  // is rounded and every digit is still.
+  const v = earning ? Math.floor(xs + 1e-6) : Math.round(xs);
+  const fracV = earning ? clamp01(xs - v) : 0;
+  const integral = Math.abs(soles - Math.round(soles)) < 1e-6;
 
-  // Digit columns, most significant first. While earning, a column about to change rolls during
-  // the last few soles before it does (an odometer carry), so a value climbing every frame reads
-  // as rolling reels and a static value always shows clean digits.
+  // Digit columns, most significant first, each one a reel. Only while earning:
+  // - a fractional value turns them like a mechanical odometer: the last digit rests for 60% of
+  //   each sol and rolls in the last 40%, and every column whose lower digits are all 9 rolls with
+  //   it (nothing changes early, at any speed);
+  // - an integer value (a counter stepping every frame) makes the last digit spin (motion blur),
+  //   and the hundreds and up roll during the last 6 soles before they change.
+  // A static value always shows clean digits (round values like 300 or 1 000 never roll).
   const s = String(v);
   const n = s.length;
   type Col = { from: string; to: string; k: number; w: number; pow: number };
   const carry = (pow: number) => {
-    if (!earning || pow < 1) return 0;
+    if (!earning) return 0;
     const p10 = Math.pow(10, pow);
-    const W = pow === 1 ? 3 : 15;
-    return clamp01(((v % p10) - (p10 - W)) / W);
+    if (!integral) return pow === 0 || v % p10 === p10 - 1 ? clamp01((fracV - 0.6) / 0.4) : 0;
+    if (pow < 2) return 0;
+    return clamp01((v % p10 - (p10 - 6)) / 6);
   };
   const cols: Col[] = [];
   const lead = carry(n);
@@ -528,10 +541,10 @@ export const MoneyCounter: React.FC<{
   const nEff = cols.reduce((a, c) => a + c.w, 0);
   const gEff = cols.reduce((a, c) => a + (isGap(c) ? c.w : 0), 0);
   const fixed = MC.PAD_L + MC.COIN + MC.GAP + MC.PAD_R + 2 * MC.BORDER + 8;
-  const F = Math.min(MC.FONT, (MC.MAX_W - fixed) / (0.64 + 0.64 * Math.max(2, nEff) + 0.22 * gEff));
+  const F = Math.min(MC.FONT, (MC.MAX_W - fixed) / (0.76 + 0.64 * Math.max(2, nEff) + 0.22 * gEff));
   const CW = 0.64 * F;
   const numW = Math.max(2, nEff) * CW + gEff * 0.22 * F;
-  const labelW = 0.64 * F;
+  const labelW = 0.76 * F;
   const pillW = MC.PAD_L + MC.COIN + MC.GAP + labelW + numW + MC.PAD_R + 2 * MC.BORDER;
   const top = -MC.TAIL - MC.H;
 
@@ -552,7 +565,7 @@ export const MoneyCounter: React.FC<{
     }
   });
   const sc = scale * (0.55 + 0.45 * inP) * (1 + 0.12 * hit);
-  const coinSpin = earning ? frame * 0.17 : 0;
+  const coinSpin = earning ? flipSpin(frame) : 0;
   const coinRot = zero ? -14 : alarm ? jit(frame, 5) * 8 : -8 + Math.sin(frame * 0.09) * 4;
   const coreColor = alarm && !on ? hexA(pal.core, 0.55) : pal.core;
   const textShadow =
@@ -595,7 +608,7 @@ export const MoneyCounter: React.FC<{
     if (eventTone(e) !== "plus") return;
     const a = frame - e.at;
     if (a < 0 || a > 24) return;
-    for (let j = 0; j < 6; j++) spawnCoin(`e${i}-${j}`, a, e.at * 3.1 + j * 7.7, 1);
+    for (let j = 0; j < 4; j++) spawnCoin(`e${i}-${j}`, a, e.at * 3.1 + j * 7.7, 1);
   });
 
   return (
@@ -665,12 +678,12 @@ export const MoneyCounter: React.FC<{
             ...TAB,
           }}
         >
-          <span style={{ fontSize: 0.5 * F, lineHeight: 1, marginRight: 0.1 * F, marginBottom: 0.075 * F, opacity: 0.92 }}>S/</span>
+          <span style={{ fontSize: 0.6 * F, lineHeight: 1, marginRight: 0.1 * F, marginBottom: 0.06 * F, opacity: 0.94 }}>S/</span>
           <div style={{ display: "flex", width: numW, justifyContent: "center", fontSize: F, height: F }}>
             {cols.map((c, i) => (
               <React.Fragment key={`${c.pow}-${i}`}>
                 <span style={{ display: "inline-block", width: CW * c.w, height: F, overflow: "visible", opacity: c.w < 1 ? c.w : 1 }}>
-                  <Reel from={c.from} to={c.to} k={c.k} w={CW} h={F} smear={earning && c.pow === 0 ? 1 : 0} />
+                  <Reel from={c.from} to={c.to} k={c.k} w={CW} h={F} smear={earning && integral && c.pow === 0 ? 1 : 0} />
                 </span>
                 {isGap(c) ? <span style={{ display: "inline-block", width: 0.22 * F * c.w }} /> : null}
               </React.Fragment>
@@ -723,21 +736,28 @@ export const MoneyCounter: React.FC<{
           </div>
         ) : null}
       </div>
-      {/* Event labels float up. */}
+      {/* Event labels float up; newer ones push older ones up (at most three in the stack). */}
       {events.map((e, i) => {
         const d = frame - e.at;
-        if (d < 0 || d > 44) return null;
+        if (d < 0 || d > EV_LIFE) return null;
         const minus = eventTone(e) === "minus";
         const p = pop(frame, e.at, { damping: 9, stiffness: 240 });
-        const q = EASE_OUT(clamp01(d / 44));
-        const fade = d > 32 ? 1 - (d - 32) / 12 : 1;
+        const q = EASE_OUT(clamp01(d / EV_LIFE));
+        let push = 0;
+        events.forEach((o, j) => {
+          const dj = frame - o.at;
+          if (j === i || dj < 0 || dj > EV_LIFE) return;
+          if (o.at > e.at || (o.at === e.at && j > i)) push += 64 * EASE_OUT(clamp01(dj / 6));
+        });
+        const fade = (d > 32 ? 1 - (d - 32) / 12 : 1) * (1 - clamp01((push - 110) / 30));
+        if (fade <= 0) return null;
         return (
           <div
             key={`ev${i}`}
             style={{
               position: "absolute",
-              left: (i % 2 ? 1 : -1) * 30 * q,
-              top: top - 46 - 150 * q,
+              left: (i % 2 ? 1 : -1) * 26 * q,
+              top: top - 46 - 100 * q - push,
               transform: `translate(-50%, -50%) scale(${0.4 + 0.6 * p}) rotate(${(i % 2 ? 5 : -5) * (1 - q)}deg)`,
               opacity: fade * Math.min(1, p * 3),
               filter: `drop-shadow(0 0 12px ${minus ? "rgba(255,59,78,0.75)" : "rgba(43,255,126,0.7)"})`,
@@ -757,19 +777,20 @@ export const MoneyCounter: React.FC<{
 // 2. TitleSticker
 
 /**
- * The hook title in the top band (x 70-930, y 245-480): «¿Y SI DORMIR 💤» (white, DORMIR in
+ * The hook title in the top band (x 90-910, y 245-485): «¿Y SI DORMIR 💤» (white, DORMIR in
  * dreamy lavender, bobbing Zs) over «TE PAGARA? 💸» (gold on a money-green marker bar that wipes
  * in, a flapping winged banknote). Readable from the first frames: line 1 lands ~4 frames after
- * `at`, line 2 ~8. A soft dark scrim behind keeps it readable on any shot. Lines leave one by one
- * (shrink, fly up) at `out`. Suggested: at GANCHO.START (0), out GANCHO.L02 - 10 or so.
+ * `at`, line 2 ~8 (a negative `at`, e.g. -4, has it half-landed on frame 0, the cover frame). A
+ * soft dark scrim behind keeps it readable on any shot. Lines leave one by one (shrink, fly up)
+ * at `out`. Suggested: at -4, out GANCHO.CIEN - 12 (before the RuleStamp).
  */
 export const TitleSticker: React.FC<{ frame: number; at: number; out: number }> = ({ frame, at, out }) => {
   if (frame < at || frame > out + 16) return null;
   const t = frame - at;
   const scrimK = ramp(frame, at, at + 5) * (1 - ramp(frame, out, out + 14));
   const lines = [
-    { y: 300, delay: 0 },
-    { y: 420, delay: 4 },
+    { y: 296, delay: 0 },
+    { y: 410, delay: 4 },
   ];
   const zIn = pop(frame, at + 7, { damping: 9, stiffness: 200 });
   const mIn = pop(frame, at + 10, { damping: 9, stiffness: 200 });
@@ -816,8 +837,8 @@ export const TitleSticker: React.FC<{ frame: number; at: number; out: number }> 
                   <HeavyText text="¿Y SI" size={L1} colors={TXT_WHITE} stroke={K.ink} />
                   <HeavyText text="DORMIR" size={L1} colors={TXT_DREAM} stroke={K.ink} />
                 </div>
-                <div style={{ width: 104, height: 104, transform: `scale(${zIn * (1 - icOut)}) rotate(${(1 - zIn) * -40 + Math.sin(t * 0.1) * 5}deg) translateY(-14px)` }}>
-                  <ZzzIcon size={104} frame={frame} />
+                <div style={{ width: 112, height: 112, transform: `scale(${zIn * (1 - icOut)}) rotate(${(1 - zIn) * -40 + Math.sin(t * 0.1) * 5}deg) translateY(-18px)` }}>
+                  <ZzzIcon size={112} frame={frame} />
                 </div>
               </>
             ) : (
@@ -842,8 +863,8 @@ export const TitleSticker: React.FC<{ frame: number; at: number; out: number }> 
                     <HeavyText text="TE PAGARA?" size={L2} colors={TXT_GOLD} stroke={K.ink} />
                   </div>
                 </div>
-                <div style={{ width: 120, height: 120, marginLeft: 22, transform: `scale(${mIn * (1 - icOut)}) rotate(${(1 - mIn) * 50}deg) translateY(${Math.sin(t * 0.16) * 6}px)` }}>
-                  <MoneyWingsIcon size={120} frame={frame} />
+                <div style={{ width: 150, height: 150, marginLeft: 14, marginRight: -24, transform: `scale(${mIn * (1 - icOut)}) rotate(${(1 - mIn) * 50}deg) translateY(${Math.sin(t * 0.16) * 6}px)` }}>
+                  <MoneyWingsIcon size={150} frame={frame} />
                 </div>
               </>
             )}
@@ -876,12 +897,12 @@ export const RuleStamp: React.FC<{ frame: number; at: number; out: number }> = (
   const base = landed ? 1 : 2.4 - 1.4 * fall;
   const k = leave(frame, out, 10);
   const sh = impact(frame, at + SLAM, 18, 12);
-  const rot = -4 + (landed ? (1 - settle) * 6 : 10 * (1 - fall)) + Math.sin(t * 0.08) * 0.7 + sh.r;
+  const rot = -3 + (landed ? (1 - settle) * 6 : 10 * (1 - fall)) + Math.sin(t * 0.08) * 0.7 + sh.r;
   const ring = landed ? clamp01((t - SLAM) / 12) : -1;
-  const CX = 500;
+  const CX = 512;
   const CY = 392;
-  const W = 800;
-  const H = 236;
+  const W = 740;
+  const H = 230;
   const coinIn = landed ? pop(frame, at + SLAM, { damping: 9, stiffness: 200 }) : 0;
   const ribbon = ramp(frame, at + SLAM + 1, at + SLAM + 8, [0, 1], EASE_OUT);
   const burst: React.ReactNode[] = [];
@@ -944,9 +965,9 @@ export const RuleStamp: React.FC<{ frame: number; at: number; out: number }> = (
           <div style={{ position: "absolute", inset: 8, borderRadius: 26, border: `4px solid ${hexA(K.greenDark, 0.75)}` }} />
           <div style={{ position: "absolute", inset: 18, borderRadius: 20, border: `3px dashed ${hexA(K.greenDark, 0.3)}` }} />
         </div>
-        <div style={{ position: "absolute", left: 172, right: 24, top: 0, bottom: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ position: "relative", paddingTop: 136 * 0.06, marginTop: -6 }}>
-            <HeavyText text="S/ 100" size={136} colors={TXT_GREEN} stroke={K.ink} />
+        <div style={{ position: "absolute", left: 132, right: 20, top: 0, bottom: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ position: "relative", paddingTop: 132 * 0.06, marginTop: -6 }}>
+            <HeavyText text="S/ 100" size={132} colors={TXT_GREEN} stroke={K.ink} />
           </div>
           <div
             style={{
@@ -960,7 +981,7 @@ export const RuleStamp: React.FC<{ frame: number; at: number; out: number }> = (
               boxShadow: SHADOW_SM,
               fontFamily: UI,
               fontWeight: 900,
-              fontSize: 42,
+              fontSize: 40,
               lineHeight: 1,
               color: "#FFFFFF",
               whiteSpace: "nowrap",
@@ -969,11 +990,11 @@ export const RuleStamp: React.FC<{ frame: number; at: number; out: number }> = (
             }}
           >
             POR HORA DORMIDA
-            <ZzzIcon size={50} frame={frame} />
+            <ZzzIcon size={52} frame={frame} />
           </div>
         </div>
-        <div style={{ position: "absolute", left: -66, top: H / 2 - 104, transform: `scale(${coinIn}) rotate(${-14 + (1 - coinIn) * -90 + Math.sin(t * 0.1) * 4}deg)` }}>
-          <CoinIcon size={208} spin={(1 - coinIn) * 6} />
+        <div style={{ position: "absolute", left: -58, top: H / 2 - 92, transform: `scale(${coinIn}) rotate(${-14 + (1 - coinIn) * -90 + Math.sin(t * 0.1) * 4}deg)` }}>
+          <CoinIcon size={184} spin={(1 - coinIn) * 6} />
         </div>
       </div>
     </div>
@@ -1037,26 +1058,13 @@ export const SleepSensor: React.FC<{
       {/* The clip on the headboard. */}
       <div style={{ position: "absolute", left: -26, top: -30, width: 52, height: 34, borderRadius: "8px 8px 12px 12px", background: "linear-gradient(180deg, #5A5F78, #2E3146)", boxShadow: `0 0 0 4px ${K.ink}` }} />
       <div style={{ position: "absolute", left: -40, top: -6, width: 80, height: 10, borderRadius: 5, background: "#8A90A8", boxShadow: `0 0 0 4px ${K.ink}` }} />
-      {/* Vibration marks. */}
-      {buzzing
-        ? [-1, 1].map((sd) => (
-            <svg key={sd} width={60} height={90} viewBox="0 0 60 90" style={{ position: "absolute", left: sd < 0 ? -258 : 198, top: -30 - H - 2, overflow: "visible", opacity: 0.35 + 0.65 * vib, transform: sd < 0 ? "scaleX(-1)" : undefined }}>
-              {[0, 1, 2].map((i) => (
-                <path key={i} d={`M${10 + i * 14} ${22 - i * 8} Q${22 + i * 14} 45 ${10 + i * 14} ${68 + i * 8}`} stroke={K.ink} strokeWidth={11} strokeLinecap="round" fill="none" />
-              ))}
-              {[0, 1, 2].map((i) => (
-                <path key={`c${i}`} d={`M${10 + i * 14} ${22 - i * 8} Q${22 + i * 14} 45 ${10 + i * 14} ${68 + i * 8}`} stroke={color} strokeWidth={5} strokeLinecap="round" fill="none" />
-              ))}
-            </svg>
-          ))
-        : null}
-      {/* A tiny Z floating up from a sleeping sensor. */}
+      {/* A small Z floating up from a sleeping sensor. */}
       {!awake
         ? [0, 1].map((i) => {
             const ph = ((frame + i * 30) % 60) / 60;
             return (
-              <div key={i} style={{ position: "absolute", left: 120 + ph * 40, top: -30 - H - 30 - ph * 70, opacity: Math.sin(ph * Math.PI), transform: `scale(${0.6 + 0.5 * ph})` }}>
-                <ZzzIcon size={46} />
+              <div key={i} style={{ position: "absolute", left: 110 + ph * 50, top: -30 - H - 44 - ph * 80, opacity: Math.sin(ph * Math.PI), transform: `scale(${0.7 + 0.5 * ph})` }}>
+                <ZzzIcon size={58} />
               </div>
             );
           })
@@ -1080,7 +1088,26 @@ export const SleepSensor: React.FC<{
           whiteSpace: "nowrap",
         }}
       >
-        {/* Lens LED with radar arcs. */}
+        {/* Vibration marks on both sides. */}
+        {buzzing
+          ? [-1, 1].map((sd) => (
+              <svg
+                key={sd}
+                width={60}
+                height={90}
+                viewBox="0 0 60 90"
+                style={{ position: "absolute", top: -7, [sd < 0 ? "left" : "right"]: -80, overflow: "visible", opacity: 0.3 + 0.7 * vib, transform: `${sd < 0 ? "scaleX(-1) " : ""}translateX(${vib * 6}px)` }}
+              >
+                {[0, 1, 2].map((i) => (
+                  <path key={i} d={`M${10 + i * 14} ${22 - i * 8} Q${22 + i * 14} 45 ${10 + i * 14} ${68 + i * 8}`} stroke={K.ink} strokeWidth={11} strokeLinecap="round" fill="none" />
+                ))}
+                {[0, 1, 2].map((i) => (
+                  <path key={`c${i}`} d={`M${10 + i * 14} ${22 - i * 8} Q${22 + i * 14} 45 ${10 + i * 14} ${68 + i * 8}`} stroke={color} strokeWidth={5} strokeLinecap="round" fill="none" />
+                ))}
+              </svg>
+            ))
+          : null}
+        {/* Lens LED. */}
         <div style={{ position: "relative", width: 58, height: 58, flexShrink: 0, borderRadius: 29, background: "#0B0D1A", boxShadow: `inset 0 0 0 4px #4A4F70` }}>
           <div
             style={{
@@ -1220,6 +1247,18 @@ export const PriceTag: React.FC<{ frame: number; at: number; out: number; x?: nu
 
 const CARDBOARD = "M14 22 L120 8 L310 16 L470 6 L606 20 L598 140 L610 300 L596 392 L420 404 L250 396 L80 408 L8 396 L18 250 L6 120 Z";
 
+/** A hand-drawn loop around the ellipse (cx, cy, rx, ry): a bit more than one turn, spiralling out. */
+const handLoop = (cx: number, cy: number, rx: number, ry: number) => {
+  const pts: string[] = [];
+  const N = 56;
+  for (let i = 0; i <= N; i++) {
+    const a = Math.PI * 1.04 + (i / N) * Math.PI * 2.18;
+    const wob = 1 + 0.035 * Math.sin(a * 3 + 0.6) + 0.06 * (i / N);
+    pts.push(`${(cx + Math.cos(a) * rx * wob).toFixed(1)} ${(cy + Math.sin(a) * ry * wob).toFixed(1)}`);
+  }
+  return `M${pts.join(" L")}`;
+};
+
 /**
  * The neighbour's hand-written cardboard sign (centre x, y; default 500, 600; ~620 x 410, the
  * string reaches y - 300): uneven brown cardboard taped on a string, «SILENCIO:» in black marker,
@@ -1267,17 +1306,18 @@ export const SilenceSign: React.FC<{ frame: number; at: number; out: number; x?:
           <div style={{ position: "absolute", left: 0, right: 0, top: 56, display: "flex", justifyContent: "center" }}>
             <div style={{ ...marker, fontSize: 104, color: "#1C1A24", transform: "rotate(-3deg)", letterSpacing: 2 }}>SILENCIO:</div>
           </div>
-          <div style={{ position: "absolute", left: 0, right: 0, top: 196, display: "flex", justifyContent: "center", alignItems: "flex-end", gap: 26 }}>
-            <div style={{ position: "relative" }}>
-              <svg width={330} height={190} viewBox="0 0 330 190" style={{ position: "absolute", left: -42, top: -40, overflow: "visible" }}>
+          <div style={{ position: "absolute", left: 0, right: 0, top: 196, display: "flex", justifyContent: "center", alignItems: "flex-end", gap: 44 }}>
+            <div style={{ position: "relative", width: 316, height: 132 }}>
+              <svg width={476} height={272} viewBox="0 0 476 272" style={{ position: "absolute", left: -80, top: -70, overflow: "visible", transform: "rotate(-5deg)" }}>
                 <path
-                  d="M40 96 C34 40 110 14 176 16 C250 18 304 50 300 100 C296 150 226 176 160 172 C92 168 40 146 44 92 C46 70 62 52 84 40"
+                  d={handLoop(240, 132, 214, 108)}
                   stroke="#E3242B"
                   strokeWidth={7}
                   strokeLinecap="round"
+                  strokeLinejoin="round"
                   fill="none"
-                  strokeDasharray={1000}
-                  strokeDashoffset={1000 * (1 - circle)}
+                  strokeDasharray={1200}
+                  strokeDashoffset={1200 * (1 - circle)}
                 />
               </svg>
               <div style={{ ...marker, fontSize: 132, color: "#E3242B", transform: "rotate(-4deg)" }}>S/ 50</div>
@@ -1389,8 +1429,9 @@ export const PayToast: React.FC<{ frame: number; at: number; out: number }> = ({
  * fly through the night to «9:00 A. M.» between `from` and `to` (eased: slow, racing, slow; the
  * minutes blur, each new hour rolls in, «P. M.» flips to «A. M.» at midnight), and ten little
  * coin slots that light up one per hour slept (S/ 100 each). The pill glows from night violet to
- * sunrise gold. Pops in at `at`, leaves at `out`. Suggested: at GIRO.MASK, from GIRO.MASK + 10,
- * to GIRO.MIL (or GIRO.RICO), out GIRO.OJOS - 4.
+ * sunrise gold. Pops in at `at`, leaves at `out`. Works from ~25 frames of flight up. Suggested:
+ * at GIRO.MASK, from GIRO.MASK + 4, to GIRO.MIL (10 hours = S/ 1 000, with the counter), out
+ * GIRO.OJOS - 4.
  */
 export const NightClock: React.FC<{ frame: number; at: number; out: number; from: number; to: number }> = ({ frame, at, out, from, to }) => {
   const uid = useUid();
@@ -1411,9 +1452,9 @@ export const NightClock: React.FC<{ frame: number; at: number; out: number; from
     const v = h12(h);
     return v < 10 ? ` ${v}` : String(v);
   };
-  // The next hour rolls in during the last 20 minutes of each hour.
+  // The next hour rolls in during the last 8 minutes of each hour.
   const frac = mins - Math.floor(mins / 60) * 60;
-  const roll = lin > 0 && lin < 1 ? clamp01((frac - 40) / 20) : 0;
+  const roll = lin > 0 && lin < 1 ? clamp01((frac - 52) / 8) : 0;
   const nextH = (h24 + 1) % 24;
   const curH = hourStr(h24);
   const nxtH = hourStr(nextH);
@@ -1430,7 +1471,7 @@ export const NightClock: React.FC<{ frame: number; at: number; out: number; from
   const rimC = interpolateColors(lin, [0, 0.6, 1], ["#B9A8FF", "#FFB36B", "#FFD84D"]);
   const glassC = interpolateColors(lin, [0, 0.6, 1], ["#221A5C", "#3D1F55", "#4A2A12"]);
   const moonY = 54 + 90 * EASE_IN(clamp01((lin - 0.3) / 0.4));
-  const sunY = 150 - 96 * EASE_OUT(clamp01((lin - 0.62) / 0.38));
+  const sunY = 180 - 126 * EASE_OUT(clamp01((lin - 0.6) / 0.4));
   const stars = 1 - clamp01((lin - 0.45) / 0.25);
   const ticked = (d: string, i: number) => d.charAt(i);
   return (
@@ -1622,8 +1663,8 @@ export const ChargesPhone: React.FC<{ frame: number; at: number; out: number; ch
           <div
             style={{
               position: "relative",
-              margin: "4px 18px 0",
-              height: 178,
+              margin: "2px 18px 0",
+              height: 162,
               borderRadius: 36,
               background: cardBg,
               boxShadow: `0 0 0 4px ${K.ink}, 0 7px 0 4px rgba(0,0,0,0.2)${isZero && flash ? `, 0 0 40px ${hexA(K.red, 0.9)}` : ""}`,
@@ -1652,7 +1693,7 @@ export const ChargesPhone: React.FC<{ frame: number; at: number; out: number; ch
                 style={{
                   fontFamily: UI,
                   fontWeight: 900,
-                  fontSize: 104,
+                  fontSize: 98,
                   lineHeight: 1,
                   color: "#FFFFFF",
                   whiteSpace: "nowrap",
@@ -1670,29 +1711,30 @@ export const ChargesPhone: React.FC<{ frame: number; at: number; out: number; ch
             </div>
           </div>
           {/* Charges. */}
-          <div style={{ position: "relative", margin: "16px 18px 0", display: "flex", flexDirection: "column", gap: 9 }}>
+          <div style={{ position: "relative", margin: "14px 18px 0", display: "flex", flexDirection: "column", gap: 8 }}>
             {CHARGES.map((ch, i) => {
               const a = ats[i];
-              const rp = frame >= a ? pop(frame, a, { damping: 12, stiffness: 240 }) : 0;
+              const rp = ramp(frame, a, a + 7, [0, 1], EASE_OUT);
+              const land = bump(frame, a + 5, 7);
               const fl = frame >= a ? 1 - ramp(frame, a, a + 12) : 0;
               const icon = i === 0 ? <MattressIcon size={48} /> : i === 1 ? <MuteIcon size={46} /> : <BowlIcon size={48} frame={frame} />;
               return (
                 <div
                   key={ch.label}
                   style={{
-                    height: 76,
-                    borderRadius: 24,
+                    height: 70,
+                    borderRadius: 22,
                     background: frame >= a ? (fl > 0.05 ? `rgba(255,${Math.round(220 - 90 * fl)},${Math.round(225 - 95 * fl)},1)` : "#FFFFFF") : "rgba(255,255,255,0)",
                     boxShadow: frame >= a ? "0 3px 0 rgba(26,18,51,0.12), 0 0 0 2px rgba(26,18,51,0.06)" : "none",
                     display: "flex",
                     alignItems: "center",
                     gap: 18,
                     padding: "0 26px 0 12px",
-                    transform: `translateX(${(1 - rp) * 640}px)`,
+                    transform: `translateX(${(1 - rp) * 640}px) scale(${1 + 0.05 * land})`,
                     opacity: frame >= a ? 1 : 0,
                   }}
                 >
-                  <div style={{ width: 58, height: 58, borderRadius: 18, background: ch.tint, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <div style={{ width: 54, height: 54, borderRadius: 17, background: ch.tint, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     {icon}
                   </div>
                   <div style={{ flex: 1, fontFamily: UI, fontWeight: 900, fontSize: 38, color: "#22203A", letterSpacing: 0.5 }}>{ch.label}</div>
@@ -1799,8 +1841,8 @@ export const EndText: React.FC<{ frame: number; at: number }> = ({ frame, at }) 
         }}
       >
         Comenta tus horas
-        <div style={{ transform: `translateY(${hop - 4}px)` }}>
-          <PointDownIcon size={56} />
+        <div style={{ height: 50, marginTop: -8, transform: `translateY(${hop - 6}px)` }}>
+          <PointDownIcon size={66} />
         </div>
       </div>
     </AbsoluteFill>

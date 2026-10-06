@@ -52,19 +52,19 @@ const oficina = (): Cue[] => {
   const { START, DIVE, L03, NOD } = OFICINA;
   return [
     [START - 2, "whoosh-short", 0.3],
-    [DIVE - 2, "dormir/bed", 0.9],
+    // The belly-flop lands a few frames after the dive starts.
+    [DIVE + 7, "dormir/bed", 0.9],
     [L03 - 2, "impact", 0.2],
     [NOD, "pop", 0.25],
   ];
 };
 
 const problema = (): Cue[] => {
-  const { START, L06, SOLO, FINGIR, GRITO, PEEK } = PROBLEMA;
+  const { START, FINGIR, GRITO, PEEK } = PROBLEMA;
   return [
     [START - 2, "whoosh-short", 0.25],
-    // The colleague keeps earning in the next bed.
-    [L06 + 8, "dormir/chaching", 0.3],
-    [SOLO + 20, "dormir/chaching", 0.28],
+    // The colleague keeps earning in the next bed: +S/100 every 46 frames (as his counter shows).
+    ...Array.from({ length: 7 }, (_, k): Cue => [START + 26 + 46 * k, "dormir/chaching", 0.26]),
     [FINGIR - 2, "dormir/denied", 0.85],
     [GRITO, "impact", 0.2],
     [PEEK, "dormir/denied", 0.6],

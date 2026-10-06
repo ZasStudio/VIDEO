@@ -21,6 +21,7 @@ import {
   SENSOR_LOCAL,
   SLEEPERS,
   Sleepers,
+  Sparkle,
   WORKER_BED,
   WORKER_DUVET,
   Zzz,
@@ -32,7 +33,6 @@ import {
 } from "../../three/dormir/OfficeBeds";
 import { BOSS_SIZE, Boss, BossMug, Worker } from "../../three/ia/Work";
 import { finTipWorld } from "../../three/tiempo/Office";
-import { Glow } from "../../three/thanos/FX";
 import { OFICINA } from "../beats";
 import { counterAt } from "../counter";
 import { SHOTS } from "../shots";
@@ -57,8 +57,8 @@ import { DORMIR } from "../timeline";
 const FPS = 30;
 const NUBI_SIZE = 2;
 const HOLD: Vec3 = [0.2, -1.45, 0.55];
-const WALK_FROM: Vec3 = [3.55, 0, 2.95];
-const WALK_TO: Vec3 = [0.6, 0, 2.5];
+const WALK_FROM: Vec3 = [4.1, 0, 3.7];
+const WALK_TO: Vec3 = [0.55, 0, 2.75];
 /** Where the briefcase lands: on the floor between the beds, in front of Nubi's nightstand. */
 const CASE_REST: Vec3 = [NUBI_BED[0] - BED.w / 2 - 0.4, 0.41, NUBI_BED[2] - 0.55];
 const BOSS_RY = -0.95;
@@ -92,7 +92,7 @@ export const OficinaShot: React.FC = () => {
     const crouch = ramp(g, DIVE - 4, DIVE, [0, 1], EASE_OUT);
     const tr = trotPose(g * 0.95);
     nubiAt = lerp3(WALK_FROM, WALK_TO, u);
-    nubiRy = mix(-1.2, -2.95, turn);
+    nubiRy = mix(-0.75, -2.95, turn);
     pose = { ...tr, hop: (tr.hop ?? 0) * (1 - crouch), squash: mix(tr.squash ?? 1, 0.8, crouch), finL: mix(tr.finL ?? 0, -0.5, crouch), finR: mix(tr.finR ?? 0, -0.4, crouch), lookX: -0.35, lookY: -0.05, pitch: mix(0.12, 0.2, crouch) };
     holdCase = true;
   } else if (g < LAND) {
@@ -169,7 +169,7 @@ export const OficinaShot: React.FC = () => {
   // ---- The sensor on Nubi's headboard: off until Nubi lands, then red (awake) ------------------------
   const sensorOn = g >= LAND + 1;
   const sensorPop = sensorOn ? pop(g, LAND + 1, { damping: 9, stiffness: 260 }) : 1;
-  const sensorFlash = windowIn(g, LAND + 1, LAND + 12, 2) * 0.8 + windowIn(g, DORMIR.wordAt("L03", 4), DORMIR.wordAt("L03", 4) + 16, 3) * 0.7;
+  const sensorFlash = windowIn(g, LAND + 1, LAND + 12, 2) * 0.8;
 
   // ---- The boss -------------------------------------------------------------------------------------
   const suspicious = ramp(g, LAND + 3, LAND + 10) * (1 - ramp(g, L03, L03 + 4));
@@ -207,16 +207,16 @@ export const OficinaShot: React.FC = () => {
   );
 
   // ---- Camera: the corridor two-shot, pushing in; on L05 it closes in on Nubi's smug face -----------
-  const MID: Vec3 = [1.2, 1.25, -0.1];
+  const MID: Vec3 = [1.5, 1.3, -0.3];
   const FACE: Vec3 = [0.12, 1.6, 0.25];
   const uA = ramp(g, START, L03 + 30, [0, 1], EASE_IN_OUT);
   const uB = ramp(g, L03 + 30, L05, [0, 1], (x) => x);
   const uC = ramp(g, L05 + 6, END, [0, 1], EASE_IN_OUT);
-  const posA = lerp3([2.5, 5.5, 13.6], [2.1, 4.7, 11.6], uA);
-  const posB = lerp3(posA, [1.85, 4.35, 10.4], uB);
-  const pos = lerp3(posB, [0.75, 3.15, 6.6], uC);
+  const posA = lerp3([2.9, 9.4, 14.2], [2.6, 8.2, 12.6], uA);
+  const posB = lerp3(posA, [2.3, 7.3, 11.2], uB);
+  const pos = lerp3(posB, [0.6, 4.4, 7.2], uC);
   const target = lerp3(MID, FACE, uC);
-  const cam: Cam = aim(pos, 42, target, mix(560, 480, uC), mix(930, 900, uC));
+  const cam: Cam = aim(pos, 42, target, mix(540, 500, uC), mix(900, 880, uC));
 
   // ---- Counters ------------------------------------------------------------------------------------
   const nubiHead = bedHead(nubiAt, NUBI_SIZE, nubiPose, 0.5);
@@ -279,8 +279,8 @@ export const OficinaShot: React.FC = () => {
           </group>
           <Worker position={inBed(WORKER_BED, 0).position} pose={{ pitch: inBed(WORKER_BED, 0).pitch, blink: 1 }} droop={0} bags={0} shadowOpacity={0} />
           <Boss position={BOSS_SPOT} rotationY={BOSS_RY + 0.1 * outrage} pose={bBase} holdR={mug} smug={smug} />
-          {/* A sparkle of pride on "talento". */}
-          <Glow color="#FFF2A8" size={1.4 * windowIn(g, TALENTO - 2, TALENTO + 14, 4)} opacity={0.9} position={[FACE[0] + 0.85, FACE[1] + 0.75, FACE[2] + 0.5]} />
+          {/* A twinkle of pride on "talento". */}
+          <Sparkle at={[nubiHead[0] + 0.75, nubiHead[1] - 0.2, nubiHead[2] + 0.6]} size={0.75 * windowIn(g, TALENTO - 1, TALENTO + 16, 5) * (1 + 0.2 * Math.sin(g * 0.9))} spin={(g - TALENTO) * 0.08} />
         </Stage>
         {bg.map(({ b, c, fade }) =>
           fade <= 0.02 ? null : <MoneyCounter key={b.i} frame={g} soles={sleeperSoles(b, g)} x={c.x} y={c.y} scale={c.scale} state="earning" opacity={fade} events={[]} />,

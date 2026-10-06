@@ -16,8 +16,8 @@ import { Glow } from "../thanos/FX";
 //
 // World units are sized for Nubi at size 2; floor y = 0; +z points towards the default camera. A bed
 // is BED.w wide (x) and BED.l long (z): its headboard is at z − l/2, its foot at z + l/2, the mattress
-// top at BED.mattress. Bed rows at z = 0, −5, −10; columns x = 0, −3.5, −7, −10.5 (left block) and
-// 5.7, 9.2, 12.7 (right block), with a corridor between x = 1.35 and 4.35 where the boss stands.
+// top at BED.mattress. Bed rows at z = 0, −5.1, −10.2; columns x = 0, −3.8, −7.6, −11.4 (left block)
+// and 6.5, 10.3, 14.1 (right block), with a corridor between x = 1.5 and 5 where the boss stands.
 // Nubi's bed is at the corridor end of the front row (NUBI_BED), the Worker's next to it (WORKER_BED).
 // Light to render: geometry built once and merged (vertex colours), the crowd instanced, no shadow
 // maps, three lights.
@@ -70,20 +70,20 @@ const basic = (() => {
 // =======================================================================================
 // LAYOUT
 
-export const BED = { w: 2.7, l: 3.5, mattress: 0.72, head: 1.5 };
-export const ROOM = { x0: -13, x1: 14.2, zBack: -13.4, height: 6.6 };
-const ROWS = [0, -5, -10];
-const LEFT_COLS = [0, -3.5, -7, -10.5];
-const RIGHT_COLS = [5.7, 9.2, 12.7];
-export const CORRIDOR = { x0: 1.35, x1: 4.35 };
+export const BED = { w: 3.0, l: 3.7, mattress: 0.72, head: 1.5 };
+export const ROOM = { x0: -14.4, x1: 16, zBack: -13.6, height: 6.6 };
+const ROWS = [0, -5.1, -10.2];
+const LEFT_COLS = [0, -3.8, -7.6, -11.4];
+const RIGHT_COLS = [6.5, 10.3, 14.1];
+export const CORRIDOR = { x0: 1.5, x1: 5.0 };
 export const NUBI_BED: V3 = [0, 0, 0];
-export const WORKER_BED: V3 = [-3.5, 0, 0];
+export const WORKER_BED: V3 = [-3.8, 0, 0];
 /** Where the boss stands, in the corridor beside Nubi's pillow. */
-export const BOSS_SPOT: V3 = [2.62, 0, -0.42];
+export const BOSS_SPOT: V3 = [3.1, 0, -0.6];
 export const NUBI_DUVET = "#FFD45C";
 export const WORKER_DUVET = "#7FC0FF";
 /** Nubi's bed sensor (on its headboard, corridor side): world position of the LED. */
-export const SENSOR_LOCAL: V3 = [1.0, BED.head + 0.02, -BED.l / 2 + 0.12];
+export const SENSOR_LOCAL: V3 = [-1.12, BED.head + 0.02, -BED.l / 2 + 0.12];
 export const SENSOR_AT: V3 = [NUBI_BED[0] + SENSOR_LOCAL[0], SENSOR_LOCAL[1] + 0.15, NUBI_BED[2] + SENSOR_LOCAL[2] + 0.12];
 
 const DUVETS = ["#8FC8FF", "#FF9EBB", "#9EE6B8", "#C9B2FF", "#FFB38A", "#7FE0D6", "#FFE07A", "#B8D96A"];
@@ -96,6 +96,8 @@ export type BedSpot = {
   z: number;
   duvet: string;
   hero?: "nubi" | "worker";
+  /** A made, empty bed (the one right behind Nubi's, so its counter reads clearly). */
+  vacant?: boolean;
   /** Background sleeper: body colour, size, seed, nightcap colour (or none). */
   body: string;
   size: number;
@@ -115,6 +117,7 @@ export const OFFICE_BEDS: BedSpot[] = (() => {
         x,
         z,
         hero,
+        vacant: x === NUBI_BED[0] && z === ROWS[1],
         duvet: hero === "nubi" ? NUBI_DUVET : hero === "worker" ? WORKER_DUVET : DUVETS[(c * 3 + r * 5) % DUVETS.length],
         body: BODIES[(c * 7 + r * 3) % BODIES.length],
         size: 1.85 + 0.3 * hash(seed),
@@ -125,8 +128,8 @@ export const OFFICE_BEDS: BedSpot[] = (() => {
   );
   return out;
 })();
-/** The background colleagues (every bed but Nubi's and the Worker's). */
-export const SLEEPERS = OFFICE_BEDS.filter((b) => !b.hero);
+/** The background colleagues (every bed but Nubi's, the Worker's and the vacant one). */
+export const SLEEPERS = OFFICE_BEDS.filter((b) => !b.hero && !b.vacant);
 
 // =======================================================================================
 // POSE HELPERS
@@ -170,10 +173,11 @@ export const inBed = (bed: V3, up = 0, size = 2): { position: V3; pitch: number 
   };
 };
 
-/** Anchor of the money counter over a character in bed (world point above its head). */
+/** Anchor of the money counter over a character in bed: `above` units over the highest edge of its head. */
 export const bedHead = (position: V3, size: number, pose: NubiPose, above = 0.5): V3 => {
-  const p = bodyPoint(position, 0, size, pose, [0, 9.9, -1.5]);
-  return [p[0], p[1] + above, p[2]];
+  const f = bodyPoint(position, 0, size, pose, [0, 9.9, 4.4]);
+  const k = bodyPoint(position, 0, size, pose, [0, 9.9, -4.4]);
+  return [(f[0] + k[0]) / 2, Math.max(f[1], k[1]) + above, (f[2] + k[2]) / 2];
 };
 
 /** A background colleague's pose at frame g: asleep, breathing slowly. */
@@ -238,7 +242,7 @@ const C = {
 };
 
 /** One bed in its local frame (merged parts, vertex colours). `duvet` adds the static duvet. */
-const bedParts = (duvet?: string): THREE.BufferGeometry[] => {
+const bedParts = (duvet?: string, vacant = false): THREE.BufferGeometry[] => {
   const { w, l, mattress, head } = BED;
   const parts: THREE.BufferGeometry[] = [];
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) parts.push(place(rbox(0.16, 0.1, 0.16, 0.03), C.feet, [sx * (w / 2 - 0.15), 0.05, sz * (l / 2 - 0.15)]));
@@ -248,11 +252,12 @@ const bedParts = (duvet?: string): THREE.BufferGeometry[] => {
   parts.push(place(rbox(w - 0.34, head * 0.5, 0.06, 0.05), C.headPad, [0, head * 0.62, -l / 2 + 0.13]));
   parts.push(place(rbox(1.75, 0.3, 0.62, 0.14), C.pillow, [0, mattress + 0.26, -l / 2 + 0.42], [0.95, 0, 0]));
   if (duvet) {
-    const z0 = DUVET.edge;
+    // A made bed: the duvet smooth up to the pillow. Otherwise the lump of the sleeper under it.
+    const z0 = vacant ? -l / 2 + 0.78 : DUVET.edge;
     const len = l / 2 + 0.06 - z0;
-    parts.push(place(rbox(w + 0.12, 0.6, len, 0.16), duvet, [0, 0.72, z0 + len / 2]));
-    parts.push(place(rbox(2.3, 0.5, 1.15, 0.24), duvet, [0, 1.0, z0 + 0.52]));
-    parts.push(place(new THREE.CapsuleGeometry(0.15, 2.5, 4, 10), C.cuff, [0, 1.16, z0 + 0.03], [0, 0, Math.PI / 2]));
+    parts.push(place(rbox(w + 0.12, vacant ? 0.5 : 0.6, len, 0.16), duvet, [0, vacant ? 0.71 : 0.72, z0 + len / 2]));
+    if (!vacant) parts.push(place(rbox(2.3, 0.5, 1.15, 0.24), duvet, [0, 1.0, z0 + 0.52]));
+    parts.push(place(new THREE.CapsuleGeometry(0.15, 2.5, 4, 10), C.cuff, [0, vacant ? 0.98 : 1.16, z0 + 0.03], [0, 0, Math.PI / 2]));
   }
   // Nightstand on the left of the bed, by the pillow, with the base of its tiny lamp.
   const nx = -(w / 2 + 0.42);
@@ -274,7 +279,7 @@ const setGeos = once(() => {
   const shades: THREE.BufferGeometry[] = [];
   for (const b of OFFICE_BEDS) {
     const T = new THREE.Matrix4().makeTranslation(b.x, 0, b.z);
-    for (const p of bedParts(b.hero ? undefined : b.duvet)) parts.push(p.applyMatrix4(T));
+    for (const p of bedParts(b.hero ? undefined : b.duvet, b.vacant)) parts.push(p.applyMatrix4(T));
     const sh = new THREE.CylinderGeometry(0.085, 0.14, 0.17, 16);
     sh.translate(LAMP_LOCAL[0], LAMP_LOCAL[1], LAMP_LOCAL[2]);
     shades.push(sh.applyMatrix4(T));
@@ -295,7 +300,7 @@ const setGeos = once(() => {
   for (const [x, z, s] of [
     [-1.6, ROOM.zBack + 0.7, 1.1],
     [7.4, ROOM.zBack + 0.7, 1.0],
-    [4.0, -4.6, 0.85],
+    [4.55, -4.9, 0.85],
   ] as [number, number, number][]) {
     parts.push(place(new THREE.CylinderGeometry(0.3 * s, 0.24 * s, 0.6 * s, 16), C.pot, [x, 0.3 * s, z]));
     for (let k = 0; k < 5; k++) {
@@ -591,12 +596,12 @@ const roomGeos = once(() => {
     logo: new THREE.PlaneGeometry(4.6, 0.99),
   };
 });
-const WINDOWS = [-7.2, 10.6];
+const WINDOWS = [-7.8, 11.6];
 const WIN = { w: 4.4, y0: 1.5, y1: 4.9 };
-const EMPLOYEE_AT: V3 = [2.85, 3.05, ROOM.zBack + 0.08];
+const EMPLOYEE_AT: V3 = [3.25, 3.05, ROOM.zBack + 0.08];
 const POSTERS: [V3, "money" | "dream"][] = [
-  [[-1.2, 3.0, ROOM.zBack + 0.05], "money"],
-  [[6.5, 3.0, ROOM.zBack + 0.05], "dream"],
+  [[-0.9, 3.0, ROOM.zBack + 0.05], "money"],
+  [[7.4, 3.0, ROOM.zBack + 0.05], "dream"],
 ];
 
 // ---- Water cooler ----------------------------------------------------------------------------
@@ -651,7 +656,7 @@ export const OfficeBedsSet: React.FC<{ lampGlow?: number[] }> = ({ lampGlow = []
       ))}
       {ready ? (
         <>
-          <mesh geometry={r.logo} material={texMat("dormir-logo", logoTex, { transparent: true, glow: 0.3 })} position={[2.4, 5.55, ROOM.zBack + 0.03]} />
+          <mesh geometry={r.logo} material={texMat("dormir-logo", logoTex, { transparent: true, glow: 0.3 })} position={[2.9, 5.55, ROOM.zBack + 0.03]} />
           {POSTERS.map(([p, kind]) => (
             <group key={kind} position={p}>
               <mesh geometry={r.posterFrame} material={toy("#FFFFFF", { rough: 0.5, glow: 0.2 })} />
@@ -670,7 +675,7 @@ export const OfficeBedsSet: React.FC<{ lampGlow?: number[] }> = ({ lampGlow = []
         const b = OFFICE_BEDS[i];
         return b ? <Glow key={i} color="#FFC46B" size={0.75} opacity={0.55} position={[b.x + LAMP_LOCAL[0], LAMP_LOCAL[1], b.z + LAMP_LOCAL[2] + 0.05]} /> : null;
       })}
-      <group position={[3.62, 0, -3.15]} rotation={[0, -0.5, 0]}>
+      <group position={[4.35, 0, -3.35]} rotation={[0, -0.6, 0]}>
         <WaterCooler />
       </group>
     </group>
@@ -894,7 +899,7 @@ const bubbleGeos = once(() => ({ ball: new THREE.SphereGeometry(1, 24, 16), shin
 /** A snot bubble of radius r (world) at `at`, swelling with each breath. */
 export const SnotBubble: React.FC<{ at: V3; r: number }> = ({ at, r }) => {
   const g = bubbleGeos();
-  const mat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#BDEBFF", roughness: 0.05, transparent: true, opacity: 0.5, emissive: new THREE.Color("#BDEBFF"), emissiveIntensity: 0.35, depthWrite: false }), []);
+  const mat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#9FDDFF", roughness: 0.05, transparent: true, opacity: 0.62, emissive: new THREE.Color("#9FDDFF"), emissiveIntensity: 0.45, depthWrite: false }), []);
   if (r < 0.01) return null;
   return (
     <group position={at} scale={r}>
@@ -902,6 +907,34 @@ export const SnotBubble: React.FC<{ at: V3; r: number }> = ({ at, r }) => {
       <mesh geometry={g.shine} material={basic("#FFFFFF")} position={[-0.38, 0.42, 0.75]} />
     </group>
   );
+};
+
+const starTex = () =>
+  canvasTexture("dormir-star", 128, 128, (ctx, w) => {
+    ctx.clearRect(0, 0, w, w);
+    const c = w / 2;
+    const glow = ctx.createRadialGradient(c, c, 0, c, c, c);
+    glow.addColorStop(0, "rgba(255,250,200,0.9)");
+    glow.addColorStop(0.3, "rgba(255,240,150,0.25)");
+    glow.addColorStop(1, "rgba(255,240,150,0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, w, w);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.beginPath();
+    for (let k = 0; k < 4; k++) {
+      const a = (k * Math.PI) / 2;
+      ctx.lineTo(c + Math.cos(a) * c * 0.95, c + Math.sin(a) * c * 0.95);
+      ctx.quadraticCurveTo(c, c, c + Math.cos(a + Math.PI / 2) * c * 0.95, c + Math.sin(a + Math.PI / 2) * c * 0.95);
+    }
+    ctx.closePath();
+    ctx.fill();
+  });
+/** A twinkling four-point star (world size `size`), turning by `spin` radians. */
+export const Sparkle: React.FC<{ at: V3; size: number; spin?: number }> = ({ at, size, spin = 0 }) => {
+  const mat = useMemo(() => new THREE.SpriteMaterial({ map: starTex(), color: "#FFF6B8", transparent: true, depthWrite: false, toneMapped: false }), []);
+  if (size <= 0.01) return null;
+  mat.rotation = spin;
+  return <sprite material={mat} position={at} scale={[size, size, 1]} renderOrder={7} />;
 };
 
 // =======================================================================================

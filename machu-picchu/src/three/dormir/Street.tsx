@@ -95,10 +95,10 @@ export const BAKERY = {
   height: 6.6,
   open: { x0: -2.6, x1: 2.45, h: 3.6 },
   backZ: -3.7,
-  counter: { x: 0.35, z: -0.35, w: 3.3, d: 0.8, h: 1.05 },
-  step: 0.36,
-  baker: [0.55, 0.36, -1.12] as V3,
-  sign: [-0.35, 5.35, -1.62] as V3,
+  counter: { x: 0.3, z: -0.35, w: 2.5, d: 0.8, h: 0.92 },
+  step: 0.62,
+  baker: [0.2, 0.62, -1.45] as V3,
+  sign: [-0.35, 5.62, -1.62] as V3,
 };
 
 /** The restaurant next door: its kitchen window, the stove counter and the cook's spot. */
@@ -122,7 +122,7 @@ export const HALL = {
   door: { x: 0, w: 1.55, h: 2.75 },
   stool: [1.45, 0, -0.55] as V3,
   stoolH: 0.62,
-  sign: [-1.55, 1.95, -1.13] as V3,
+  sign: [-1.95, 2.3, -1.13] as V3,
   vecino: [0.05, 0, -0.45] as V3,
 };
 export const HALL_BG = "linear-gradient(180deg, #FFE3B0 0%, #FFD39A 55%, #F7B98A 100%)";
@@ -401,11 +401,11 @@ const tileTexture = () =>
     256,
     256,
     (ctx, W, H) => {
-      ctx.fillStyle = "#CFE3E6";
+      ctx.fillStyle = "#E8F4F4";
       ctx.fillRect(0, 0, W, H);
       for (let j = 0; j < 4; j++) {
         for (let i = 0; i < 4; i++) {
-          ctx.fillStyle = j === 1 ? "#5FC4C9" : "#F6FBFB";
+          ctx.fillStyle = j === 1 ? "#FFD23F" : "#3FB8C4";
           ctx.fillRect(i * 64 + 3, j * 64 + 3, 58, 58);
         }
       }
@@ -453,7 +453,7 @@ const croissantGeo = (pos: V3, s: number, rotY: number) => [
 
 const BAKERY_WALL = "#FFD27A";
 const BAKERY_TRIM = "#9A5B2C";
-const RESTO_WALL = "#7CC6F2";
+const RESTO_WALL = "#FF9F8A";
 const CREAM = "#FFF6E6";
 
 const streetGeometry = once(() => {
@@ -476,14 +476,14 @@ const streetGeometry = once(() => {
   const iw = open.x1 - open.x0;
   const ix = (open.x0 + open.x1) / 2;
   const idz = z - B.backZ;
-  geos.push(place(new THREE.BoxGeometry(iw, open.h, 0.1), "#FBE6C4", [ix, open.h / 2, B.backZ]));
-  for (const x of [open.x0 + 0.05, open.x1 - 0.05]) geos.push(place(new THREE.BoxGeometry(0.1, open.h, idz), "#F5D9AE", [x, open.h / 2, (z + B.backZ) / 2]));
+  geos.push(place(new THREE.BoxGeometry(iw, open.h, 0.1), "#CBE9F4", [ix, open.h / 2, B.backZ]));
+  for (const x of [open.x0 + 0.05, open.x1 - 0.05]) geos.push(place(new THREE.BoxGeometry(0.1, open.h, idz), "#B5DDEB", [x, open.h / 2, (z + B.backZ) / 2]));
   geos.push(place(new THREE.BoxGeometry(iw, 0.04, idz), "#E9C9A0", [ix, 0.02, (z + B.backZ) / 2]));
-  geos.push(place(new THREE.BoxGeometry(iw, 0.1, idz), "#F2D2A6", [ix, open.h - 0.05, (z + B.backZ) / 2]));
+  geos.push(place(new THREE.BoxGeometry(iw, 0.1, idz), "#DCF0F7", [ix, open.h - 0.05, (z + B.backZ) / 2]));
   // Bread shelves on the back wall, full of loaves; a tall bin of baguettes on the left.
   const rnd = mulberry(3);
   for (const [k, y] of [1.15, 1.85, 2.55].entries()) {
-    geos.push(place(rbox(iw - 0.5, 0.08, 0.5, 0.03), BAKERY_TRIM, [ix + 0.15, y, B.backZ + 0.3]));
+    geos.push(place(rbox(iw - 0.5, 0.08, 0.5, 0.03), "#FFFFFF", [ix + 0.15, y, B.backZ + 0.3]));
     for (let x = open.x0 + 0.95; x < open.x1 - 0.35; x += 0.42) {
       const c = [LOAF, "#D88A3E", "#F0B868", "#C9772F"][Math.floor(rnd() * 4)];
       if (k === 1 && rnd() < 0.5) geos.push(...croissantGeo([x, y + 0.1, B.backZ + 0.32], 1.1, rnd() * 0.6 - 0.3));
@@ -495,15 +495,15 @@ const streetGeometry = once(() => {
     geos.push(...baguetteGeo([open.x0 + 0.4 + (k % 3) * 0.14, 0.95, B.backZ + 0.38 + Math.floor(k / 3) * 0.14], [0.12 * (k - 2.5), 0, 0.1 * ((k % 3) - 1)], 0.75));
   }
   // Upper floor: two windows with sills and a flower box.
-  for (const x of [B.x0 + 1.25, B.x1 - 1.35]) {
-    geos.push(place(rbox(1.15, 1.35, 0.14, 0.08), "#FFFFFF", [x, 4.95, z + 0.06]));
-    geos.push(place(rbox(0.9, 1.1, 0.1, 0.05), "#A6DDFF", [x, 4.95, z + 0.1]));
-    geos.push(place(rbox(0.07, 1.05, 0.04, 0.02), "#FFFFFF", [x, 4.95, z + 0.16]));
-    geos.push(place(rbox(1.3, 0.14, 0.3, 0.05), "#FFFFFF", [x, 4.22, z + 0.12]));
-    geos.push(place(rbox(1.0, 0.24, 0.3, 0.05), BAKERY_TRIM, [x, 4.38, z + 0.3]));
+  for (const x of [B.x0 + 0.68, B.x1 - 0.68]) {
+    geos.push(place(rbox(1.0, 1.25, 0.14, 0.08), "#FFFFFF", [x, 5.35, z + 0.06]));
+    geos.push(place(rbox(0.78, 1.0, 0.1, 0.05), "#A6DDFF", [x, 5.35, z + 0.1]));
+    geos.push(place(rbox(0.07, 0.95, 0.04, 0.02), "#FFFFFF", [x, 5.35, z + 0.16]));
+    geos.push(place(rbox(1.15, 0.14, 0.3, 0.05), "#FFFFFF", [x, 4.68, z + 0.12]));
+    geos.push(place(rbox(0.9, 0.24, 0.3, 0.05), BAKERY_TRIM, [x, 4.84, z + 0.3]));
     for (let f = 0; f < 4; f++) {
-      geos.push(place(new THREE.IcosahedronGeometry(0.13, 0), ["#FF4F7B", "#FFFFFF", "#FF8A3D", "#B57BFF"][f], [x - 0.36 + f * 0.24, 4.58, z + 0.32]));
-      geos.push(place(new THREE.IcosahedronGeometry(0.1, 0), "#2FAE4E", [x - 0.24 + f * 0.24, 4.52, z + 0.26]));
+      geos.push(place(new THREE.IcosahedronGeometry(0.12, 0), ["#FF4F7B", "#FFFFFF", "#FF8A3D", "#B57BFF"][f], [x - 0.32 + f * 0.21, 5.04, z + 0.32]));
+      geos.push(place(new THREE.IcosahedronGeometry(0.09, 0), "#2FAE4E", [x - 0.21 + f * 0.21, 4.98, z + 0.26]));
     }
   }
   // A potted bay tree left of the shop and a lamp post between the shops.
@@ -615,17 +615,17 @@ export const BakeryStreet: React.FC = () => {
       <mesh position={[(RESTO.win.x0 + RESTO.win.x1) / 2, (RESTO.win.y0 + RESTO.win.y1) / 2 + 0.3, RESTO.backZ]} material={tiles}>
         <planeGeometry args={[RESTO.win.x1 - RESTO.win.x0, 3.4]} />
       </mesh>
-      <Awning x0={BAKERY.open.x0 - 0.2} x1={BAKERY.open.x1 + 0.2} y={4.55} depth={0.95} colors={["#FFF3D6", "#E0892F"]} />
-      <Awning x0={RESTO.win.x0 - 0.2} x1={RESTO.win.x1 + 0.2} y={3.62} depth={0.85} colors={["#FFFFFF", "#E3262B"]} />
+      <Awning x0={BAKERY.open.x0 - 0.2} x1={BAKERY.open.x1 + 0.2} y={4.75} depth={0.95} colors={["#FFF3D6", "#E0892F"]} />
+      <Awning x0={RESTO.win.x0 - 0.2} x1={RESTO.win.x1 + 0.2} y={3.62} depth={0.85} colors={["#FFFFFF", "#1FA64A"]} />
       {ready ? (
         <>
           <mesh position={BAKERY.sign}>
-            <planeGeometry args={[3.9, 0.975]} />
+            <planeGeometry args={[3.4, 0.85]} />
             <primitive object={texMat(shopSignTexture("PANADERÍA", "#9A5B2C", "#FFE7A8", true), 0.5, 0.32)} attach="material" />
           </mesh>
           <mesh position={RESTO.sign}>
-            <planeGeometry args={[3.6, 0.9]} />
-            <primitive object={texMat(shopSignTexture("RESTAURANTE", "#E3262B", "#FFFFFF", false), 0.5, 0.32)} attach="material" />
+            <planeGeometry args={[3.2, 0.8]} />
+            <primitive object={texMat(shopSignTexture("RESTAURANTE", "#1FA64A", "#FFFFFF", false), 0.5, 0.32)} attach="material" />
           </mesh>
         </>
       ) : null}
@@ -640,15 +640,15 @@ const counterGeometry = once(() => {
   const { w, d, h } = BAKERY.counter;
   const geos: THREE.BufferGeometry[] = [];
   // Wooden body, cream top, a kick plate; the glass case of croissants on the right of the front.
-  geos.push(place(rbox(w, h - 0.08, d, 0.06), "#C98A4E", [0, (h - 0.08) / 2, 0]));
+  geos.push(place(rbox(w, h - 0.08, d, 0.06), "#5FB0EA", [0, (h - 0.08) / 2, 0]));
   geos.push(place(rbox(w + 0.12, 0.09, d + 0.12, 0.04), CREAM, [0, h - 0.045, 0]));
-  geos.push(place(rbox(w - 0.04, 0.14, d + 0.02, 0.04), "#8F5728", [0, 0.07, 0]));
+  geos.push(place(rbox(w - 0.04, 0.14, d + 0.02, 0.04), "#2F78C4", [0, 0.07, 0]));
   // Front panels: planks on the left, the croissant case on the right.
   const caseX0 = -0.05;
   const caseX1 = w / 2 - 0.12;
-  for (let x = -w / 2 + 0.18; x < caseX0 - 0.05; x += 0.26) geos.push(place(rbox(0.04, h - 0.32, 0.03, 0.01), "#B07440", [x, h / 2 - 0.02, d / 2 + 0.01]));
-  geos.push(place(rbox(caseX1 - caseX0 + 0.08, 0.7, 0.06, 0.03), "#8F5728", [(caseX0 + caseX1) / 2, 0.56, d / 2 + 0.01]));
-  geos.push(place(rbox(caseX1 - caseX0 - 0.08, 0.56, 0.04, 0.02), "#FFF1DA", [(caseX0 + caseX1) / 2, 0.56, d / 2 + 0.02]));
+  for (let x = -w / 2 + 0.18; x < caseX0 - 0.05; x += 0.26) geos.push(place(rbox(0.04, h - 0.32, 0.03, 0.01), "#4A9AD8", [x, h / 2 - 0.02, d / 2 + 0.01]));
+  geos.push(place(rbox(caseX1 - caseX0 + 0.08, 0.7, 0.06, 0.03), "#FFFFFF", [(caseX0 + caseX1) / 2, 0.52, d / 2 + 0.01]));
+  geos.push(place(rbox(caseX1 - caseX0 - 0.08, 0.56, 0.04, 0.02), "#FFF1DA", [(caseX0 + caseX1) / 2, 0.52, d / 2 + 0.02]));
   geos.push(place(rbox(caseX1 - caseX0 - 0.1, 0.05, 0.2, 0.02), "#FFFFFF", [(caseX0 + caseX1) / 2, 0.36, d / 2 + 0.08]));
   for (let k = 0; k < 5; k++) {
     const x = caseX0 + 0.22 + k * ((caseX1 - caseX0 - 0.4) / 4);
@@ -680,7 +680,7 @@ export const BakeryCounter: React.FC = () => {
     <group>
       <BlobShadow radius={w * 0.55} opacity={0.22} stretch={0.35} />
       <mesh geometry={counterGeometry()} material={vertexMat(0.55, false, 0.16)} />
-      <mesh position={[(-0.05 + w / 2 - 0.12) / 2, 0.56, d / 2 + 0.2]} material={glassMat()} renderOrder={2}>
+      <mesh position={[(-0.05 + w / 2 - 0.12) / 2, 0.52, d / 2 + 0.2]} material={glassMat()} renderOrder={2}>
         <boxGeometry args={[w / 2 - 0.1, 0.62, 0.02]} />
       </mesh>
     </group>
@@ -764,6 +764,17 @@ export const DingLines: React.FC<{ age: number; size?: number }> = ({ age, size 
   );
 };
 
+/** The chalkboard hung on the bakery's back wall (origin = its centre, facing +z). */
+export const WallChalkboard: React.FC = () => {
+  const ready = useFontsReady();
+  return ready ? (
+    <mesh>
+      <planeGeometry args={[1.0, 1.17]} />
+      <primitive object={texMat(chalkTexture(), 0.8, 0.3)} attach="material" />
+    </mesh>
+  ) : null;
+};
+
 /** The counter chalkboard on a little easel (origin = its base, facing +z). */
 export const Chalkboard: React.FC = () => {
   const ready = useFontsReady();
@@ -800,12 +811,12 @@ export const PriceFlag: React.FC<{ pop?: number; wobble?: number }> = ({ pop = 1
   const s = Math.max(0, pop);
   return (
     <group scale={[s, s, s]} rotation={[0, 0, wobble]}>
-      <mesh material={toy("#F2D9A6", { rough: 0.7 })} position={[0, 0.28, 0]}>
-        <cylinderGeometry args={[0.012, 0.012, 0.56, 6]} />
+      <mesh material={toy("#F2D9A6", { rough: 0.7 })} position={[0, 0.17, 0]}>
+        <cylinderGeometry args={[0.014, 0.014, 0.34, 6]} />
       </mesh>
       {ready ? (
-        <mesh position={[0, 0.62, 0.01]}>
-          <planeGeometry args={[0.72, 0.42]} />
+        <mesh position={[0, 0.48, 0.01]}>
+          <planeGeometry args={[0.66, 0.39]} />
           <primitive object={texMat(priceTexture(), 0.6, 0.3)} attach="material" />
         </mesh>
       ) : null}
@@ -894,9 +905,9 @@ export const Lids: React.FC<{ pose: NubiPose; droop: number; tilt?: number; colo
             key={side}
             geometry={lidGeo()}
             material={mat}
-            position={[side * 2.3 + ex, ey + eh / 2 - lh / 2 + 0.16, 4.8]}
+            position={[side * 2.3 + ex, ey + eh / 2 - lh / 2 + 0.16, 4.76]}
             rotation={[0, 0, -side * tilt]}
-            scale={[1.05 * eyeW + 0.55, lh, 1]}
+            scale={[1.05 * eyeW + 0.45, lh, 0.55]}
           />
         );
       })}
@@ -904,8 +915,18 @@ export const Lids: React.FC<{ pose: NubiPose; droop: number; tilt?: number; colo
   );
 };
 
-/** Two dark brows above the eyes; `raise` lifts the screen-right one (cocky), `tilt` angles both. */
-export const Brows: React.FC<{ pose: NubiPose; raise?: number; tilt?: number; color?: string }> = ({ pose, raise = 0, tilt = 0, color = "#2B2F3A" }) => {
+/**
+ * Two dark brows above the eyes: `raise` lifts the screen-right one (cocky), `lower` drops both,
+ * `tilt` < 0 drops their inner ends (grumpy), > 0 their outer ends (sleepy, worried).
+ */
+export const Brows: React.FC<{ pose: NubiPose; raise?: number; lower?: number; tilt?: number; color?: string; width?: number }> = ({
+  pose,
+  raise = 0,
+  lower = 0,
+  tilt = 0,
+  color = "#2B2F3A",
+  width = 1.7,
+}) => {
   const { ex, ey, eh } = eyeShape(pose);
   const mat = toy(color, { rough: 0.5, glow: 0.08 });
   return (
@@ -915,9 +936,9 @@ export const Brows: React.FC<{ pose: NubiPose; raise?: number; tilt?: number; co
           key={side}
           geometry={lidGeo()}
           material={mat}
-          position={[side * 2.3 + ex, ey + Math.max(eh, 0.6) / 2 + 0.55 + (side > 0 ? raise : 0), 4.72]}
+          position={[side * 2.3 + ex, ey + Math.max(eh, 0.6) / 2 + 0.55 + (side > 0 ? raise : 0) - lower, 4.72]}
           rotation={[0, 0, -side * tilt + (side > 0 ? -0.25 * raise : 0)]}
-          scale={[1.7, 0.36, 0.8]}
+          scale={[width, 0.42, 0.8]}
         />
       ))}
     </group>
@@ -928,13 +949,13 @@ export const Brows: React.FC<{ pose: NubiPose; raise?: number; tilt?: number; co
  * A snot bubble growing from the face (model units): `size` 0..1 inflates it, `burst` 0..1 pops it
  * (a quick swell and fade). Hidden at size 0.
  */
-export const SnotBubble: React.FC<{ size: number; burst?: number; at?: V3 }> = ({ size, burst = 0, at = [0.9, 4.15, 4.55] }) => {
+export const SnotBubble: React.FC<{ size: number; burst?: number; at?: V3 }> = ({ size, burst = 0, at = [0.9, 4.6, 4.55] }) => {
   const mat = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        color: "#BDEBFF",
+        color: "#A8E4FF",
         transparent: true,
-        opacity: 0.5,
+        opacity: 0.62,
         roughness: 0.1,
         emissive: new THREE.Color("#BDEBFF"),
         emissiveIntensity: 0.35,
@@ -944,8 +965,8 @@ export const SnotBubble: React.FC<{ size: number; burst?: number; at?: V3 }> = (
   );
   const hi = useMemo(() => new THREE.MeshBasicMaterial({ color: "#FFFFFF", transparent: true, opacity: 0.9, depthWrite: false, toneMapped: false }), []);
   if (size <= 0.02 || burst >= 1) return null;
-  const r = (0.35 + 1.25 * size) * (1 + 0.5 * burst);
-  mat.opacity = 0.5 * (1 - burst);
+  const r = (0.4 + 1.6 * size) * (1 + 0.5 * burst);
+  mat.opacity = 0.62 * (1 - burst);
   hi.opacity = 0.9 * (1 - burst);
   return (
     <group position={[at[0], at[1] - r * 0.25, at[2] + r * 0.85]}>
@@ -997,7 +1018,6 @@ const hatGeos = once(() => {
     column,
     top,
     apron: rbox(8.8, 2.3, 0.4, 0.18),
-    strap: rbox(1.1, 4.4, 0.36, 0.16),
     lobe: new THREE.SphereGeometry(1, 16, 10),
     curl: new THREE.TorusGeometry(0.42, 0.2, 8, 14, Math.PI * 1.4),
     dust: new THREE.SphereGeometry(1, 10, 6),
@@ -1005,17 +1025,19 @@ const hatGeos = once(() => {
 });
 
 /**
- * The baker's gear (model units): the tall hat (`flop` tips it over when he sleeps), the curly
+ * The baker's gear (model units): the tall hat (`flop` tips it over when he sleeps, `hatLift` pops it up), the curly
  * moustache (`twitch` flutters it on the snore, `lift` raises it in the yawn), the flour-dusted
- * apron, flour on his cheek, and his lids (`droop`, `tilt` < 0 = grumpy).
+ * apron, flour on his cheek, his lids (`droop`, `tilt` < 0 = grumpy) and brows (`brow` 1 = knitted).
  */
-export const BakerGear: React.FC<{ pose: NubiPose; flop?: number; twitch?: number; lift?: number; droop?: number; tilt?: number }> = ({
+export const BakerGear: React.FC<{ pose: NubiPose; flop?: number; twitch?: number; lift?: number; droop?: number; tilt?: number; brow?: number; hatLift?: number }> = ({
   pose,
+  hatLift = 0,
   flop = 0,
   twitch = 0,
   lift = 0,
   droop = 0,
   tilt = 0,
+  brow = 0,
 }) => {
   const ready = useFontsReady();
   const g = hatGeos();
@@ -1025,7 +1047,7 @@ export const BakerGear: React.FC<{ pose: NubiPose; flop?: number; twitch?: numbe
   return (
     <group>
       {/* Hat: pivots at the back of the head so it tips forward and sideways. */}
-      <group position={[0, 9.7, -1.0]} rotation={[0.35 * flop, 0, -0.45 * flop]}>
+      <group position={[0, 9.7 + hatLift, -1.0]} rotation={[0.35 * flop, 0, -0.45 * flop + 0.08 * hatLift]}>
         <group position={[0, 0, 1.0]}>
           <mesh geometry={g.band} material={white} position={[0, 0.65, 0]} />
           <mesh geometry={g.column} material={white} position={[0, 3.85, 0]} />
@@ -1039,7 +1061,7 @@ export const BakerGear: React.FC<{ pose: NubiPose; flop?: number; twitch?: numbe
           <mesh geometry={g.curl} material={stache} position={[s * 1.75, 0.35, 0.1]} rotation={[0, s > 0 ? 0 : Math.PI, -0.6]} />
         </group>
       ))}
-      {/* Flour-dusted apron and its straps. */}
+      {/* Flour-dusted apron. */}
       {ready ? (
         <mesh position={[0, 3.25, 4.62]}>
           <planeGeometry args={[8.8, 2.3]} />
@@ -1047,14 +1069,13 @@ export const BakerGear: React.FC<{ pose: NubiPose; flop?: number; twitch?: numbe
         </mesh>
       ) : null}
       <mesh geometry={g.apron} material={toy("#FFF4E2", { rough: 0.8, glow: 0.18 })} position={[0, 3.25, 4.4]} />
-      {[-1, 1].map((s) => (
-        <mesh key={s} geometry={g.strap} material={toy("#FFF4E2", { rough: 0.8, glow: 0.18 })} position={[s * 4.35, 6.4, 4.42]} />
-      ))}
       {/* Flour on the cheek and forehead. */}
       <mesh geometry={g.dust} material={flour} position={[3.5, 7.6, 4.42]} scale={[0.75, 0.5, 0.12]} />
       <mesh geometry={g.dust} material={flour} position={[-3.6, 4.6, 4.42]} scale={[0.55, 0.38, 0.12]} />
       <mesh geometry={g.dust} material={flour} position={[-1.2, 8.7, 4.42]} scale={[0.4, 0.3, 0.12]} />
       <Lids pose={pose} droop={droop} tilt={tilt} color={shadeHex(BAKER_TAN, -0.06)} />
+      {/* Bushy brows: relaxed while asleep (brow 0), knitted when grumpy (brow 1). */}
+      <Brows pose={pose} lower={0.15 + 0.45 * brow - 0.2 * lift} tilt={0.18 - 0.6 * brow} color="#5A3418" width={2.0} />
     </group>
   );
 };
@@ -1069,14 +1090,16 @@ export const Baker: React.FC<{
   lift?: number;
   droop?: number;
   tilt?: number;
+  brow?: number;
+  hatLift?: number;
   holdR?: React.ReactNode;
   holdL?: React.ReactNode;
   shadow?: boolean;
   children?: React.ReactNode;
-}> = ({ position = [0, 0, 0], rotationY = 0, pose = {}, flop, twitch, lift, droop, tilt, holdR, holdL, shadow = false, children }) => (
+}> = ({ position = [0, 0, 0], rotationY = 0, pose = {}, flop, twitch, lift, droop, tilt, brow, hatLift, holdR, holdL, shadow = false, children }) => (
   <group position={position} rotation={[0, rotationY, 0]} scale={BAKER_CHUB}>
     <Nubi size={BAKER_SIZE} pose={pose} palette={{ ...BAKER_PALETTE, eyeRough: 0.5 }} holdR={holdR} holdL={holdL} shadow={shadow}>
-      <BakerGear pose={pose} flop={flop} twitch={twitch} lift={lift} droop={droop} tilt={tilt} />
+      <BakerGear pose={pose} flop={flop} twitch={twitch} lift={lift} droop={droop} tilt={tilt} brow={brow} hatLift={hatLift} />
       {children}
     </Nubi>
   </group>
@@ -1159,14 +1182,15 @@ export const VecinoGear: React.FC<{ pose: NubiPose; droop?: number; raise?: numb
   const cap = toy("#E8423F", { rough: 0.5, glow: 0.16 });
   return (
     <group>
-      <group rotation={[0, 0, -0.06]}>
-        <mesh geometry={g.crown} material={cap} position={[0, 9.55, 0.1]} scale={[4.7, 2.0, 4.4]} />
-        <mesh geometry={g.bill} material={cap} position={[0, 9.7, -4.6]} rotation={[-0.14, 0, 0]} />
-        <mesh geometry={g.button} material={toy("#FFFFFF", { rough: 0.5, glow: 0.2 })} position={[0, 11.55, 0.1]} />
-        <mesh geometry={g.strap} material={toy("#FFFFFF", { rough: 0.5, glow: 0.2 })} position={[0, 10.0, 4.45]} />
+      {/* Worn backwards and a little sideways, so the bill sticks out behind his right ear. */}
+      <group position={[0, 0, 0.1]} rotation={[0.12, 2.55, 0.1]}>
+        <mesh geometry={g.crown} material={cap} position={[0, 9.45, 0]} scale={[4.7, 2.0, 4.4]} />
+        <mesh geometry={g.bill} material={cap} position={[0, 9.6, 4.7]} rotation={[0.1, 0, 0]} />
+        <mesh geometry={g.button} material={toy("#FFFFFF", { rough: 0.5, glow: 0.2 })} position={[0, 11.45, 0]} />
+        <mesh geometry={g.strap} material={toy("#FFFFFF", { rough: 0.5, glow: 0.2 })} position={[0, 9.9, -4.35]} />
       </group>
-      <Lids pose={pose} droop={droop} tilt={0.05} color={shadeHex(VECINO_GREY, -0.08)} />
-      <Brows pose={pose} raise={raise} tilt={-0.08} />
+      <Lids pose={pose} droop={droop} tilt={0.12} color={shadeHex(VECINO_GREY, -0.08)} />
+      <Brows pose={pose} raise={raise} lower={0.15} tilt={-0.12} />
     </group>
   );
 };
@@ -1316,7 +1340,7 @@ const hallGeometry = once(() => {
   const { x: dx, w: dw, h: dh } = HALL.door;
   const W0 = -7;
   const W1 = 7;
-  const H = 5.2;
+  const H = 7.5;
   const wall = "#FFE7B0";
   const lower = "#8FD3C0";
   const D = 0.3;
