@@ -47,8 +47,8 @@ const mixCam = (a: Cam, b: Cam, k: number): Cam => ({ position: lerp3(a.position
 export const camSleep = (d: number): Cam => aim([0.3, 2.65 - 0.0008 * d, NUBI_EYES[2] + 7.0 - 0.005 * d], FOV, NUBI_EYES, 565, 1085);
 /** The counter over the sleeping Nubi at the loop seam (shared with "final", so the frames match). */
 export const HOOK_COUNTER = { start: 220, opts: { min: 0.9, max: 1.1 } };
-/** Keeps the counter's top under the top band (the end text of "final" sits at y 230-520). */
-export const hookCounterY = (y: number) => Math.max(640, y);
+/** Keeps the counter's top under the end text of "final" (its «Comenta tus horas» pill reaches y ≈ 600). */
+export const hookCounterY = (y: number) => Math.max(700, y);
 /** Wider, from the front right: Nubi and the alarm clock on the nightstand. */
 export const camClock = (push = 0): Cam => aim([2.0 - 0.25 * push, 2.95 - 0.1 * push, 7.9 - 0.5 * push], FOV, [0.74 - 0.08 * push, 1.5, -1.1], 540, 1000);
 /** Nubi to camera, medium close (counter gone, top band calm). */

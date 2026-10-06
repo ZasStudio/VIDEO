@@ -33,9 +33,9 @@ export const NUBI_HEAD_Y = NUBI_BED[1] + 1.98;
 /** Nubi's eyes in bed (world, on the face). */
 export const NUBI_EYES: V3 = [0, NUBI_BED[1] + 1.1, NUBI_BED[2] + 0.9];
 /** The nightstand right of the bed (top surface at `top`). */
-export const NIGHTSTAND = { x: 1.94, z: -1.3, w: 0.8, d: 0.74, top: 1.0 };
+export const NIGHTSTAND = { x: 1.98, z: -1.3, w: 0.8, d: 0.74, top: 1.0 };
 /** The alarm clock stands on the nightstand's near-left corner, within reach of Nubi's fin. */
-export const CLOCK_AT: V3 = [1.8, NIGHTSTAND.top, -1.08];
+export const CLOCK_AT: V3 = [1.85, NIGHTSTAND.top, -1.08];
 /** The alarm clock is drawn at this scale (a big cartoon clock next to a size-2 Nubi). */
 export const CLOCK_SCALE = 1.2;
 export const CLOCK_YAW = -0.32;

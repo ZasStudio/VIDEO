@@ -133,7 +133,8 @@ export const FinalShot: React.FC = () => {
       >
         <Stage cam={cam} near={0.1} far={200}>
           <BedroomLights />
-          <Bedroom t={t} frameTilt={-0.42} />
+          {/* The frame hangs straight again (the next night): the last frame matches the hook's first. */}
+          <Bedroom t={t} />
           <group position={CLOCK_AT} rotation={[0, CLOCK_YAW, 0]} scale={CLOCK_SCALE}>
             <AlarmClock t={t} ring={ring} crush={crush} crushAge={crushAge} color="#2FA8FF" />
           </group>
@@ -147,7 +148,7 @@ export const FinalShot: React.FC = () => {
         </Stage>
         <Zzz g={seam} cam={cam} at={[-0.55, NUBI_EYES[1] + 0.75, NUBI_BED[2]]} on={asleep ? ramp(g, SLEEP + 4, SLEEP + 8) : 0} every={11} />
         {asleep && !ctr.behind ? (
-          <MoneyCounter frame={g} soles={soles} x={ctr.x} y={hookCounterY(ctr.y)} scale={ctr.scale} state="earning" appear={S0} />
+          <MoneyCounter frame={g} soles={soles} x={ctr.x} y={hookCounterY(ctr.y)} scale={ctr.scale} state="earning" appear={g < S0 + 20 ? S0 : undefined} />
         ) : null}
       </Shake>
     </AbsoluteFill>

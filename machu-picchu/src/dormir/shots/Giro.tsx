@@ -69,8 +69,10 @@ export const GiroShot: React.FC = () => {
   const { START, END, PAY, MASK, MIL, RICO, OJOS, CHARGE1, CHARGE2, CHARGE3, ZERO, L16 } = GIRO;
   const t = g / 30;
 
-  // ---- Time of day through the window: night → sunrise → morning during the montage.
-  const dawn = ramp(g, RACE0, OJOS - 6, [0, 1], (x) => x);
+  // ---- Time of day through the window, in step with the 2D NightClock (23:00 → 9:00 from MASK + 14
+  // to MIL, eased): night until ≈ 4 a.m., sunrise ≈ 6 a.m., morning by 9.
+  const clockK = EASE_IN_OUT(clamp01((g - (MASK + 14)) / (MIL - MASK - 14)));
+  const dawn = clamp01((clockK - 0.5) / 0.5);
 
   // ---- The mask and the phone.
   const maskOn = g < MASK - 2 ? 0 : g < OJOS ? ramp(g, MASK - 2, MASK + 1, [0, 1], (x) => x * x) : 1 - ramp(g, OJOS - 1, OJOS + 4, [0, 1], EASE_OUT);
