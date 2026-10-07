@@ -52,9 +52,9 @@ export const OFI_CLOCK_AT: V3 = [-1.55, 2.95, OFI.zBack + 0.08];
 export const SCREEN = { x: 3.55, y: 2.0, w: 2.4, h: 1.5 };
 /** The three swivel chairs (facing the door) the workers walk back to: [x, z]. */
 export const CHAIR_SPOTS: [number, number][] = [
-  [-2.35, 2.3],
-  [-0.85, 2.75],
-  [2.15, 2.35],
+  [-3.3, 2.0],
+  [-1.6, 2.55],
+  [3.15, 2.05],
 ];
 /** Heading (rotationY) of someone at (x, z) facing the exit door. */
 export const faceDoor = (x: number, z: number) => Math.atan2(DOOR.x - x, BOSS_DOOR[2] - z);
@@ -377,7 +377,7 @@ export const OficinaSet: React.FC<{ g: number; sun?: number; slide?: number }> =
         <mesh key={x} geometry={r.jamb} material={frame} position={[x, DOOR.h / 2, z]} />
       ))}
       <mesh geometry={r.header} material={frame} position={[DOOR.x, DOOR.h + 0.08, z]} />
-      <group position={[doorX1 - 0.04, 0, z - 0.04]} rotation={[0, 1.25, 0]}>
+      <group position={[doorX1 - 0.04, 0, z - 0.12]} rotation={[0, -1.3, 0]}>
         <mesh geometry={r.leaf} material={toy("#C98B55", { rough: 0.55, glow: 0.14 })} position={[-(DOOR.w - 0.1) / 2, DOOR.h / 2, 0]} />
         <mesh geometry={r.bar} material={toy("#D9DDE5", { metal: 0.6, rough: 0.3 })} position={[-(DOOR.w - 0.1) + 0.2, 1.05, 0.06]} scale={[0.28, 0.05, 0.05]} />
       </group>

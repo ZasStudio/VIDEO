@@ -61,7 +61,7 @@ const WALKERS: Walker[] = [
 /** The wide: high and far on a long lens (so the walkers and the boss read at similar sizes);
  * `push` 0..1 creeps in. */
 const WIDE_FOV = 28;
-const camWide = (push: number): Cam => aim(lerp3([0.6, 7.6, 19.5], [0.6, 7.3, 18.3], push), WIDE_FOV, BOSS_EYES, 540, 850);
+const camWide = (push: number): Cam => aim(lerp3([0.35, 7.6, 19.5], [0.35, 7.3, 18.3], push), WIDE_FOV, BOSS_EYES, 560, 850);
 
 export const JefeShot: React.FC = () => {
   const g = useCurrentFrame() + SHOTS.jefe.from;
@@ -86,7 +86,7 @@ export const JefeShot: React.FC = () => {
     squash: 1 - 0.08 * Math.abs(settle) + 0.03 * Math.sin(t * 3) * (g > BLOCK + 10 ? 1 : 0),
     finL: lerp(0.3, 1.0, wide) + 0.55 * fiveUp,
     finR: lerp(0.2, 1.05, wide),
-    eyeScale: 1.08,
+    eyeScale: 1.15,
     lookX: 0,
     lookY: -0.05,
     wiggle: 0.8 * (1 - slide),
@@ -147,12 +147,12 @@ export const JefeShot: React.FC = () => {
       // Backwards steps, all in sync.
       const step = g >= RETREAT && g < SIT ? (g - RETREAT) * 0.42 : 0;
       pose = {
-        pitch: -0.32 * Math.exp(-d / 3) * (1 - skid * 0.4) + 0.16 * sag,
-        squash: 1 - 0.14 * Math.exp(-d / 2.5) + 0.05 * hope - 0.06 * freeze - 0.13 * sag + 0.05 * sit * (1 - sit) * 4 * 0.3,
-        hop: 0.5 * hope + 0.12 * Math.abs(Math.sin(step)) * (1 - sit) + 1.4 * Math.sin(Math.PI * sit),
-        roll: 0.04 * Math.sin(step) + (w.delay - 1) * 0.04 * sag,
-        finL: 0.85 * shock + 0.3 * hope - 0.6 * sag,
-        finR: 0.85 * shock + 0.3 * hope - 0.6 * sag,
+        pitch: -0.32 * Math.exp(-d / 3) * (1 - skid * 0.4) + 0.24 * sag,
+        squash: 1 - 0.14 * Math.exp(-d / 2.5) + 0.05 * hope - 0.06 * freeze - 0.18 * sag + 0.04 * Math.sin(step * 2) * (1 - sit),
+        hop: 0.5 * hope + 0.3 * Math.abs(Math.sin(step)) * (1 - sit) + 1.4 * Math.sin(Math.PI * sit),
+        roll: 0.13 * Math.sin(step) + (w.delay - 1) * 0.04 * sag,
+        finL: 0.85 * shock + 0.3 * hope - 0.95 * sag,
+        finR: 0.85 * shock + 0.3 * hope - 0.95 * sag,
         eyeScale: 1 + 0.35 * shock,
         wiggle: g >= RETREAT && g < SIT ? 0.6 : 0,
         wigglePhase: -step * 2,
@@ -173,10 +173,11 @@ export const JefeShot: React.FC = () => {
   cuPose = { ...cuPose, pitch: (cuPose.pitch ?? 0) - 0.06 * dim, eyeScale: 1 + 0.08 * dim };
 
   // ---- Cameras ---------------------------------------------------------------------------------------
-  // The medium on the boss, framed between Nubi's and a co-worker's backpacks.
+  // The medium on the boss blocking the doorway (the halted workers are "behind the camera": they
+  // aren't drawn in this angle).
   const camB = (u: number, punch: number): Cam => {
-    const pos = lerp3([0.6, 2.38, 2.75], [0.6, 2.34, 2.4], u);
-    return aim([pos[0], pos[1], pos[2] - 0.45 * punch], FOV, BOSS_EYES, 540, 1080);
+    const pos = lerp3([0.6, 1.78, 4.4], [0.6, 1.74, 3.7], u);
+    return aim([pos[0], pos[1], pos[2] - 0.55 * punch], FOV, BOSS_EYES, 540, 1060);
   };
   const cuDir: Vec3 = [Math.sin(nubiChairRy), 0, Math.cos(nubiChairRy)];
   const cuEyes = nubiPoint(nubiChairAt, nubiChairRy, 2, {}, [0, 5.5, 4.4]);
@@ -195,14 +196,14 @@ export const JefeShot: React.FC = () => {
   } else {
     shot = "CU";
     const push = ramp(g, L14, DUN, [0, 0.35], (x) => x) + ramp(g, DUN, DUN + 14, [0, 0.65], EASE_IN_OUT);
-    const dist = 5.8 - 1.4 * push;
+    const dist = 6.4 - 1.4 * push;
     cam = aim([cuEyes[0] + cuDir[0] * dist, cuEyes[1] + 0.32 - 0.08 * push, cuEyes[2] + cuDir[2] * dist], FOV, cuEyes, 540, 1000);
   }
 
   // ---- The truth tag over the boss (until the close-up). -------------------------------------------
   const bossRy = -0.12;
   const head = nubiPoint(bossAt, bossRy, BOSS_SIZE, bPose, HEAD_LOCAL);
-  const tag = tagAt(cam, head, { ref: 9, min: 0.7, max: 1.0 });
+  const tag = tagAt(cam, head, { ref: 9, min: 0.7, max: 0.92 });
   const tagX = Math.min(890 - 350 * tag.scale, Math.max(110 + 350 * tag.scale, tag.x));
   const showTag = shot !== "CU" && !tag.behind && g >= TAG - 1;
   const slideOn = ramp(g, TAG + 3, TAG + 9);
@@ -222,20 +223,15 @@ export const JefeShot: React.FC = () => {
           <OficinaLights sun={1} dim={inCU ? dim : 0} />
           <OficinaSet g={g} sun={1} slide={slideOn} />
           {inCU ? <FrontWindows dusk={0.65 * dim} /> : null}
-          {g >= BLOCK - 3 && !inCU ? <Boss position={bossAt} rotationY={bossRy} pose={bPose} smug={0.12} holdR={laptop} /> : null}
+          {g >= BLOCK - 3 && !inCU ? <Boss position={bossAt} rotationY={bossRy} pose={bPose} smug={0} holdR={laptop} /> : null}
           {inCU ? (
             <>
               <Nubi size={2} position={nubiChairAt} rotationY={nubiChairRy} pose={cuPose} shadow={false} palette={{ eyeRough: 0.7 }}>
                 <Lids pose={cuPose} droop={0.62 + 0.12 * dim} tilt={0.1} color={NUBI_GREEN} />
                 <Backpack color="#FFC83D" />
               </Nubi>
-              {walkers
-                .filter((x) => !x.w.nubi)
-                .map((x, i) => (
-                  <PackedWorker key={i} position={[x.w.chair[0], CHAIR_SEAT, x.w.chair[1]]} rotationY={faceDoor(x.w.chair[0], x.w.chair[1])} pose={{ squash: 0.88, pitch: 0.14, finL: -0.6, finR: -0.6, blink: 0 }} droop={0.85} bags={1} pack={x.w.pack} />
-                ))}
             </>
-          ) : (
+          ) : shot === "B" ? null : (
             walkers.map(({ w, at, ry, pose, droop, bounce }, i) =>
               w.nubi ? (
                 <Nubi key={i} size={2} position={at} rotationY={ry} pose={pose} shadowOpacity={0.25} palette={{ eyeRough: 0.7 }}>
