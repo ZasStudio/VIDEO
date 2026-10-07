@@ -33,15 +33,15 @@ export const WINDOW = { x0: -1.55, x1: 1.55, y0: 2.45, y1: 4.65 };
 /** Nubi (size 2) sitting up in bed, its back against the pillow (feet sunk in the mattress). */
 export const NUBI_SIT: V3 = [0, 0.5, -1.25];
 /** Nubi lying back in bed (pivot at its feet, body pitched back by LIE_PITCH): head on the pillow. */
-export const NUBI_LIE: V3 = [0, 1.2, -0.25];
+export const NUBI_LIE: V3 = [0, 1.05, -0.25];
 export const LIE_PITCH = -1.0;
 /** The phone lying on the nightstand, screen up. */
 export const PHONE_STAND: V3 = [NIGHTSTAND.x - 0.06, NIGHTSTAND.top + 0.03, NIGHTSTAND.z + 0.16];
 /** The round rug in front of the bed, where Nubi stands in "giro". */
 export const RUG: V3 = [0.25, 0, 2.7];
-export const NUBI_RUG: V3 = [-0.55, 0, 2.55];
-/** Chico stands in the foreground right of Nubi, holding the pizza box. */
-export const CHICO_RUG: V3 = [1.45, 0, 4.25];
+export const NUBI_RUG: V3 = [-1.05, 0, 2.3];
+/** Chico stands right of Nubi (a little closer to the camera), holding the pizza box. */
+export const CHICO_RUG: V3 = [0.8, 0, 3.4];
 
 /** Model units of a <Nubi size={2}> per world unit. */
 export const M = 5;
@@ -470,7 +470,7 @@ const geos = once(() => {
   const beam = new THREE.CylinderGeometry(0.32, 0.6, 1, 14, 1, true);
   beam.translate(0, 0.5, 0);
   return {
-    floor: planeXY(-9, 9, -9, -ROOM.back, 1.4).rotateX(-Math.PI / 2),
+    floor: planeXY(-12, 12, -24, -ROOM.back, 1.4).rotateX(-Math.PI / 2),
     wallL: planeXY(ROOM.x0, WINDOW.x0, 0, ROOM.height, 1.6),
     wallR: planeXY(WINDOW.x1, ROOM.x1, 0, ROOM.height, 1.6),
     wallBelow: planeXY(WINDOW.x0, WINDOW.x1, 0, WINDOW.y0, 1.6),
@@ -509,7 +509,7 @@ const geos = once(() => {
 // Nubi lying back up to the chin (lie 1) or its lap when it sits up (lie 0); the pedalling legs
 // push two bumps through it (`pedal` amplitude, `phase` radians), `bob` lifts it with the body.
 
-const DUVET = { NX: 44, NZ: 40, X0: BED.x0 - 0.34, X1: BED.x1 + 0.34, Z1: BED.z1 + 0.34, edgeSit: NUBI_SIT[2] - 0.15, edgeLie: -0.47 };
+const DUVET = { NX: 44, NZ: 40, X0: BED.x0 - 0.34, X1: BED.x1 + 0.34, Z1: BED.z1 + 0.34, edgeSit: NUBI_SIT[2] - 0.15, edgeLie: -0.5 };
 
 export type DuvetProps = { lie: number; pedal?: number; phase?: number; bob?: number };
 
@@ -521,21 +521,23 @@ const duvetY = (x: number, z: number, lie: number, pedal: number, phase: number,
   const dx = Math.max(0, Math.abs(x) - 0.85);
   const dz = z < front ? 0 : z - front;
   let sit = top + 0.18 * (1 - smooth(0, 0.55, Math.hypot(dx, dz * 0.9))) + 0.07 * (1 - smooth(0, 1.6, Math.hypot(dx * 0.7, dz * 0.6)));
-  // Lying: a big mound over the reclined body, up to the chin, falling towards the foot.
-  const prof = 1 - smooth(0.88, 1.48, Math.abs(x));
-  const along = 1 - smooth(-0.35, 1.1, z);
-  let lyingY = top + (2.47 - top) * along * prof;
+  // Lying: a big mound over the reclined body, up to the chin, higher over the legs (they stick
+  // up and forwards from the bottom of the body), falling towards the foot.
+  const prof = 1 - smooth(1.08, 1.62, Math.abs(x));
+  const rise = 0.22 * smooth(-0.5, -0.12, z);
+  const fall = smooth(0.12, 1.1, z);
+  let lyingY = top + (mix(2.3 + rise, top, fall) - top) * prof;
   lyingY += bob * (1 - smooth(-0.3, 0.7, z)) * prof;
   // The legs: two bumps that pedal (up/down and to and fro, alternating).
   for (const side of [-1, 1]) {
     const ph = phase + (side > 0 ? Math.PI : 0);
     const up = Math.max(0, Math.sin(ph));
-    const lx = side * 0.36;
-    const lzLie = 0.3 + 0.13 * Math.cos(ph) * pedal;
+    const lx = side * 0.4;
+    const lzLie = 0.42 + 0.16 * Math.cos(ph) * pedal;
     const lzSit = front + 0.55 + 0.1 * Math.cos(ph) * pedal;
-    const kLie = 1 - smooth(0, 0.36, Math.hypot(x - lx, (z - lzLie) * 0.9));
+    const kLie = 1 - smooth(0, 0.42, Math.hypot(x - lx, (z - lzLie) * 0.85));
     const kSit = 1 - smooth(0, 0.32, Math.hypot(x - lx, z - lzSit));
-    lyingY += kLie * (0.08 + pedal * (0.05 + 0.2 * up));
+    lyingY += kLie * prof * (0.1 + pedal * (0.1 + 0.34 * up));
     sit += kSit * (0.07 + pedal * (0.03 + 0.14 * up));
   }
   return mix(sit, lyingY, lie) + wr;
@@ -924,7 +926,7 @@ const boxGeos = once(() => {
     wallZ: rbox(1.0, 0.11, 0.03, 0.01, 2),
     lid: rbox(1.0, 0.025, 1.0, 0.01, 2),
     lidIn: new THREE.PlaneGeometry(0.94, 0.94),
-    crust: new THREE.TorusGeometry(0.2, 0.04, 8, 18, 1.5),
+    crust: new THREE.TorusGeometry(0.24, 0.06, 10, 20, 1.6),
     crumb,
   };
 });
@@ -945,7 +947,7 @@ export const PizzaBox: React.FC<{ open?: number }> = ({ open = 1.95 }) => {
         <mesh key={`z${s}`} geometry={g.wallZ} material={card} position={[0, 0.07, s * 0.485]} />
       ))}
       {/* The sad crust and a few crumbs. */}
-      <mesh geometry={g.crust} material={toy("#D89443", { rough: 0.8, glow: 0.18 })} position={[0.06, 0.06, 0.08]} rotation={[-Math.PI / 2, 0, 0.6]} />
+      <mesh geometry={g.crust} material={toy("#C47A2C", { rough: 0.8, glow: 0.2 })} position={[0.08, 0.075, 0.1]} rotation={[-Math.PI / 2, 0, 0.6]} />
       {Array.from({ length: 9 }, (_, i) => (
         <mesh key={i} geometry={g.crumb} material={toy(i % 2 ? "#C9782F" : "#E8A050", { glow: 0.2, flat: true })} position={[-0.32 + 0.64 * hash(i + 5), 0.045, -0.32 + 0.64 * hash(i + 15)]} rotation={[i, i * 2, 0]} />
       ))}
@@ -968,7 +970,7 @@ export const PizzaBox: React.FC<{ open?: number }> = ({ open = 1.95 }) => {
 // gooey blob on the tip and a long string that sways (`sway` −1..1) with a drip at the end.
 
 const ROPE = { N: 16, R: 7 };
-export const CheeseString: React.FC<{ t: number; sway?: number; len?: number }> = ({ t, sway = 0, len = 3.6 }) => {
+export const CheeseString: React.FC<{ t: number; sway?: number; len?: number }> = ({ t, sway = 0, len = 2.9 }) => {
   const geo = useMemo(() => {
     const g = new THREE.BufferGeometry();
     const n = (ROPE.N + 1) * ROPE.R;

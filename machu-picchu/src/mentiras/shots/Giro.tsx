@@ -43,13 +43,17 @@ const FOV = 40;
 const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 
 /** Chico faces us, turned a little towards Nubi (screen-left). */
-const CHICO_YAW = -0.55;
+const CHICO_YAW = -0.45;
+/** Whistling, Nubi turns its face away (screen-left): the fin with the cheese swings to the front. */
+const WHISTLE_YAW = -0.75;
 const NUBI_EYES = nubiPoint(NUBI_RUG, {}, EYES);
+/** Nubi's body centre (stays put when it turns its face away). */
+const NUBI_MID: Vec3 = [NUBI_RUG[0], 1.1, NUBI_RUG[2]];
 
 /** Nubi alone, medium, centred. */
-const camSolo = (push: number): Cam => aim([-0.25, 1.75 - 0.05 * push, 9.3 - 0.5 * push], FOV, NUBI_EYES, 540, 985);
+const camSolo = (push: number): Cam => aim([NUBI_RUG[0] + 0.2, 2.0 - 0.05 * push, NUBI_RUG[2] + 8.8 - 0.6 * push], FOV, NUBI_EYES, 540, 980);
 /** The two-shot: Nubi left of centre, Chico in the right foreground with the box. */
-const camTwo = (push: number): Cam => aim([0.75 - 0.1 * push, 1.95, 10.6 - 0.45 * push], FOV, NUBI_EYES, 372, 905);
+const camTwo = (push: number): Cam => aim([0.0 - 0.1 * push, 2.75 - 0.05 * push, 13.6 - 0.6 * push], FOV, NUBI_MID, 405, 930);
 
 /** 2D music notes rising from a screen point (whistling). */
 const Notes: React.FC<{ g: number; from: number; x: number; y: number; on: number; scale?: number }> = ({ g, from, x, y, on, scale = 1 }) => {
@@ -62,7 +66,7 @@ const Notes: React.FC<{ g: number; from: number; x: number; y: number; on: numbe
     if (a < 0 || a > 1) continue;
     const double = n % 2 === 1;
     const col = ["#FFFFFF", "#FFE14D", "#7FE0FF"][n % 3];
-    const px = x - (40 + 160 * a) * scale + 26 * Math.sin(a * 7 + n) * scale;
+    const px = x - (20 + 60 * a) * scale + 30 * Math.sin(a * 7 + n) * scale;
     const py = y - (20 + 300 * a) * scale;
     items.push(
       <svg
@@ -161,10 +165,10 @@ export const GiroShot: React.FC = () => {
     hop: 0.15 * proud,
     finL: lerp(lerp(-0.85, -0.35, notice), -1.15, whistle),
     finR: lerp(lerp(-0.85, -0.35, notice), -1.0, whistle),
-    lookX: lerp(0.65 * notice, lerp(-0.6, 0.8, sideEye), whistle),
+    lookX: lerp(0.65 * notice, lerp(-0.55, 0.95, sideEye), whistle),
     lookY: lerp(0.15 * proud, lerp(0.75, 0.05, sideEye), whistle),
     eyeScale: lerp(1.05 + 0.15 * notice + 0.15 * frozen, 0.95, whistle),
-    yaw: whistle * (-0.38 + 0.05 * sway),
+    yaw: whistle * (WHISTLE_YAW + 0.06 * sway),
     roll: whistle * 0.065 * sway,
     wiggle: 0.12 * whistle,
     wigglePhase: g * 0.25,
@@ -209,20 +213,20 @@ export const GiroShot: React.FC = () => {
   if (shotClose) {
     const ce = nubiPoint(chicoAt, chico, EYES, CHICO_YAW);
     const k = ramp(g, CLOSE_IN, SILENCIO, [0, 1], (x) => x);
-    cam = aim([ce[0] - 1.25 - 0.1 * k, ce[1] + 0.4, ce[2] + 3.5 - 0.35 * k], FOV, [ce[0] - 0.3, ce[1] - 0.15, ce[2]], 560, 1000);
+    cam = aim([ce[0] - 1.9 - 0.1 * k, ce[1] + 0.6, ce[2] + 7.4 - 0.7 * k], FOV, [ce[0] - 0.1, ce[1] - 0.3, ce[2]], 560, 940);
   }
   // Insert: the fin with the cheese (the camera aims at the fin tip of the unswayed pose).
-  const tipBase = nubiPoint(NUBI_RUG, { yaw: -0.38 }, finTip(-1.0));
+  const tipBase = nubiPoint(NUBI_RUG, { yaw: WHISTLE_YAW }, finTip(-1.0));
   if (shotInsert) {
     const k = ramp(g, INSERT_IN, INSERT_OUT, [0, 1], (x) => x);
-    cam = aim([tipBase[0] + 0.85, tipBase[1] + 0.1, tipBase[2] + 1.9 - 0.25 * k], FOV, [tipBase[0], tipBase[1] - 0.35, tipBase[2]], 540, 900);
+    cam = aim([tipBase[0] - 2.5 + 0.25 * k, tipBase[1] + 0.5, tipBase[2] + 0.95 - 0.1 * k], FOV, [tipBase[0], tipBase[1] - 0.25, tipBase[2]], 540, 860);
   }
 
   // ---- 2D anchors.
   const tg = tagAt(cam, tagPoint(NUBI_RUG, nubi, 0, 0.12));
   const mouth = projectToScreen(cam, nubiPoint(NUBI_RUG, nubi, [MOUTH[0] - 1.2, MOUTH[1], MOUTH[2]]), 1080, 1920);
   const halo2d = projectToScreen(cam, haloAt, 1080, 1920);
-  const side = projectToScreen(cam, nubiPoint(NUBI_RUG, nubi, [5.6, 8.4, 3.2]), 1080, 1920);
+  const side = projectToScreen(cam, nubiPoint(NUBI_RUG, nubi, [-5.7, 8.4, 3.2]), 1080, 1920);
   const notesOn = shotInsert ? 0 : whistle;
 
   return (
@@ -255,14 +259,11 @@ export const GiroShot: React.FC = () => {
               rotationY={CHICO_YAW}
               pose={chico}
               eyeRough={0.7}
-              holdL={
-                <OnFin raise={chico.finL ?? 0} side="L" offset={[-1.6, -0.9 + 0.4 * boxThrust, 2.4 + 1.2 * boxThrust]}>
-                  <group scale={M * 0.8} rotation={[0.95 - 0.15 * boxThrust, 0.25, 0]}>
-                    <PizzaBox />
-                  </group>
-                </OnFin>
-              }
             >
+              {/* The empty box, held out in front, open towards us. */}
+              <group position={[0, 2.9 + 1.2 * boxThrust, 6.4 + 2.5 * boxThrust]} rotation={[1.1 - 0.15 * boxThrust, Math.PI, 0]} scale={M * 0.85}>
+                <PizzaBox open={2.25} />
+              </group>
               <Lids pose={chico} droop={0.25 + 0.25 * glare} tilt={-0.32} color="#6EC1FF" />
             </Chico>
           ) : null}

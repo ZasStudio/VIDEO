@@ -24,7 +24,7 @@ import { FINAL } from "../beats";
 import { SHOTS } from "../shots";
 import { nubiTalk } from "../talk";
 import { MENTIRAS } from "../timeline";
-import { EAR_RAISE, RUN_RATE, SLEEPY, camBed, runPose, tagPoint } from "./Gancho";
+import { EAR_RAISE, RUN_RATE, RunMarks, SLEEPY, camBed, mixCam, runPose, tagPoint } from "./Gancho";
 
 // Shot "final" (FINAL.START → END): close to camera, Nubi sitting up in bed, playful: L18 "Ahora
 // confiesa…" (leans in; points at its head on "cabeza"), then a cut to a 3/4 angle for the three
@@ -40,11 +40,13 @@ const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 
 const SIT_EYES = nubiPoint(NUBI_SIT, {}, EYES);
 /** Front, medium-close, slow push (no cards yet). */
-const camClose = (push: number): Cam => aim([0.35 - 0.2 * push, 2.15 - 0.08 * push, 5.7 - 0.75 * push], FOV, SIT_EYES, 540, 1000);
+const camClose = (push: number): Cam => aim([0.4 - 0.2 * push, 2.5 - 0.1 * push, 7.6 - 0.8 * push], FOV, SIT_EYES, 540, 1000);
 /** 3/4 from the left for the options (head under the cards' band). */
-const camOptions = (push: number): Cam => aim([-2.3 + 0.2 * push, 2.15, 5.0 - 0.35 * push], FOV, SIT_EYES, 560, 1070);
+const camOptions = (push: number): Cam => aim([-2.6 + 0.2 * push, 2.5, 6.6 - 0.35 * push], FOV, SIT_EYES, 560, 1060);
 /** Front, medium: room over the head for the tag. */
-const camTag = (push: number): Cam => aim([0.4 - 0.1 * push, 2.45 - 0.05 * push, 7.1 - 0.45 * push], FOV, SIT_EYES, 540, 1030);
+const camTag = (push: number): Cam => aim([0.5 - 0.1 * push, 2.8 - 0.05 * push, 9.4 - 0.45 * push], FOV, SIT_EYES, 530, 1030);
+/** RING: high and wide on the bed and the nightstand (the phone buzzing), then into the loop framing. */
+const camRing = (drift: number): Cam => aim([1.2 - 0.1 * drift, 6.0 - 0.2 * drift, 8.4 - 0.3 * drift], FOV, [0.95, 1.3, -0.8], 560, 960);
 
 /** "Brrr" marks around the ringing phone (2D). */
 const Buzz: React.FC<{ g: number; at: number; x: number; y: number }> = ({ g, at, x, y }) => {
@@ -160,8 +162,8 @@ export const FinalShot: React.FC = () => {
       pitch: place.pitch + 0.08 * reachK,
       hop: 0.3 + 1.1 * jolt,
       squash: 1 + 0.06 * jolt,
-      roll: -0.36 * reachK,
-      yaw: 0.25 * reachK,
+      roll: -0.22 * reachK,
+      yaw: 0.4 * reachK,
       finR: lerp(lerp(0.2, 0.35, reachK), EAR_RAISE, flop),
       finL: 0.1 + 0.5 * jolt,
       lookX: lerp(0.85 * Math.max(jolt, reachK), run.lookX ?? 0, flop),
@@ -169,13 +171,13 @@ export const FinalShot: React.FC = () => {
       eyeScale: lerp(1 + 0.3 * Math.max(jolt, reachK), run.eyeScale ?? 1, flop),
     };
     pose = runK > 0 ? mixPose(dive, run, runK) : dive;
-    nubiAt = [place.position[0] + 0.28 * reachK, place.position[1], place.position[2]];
+    nubiAt = [place.position[0] + 0.38 * reachK, place.position[1], place.position[2]];
     droop = SLEEPY.droop * ramp(g, GRAB + 2, GRAB + 10);
   }
 
   // ---- Camera.
   let cam: Cam;
-  if (segRing) cam = camBed(seam);
+  if (segRing) cam = mixCam(camRing(ramp(g, RING, GRAB, [0, 1], (x) => x)), camBed(seam), ramp(g, GRAB + 1, END - 2, [0, 1], EASE_IN_OUT));
   else if (segTag) cam = camTag(ramp(g, ARMS, RING, [0, 1], (x) => x));
   else if (segOptions) cam = camOptions(ramp(g, OPT1, ARMS, [0, 1], (x) => x));
   else cam = camClose(ramp(g, START, OPT1, [0, 1], (x) => x));
@@ -201,7 +203,7 @@ export const FinalShot: React.FC = () => {
       >
         <Stage cam={cam} near={0.1} far={200}>
           <CasaLights keyFrom={segRing ? [-2, 9, 6] : segOptions ? [-6, 6, 7] : [-3, 6, 9]} />
-          <CasaRoom t={t} beams={segRing ? 0.7 : 1} />
+          <CasaRoom t={t} beams={segRing ? 0.6 : 0} />
           <Duvet lie={segRing ? flop : 0} pedal={segRing ? runK : 0} phase={seam * RUN_RATE} bob={segRing ? 0.2 * (pose.hop ?? 0) * runK : 0} />
           {!grabbed ? (
             <group position={phoneAt} rotation={[-Math.PI / 2, 0, 0.45 + 0.05 * buzz * Math.sin(g * 4.3)]}>
@@ -214,6 +216,7 @@ export const FinalShot: React.FC = () => {
           </Nubi>
         </Stage>
         {ringing && !phone2d.behind ? <Buzz g={g} at={RING} x={phone2d.x} y={phone2d.y} /> : null}
+        {segRing ? <RunMarks cam={cam} d={seam} k={runK} /> : null}
         {!segRing && !tg.behind ? (
           <TruthTag frame={g} at={TAG} out={SWAT + 16} swatAt={SWAT} lines={[{ text: "LA DIJO ESTA MAÑANA" }]} x={tg.x} y={tg.y} scale={tg.scale} />
         ) : null}

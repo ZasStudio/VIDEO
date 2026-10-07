@@ -16,6 +16,7 @@ import {
   LIE_PITCH,
   NUBI_LIE,
   NUBI_SIT,
+  PHONE_STAND,
   duvetHeight,
   nubiPoint,
 } from "../../three/mentiras/Casa";
@@ -72,20 +73,57 @@ const LIE_EYES = nubiPoint(NUBI_LIE, { pitch: LIE_PITCH }, EYES);
 /** The loop framing: high from the foot of the bed, on the phone side; a slow push-in. */
 export const camBed = (d: number): Cam => {
   const k = d / 110;
-  const pos: Vec3 = [1.9 - 0.3 * k, 6.9 - 0.55 * k, 4.6 - 0.75 * k];
-  return aim(pos, FOV, LIE_EYES, 560, 860);
+  const pos: Vec3 = [0.9 - 0.3 * k, 9.6 - 0.55 * k, 4.9 - 0.75 * k];
+  return aim(pos, FOV, LIE_EYES, 500, 915);
 };
 
 const SIT_EYES = nubiPoint(NUBI_SIT, {}, EYES);
 /** In front of the bed, Nubi sitting up (medium shot, room for the tag above its head). */
-const camFront = (push: number): Cam => aim([0.45 - 0.15 * push, 2.4 - 0.12 * push, 6.6 - 0.6 * push], FOV, SIT_EYES, 540, 1010);
+const camFront = (push: number): Cam => aim([0.5 - 0.15 * push, 2.7 - 0.1 * push, 8.6 - 0.7 * push], FOV, SIT_EYES, 520, 1010);
 /** The deadpan punch-in. */
-const camDeadpan = (push: number): Cam => aim([0.2, 2.25, 5.3 - 0.25 * push], FOV, SIT_EYES, 540, 1040);
+const camDeadpan = (push: number): Cam => aim([0.3, 2.45, 6.4 - 0.25 * push], FOV, SIT_EYES, 520, 1050);
 
 /** Where the tag over a Nubi points: just above the top of its head (along its body, then up). */
 export const tagPoint = (position: Vec3, pose: NubiPose, rotationY = 0, up = 0.12): Vec3 => {
   const p = nubiPoint(position, pose, [HEAD_TOP[0], HEAD_TOP[1] + 0.4, HEAD_TOP[2]], rotationY);
   return [p[0], p[1] + up, p[2]];
+};
+
+/**
+ * 2D "running" marks beside the pedalling knees under the duvet (cartoon speed strokes that flick
+ * on the knee going up). `d` = frames from the loop seam, `k` 0..1 the run.
+ */
+export const RunMarks: React.FC<{ cam: Cam; d: number; k: number }> = ({ cam, d, k }) => {
+  if (k <= 0.05) return null;
+  const ph = d * RUN_RATE;
+  return (
+    <>
+      {[-1, 1].map((side) => {
+        const up = Math.sin(ph + (side > 0 ? Math.PI : 0));
+        if (up < 0.15) return null;
+        const lz = 0.42 + 0.16 * Math.cos(ph + (side > 0 ? Math.PI : 0));
+        const knee: Vec3 = [side * 0.4, duvetHeight(side * 0.4, lz, 1) + 0.3 * up, lz];
+        const p = projectToScreen(cam, knee, 1080, 1920);
+        if (p.behind) return null;
+        const o = k * Math.min(1, (up - 0.15) * 3);
+        return (
+          <svg key={side} width={260} height={260} viewBox="-100 -100 200 200" style={{ position: "absolute", left: p.x - 130 + side * 120, top: p.y - 150, opacity: o, overflow: "visible" }}>
+            {[0, 1, 2].map((j) => (
+              <path
+                key={j}
+                d={`M ${side * (8 + 22 * j)} ${-40 + 12 * j} Q ${side * (26 + 22 * j)} ${-4 + 6 * j} ${side * (8 + 22 * j)} ${32 - 4 * j}`}
+                fill="none"
+                stroke="#FFFFFF"
+                strokeWidth={11 - 2 * j}
+                strokeLinecap="round"
+                style={{ filter: "drop-shadow(0 3px 0 rgba(120,40,80,0.55))" }}
+              />
+            ))}
+          </svg>
+        );
+      })}
+    </>
+  );
 };
 
 /** 2D dust puffs bursting off the duvet (`age` frames since the slam). */
@@ -162,7 +200,8 @@ export const GanchoShot: React.FC = () => {
     pitch: lerp(-0.45, 0.03, clamp01(up)),
     hop: 0.25 + 0.5 * (1 - clamp01(up)) + 0.4 * pointPump,
     squash: 1 + 0.06 * (up - 1),
-    finR: 0.1 + 2.5 * point,
+    finR: 0.1 + 1.8 * point,
+    roll: 0.1 * point,
     finL: 0.05,
     lookY: 0.75 * point,
     lookX: 0,
@@ -170,7 +209,7 @@ export const GanchoShot: React.FC = () => {
   };
   seated = nubiTalk(g, seated, lerp(1, 0.25, deadpan));
   if (point > 0.3) {
-    seated.finR = 0.1 + 2.5 * point + 0.25 * pointPump;
+    seated.finR = 0.1 + 1.8 * point + 0.35 * pointPump;
     seated.lookY = 0.75 * point;
   }
   if (deadpan > 0) {
@@ -205,11 +244,11 @@ export const GanchoShot: React.FC = () => {
       <Shake frame={g} impacts={[{ at: TAG, amp: 9, dur: 12 }]}>
         <Stage cam={cam} near={0.1} far={200}>
           <CasaLights keyFrom={sitting ? [-3, 6, 9] : [-2, 9, 6]} />
-          <CasaRoom t={t} beams={sitting ? 1 : 0.7} />
+          <CasaRoom t={t} beams={sitting ? 0 : 0.6} />
           {sitting ? (
             <>
               <Duvet lie={0} />
-              <group position={[0.82, duvetHeight(0.82, 0.25, 0) + 0.035, 0.25]} rotation={[-Math.PI / 2, 0, 0.6]}>
+              <group position={PHONE_STAND} rotation={[-Math.PI / 2, 0, 0.45]}>
                 <CasaPhone screen="off" />
               </group>
             </>
@@ -221,6 +260,7 @@ export const GanchoShot: React.FC = () => {
             {!sitting ? <EyeBags pose={pose} color="#6D9F86" amount={SLEEPY.bags * (1 - horror)} /> : null}
           </Nubi>
         </Stage>
+        {!sitting ? <RunMarks cam={cam} d={d} k={runK * (1 - slam)} /> : null}
         {!sitting ? <Puffs cam={cam} points={puffPts} age={g - TAG} /> : null}
         {!tg.behind ? <TruthTag frame={g} at={TAG} out={END - 10} lines={[{ text: "ACABA DE DESPERTAR" }]} x={tg.x} y={tg.y} scale={tg.scale} /> : null}
       </Shake>

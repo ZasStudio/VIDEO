@@ -13,8 +13,8 @@ import { Glow } from "../thanos/FX";
 // bib with a black bow tie, a slick black quiff, and the "fin on heart" pose piece.
 //
 // World units are sized for a <Nubi size={2}> (2 wide, ≈ 2 tall); floor y = 0; +z faces the default
-// camera. The two sit at the left and right of the table, turned towards each other and a little
-// towards the camera (NUBI_SEAT / DATE_SEAT, NUBI_RY / DATE_RY). No shadow maps, at most four
+// camera. The two sit at the right (Nubi) and left (the date) of the table, turned towards each other
+// and a little towards the camera (NUBI_SEAT / DATE_SEAT, NUBI_RY / DATE_RY). No shadow maps, at most four
 // lights, geometry and canvas textures built once.
 
 const once = <T,>(make: () => T) => {
@@ -45,11 +45,11 @@ export const REST = { zBack: -3.4, x0: -7, x1: 7, height: 5.4 };
 export const TABLE = { r: 0.5, top: 0.95 };
 /** Seat height of the chairs (a seated character's <Nubi position> y). */
 export const SEAT_Y = 0.52;
-export const NUBI_SEAT: V3 = [-1.22, SEAT_Y, 0.05];
-export const DATE_SEAT: V3 = [1.22, SEAT_Y, 0.05];
+export const NUBI_SEAT: V3 = [1.22, SEAT_Y, 0.05];
+export const DATE_SEAT: V3 = [-1.22, SEAT_Y, 0.05];
 /** Seated characters turn towards each other, cheated towards the camera. */
-export const NUBI_RY = 0.72;
-export const DATE_RY = -0.72;
+export const NUBI_RY = -0.72;
+export const DATE_RY = 0.72;
 /** The tall candle stands at the front of the table, between their faces; its flame sits FLAME_DY over the table top. */
 export const CANDLE_AT: V3 = [0, TABLE.top, 0.2];
 const WAX_H = 0.5;
@@ -596,9 +596,9 @@ const gearGeos = once(() => {
         new THREE.Vector3(-1.4, 10.1, -0.6),
         new THREE.Vector3(-0.4, 10.35, 1.6),
         new THREE.Vector3(0.6, 10.9, 3.5),
-        new THREE.Vector3(1.2, 11.55, 4.45),
-        new THREE.Vector3(1.4, 11.95, 3.9),
-        new THREE.Vector3(1.2, 11.7, 3.25),
+        new THREE.Vector3(1.2, 11.4, 4.35),
+        new THREE.Vector3(1.4, 11.7, 3.85),
+        new THREE.Vector3(1.2, 11.45, 3.35),
       ],
       false,
       "centripetal",
@@ -611,7 +611,7 @@ const gearGeos = once(() => {
     for (let i = 0; i <= tub; i++) {
       const u = i / tub;
       curve.getPointAt(u, c);
-      const r = 0.95 * (1 - u) + 0.12 * u + 0.18 * Math.sin(Math.PI * Math.min(1, u * 1.8));
+      const r = 0.95 * (1 - u) + 0.32 * u + 0.2 * Math.sin(Math.PI * Math.min(1, u * 1.8));
       for (let j = 0; j <= rad; j++) {
         const k = i * (rad + 1) + j;
         p.setXYZ(k, c.x + (p.getX(k) - c.x) * r * 2.2, c.y + (p.getY(k) - c.y) * r, c.z + (p.getZ(k) - c.z) * r);
@@ -688,16 +688,19 @@ export const Quiff: React.FC = () => {
 };
 
 /**
- * The fin laid flat on the heart (model units): pass `on` 0..1. Lower the real screen-right fin out of
- * sight (finR ≈ −2.9) while it shows. `pat` 0..1 lifts it off the chest a little (a heartbeat tap).
+ * The fin laid flat on the heart (model units): pass `on` 0..1. It comes from the `side` fin ("R" =
+ * finR, screen-right when facing the camera): lower that real fin out of sight (≈ −2.9) while it
+ * shows. `pat` 0..1 lifts it off the chest a little (a heartbeat tap).
  */
-export const HeartFin: React.FC<{ on: number; pat?: number }> = ({ on, pat = 0 }) => {
+export const HeartFin: React.FC<{ on: number; pat?: number; side?: "R" | "L" }> = ({ on, pat = 0, side = "R" }) => {
   if (on <= 0.01) return null;
   const g = gearGeos();
   const k = Math.min(1, on);
   return (
-    <group position={[4.55, 4.05, 4.25 + 0.6 * k + 0.35 * pat]} rotation={[0, -0.25 + 0.25 * k, 0.18 - 0.3 * (1 - k)]} scale={[0.4 + 0.6 * k, 1, 1]}>
-      <mesh geometry={g.heartFin} material={toy(NUBI_GREEN, { rough: 0.42, glow: 0.14 })} position={[-1.5, 0, 0]} />
+    <group scale={[side === "R" ? 1 : -1, 1, 1]}>
+      <group position={[4.55, 4.05, 4.25 + 0.6 * k + 0.35 * pat]} rotation={[0, -0.25 + 0.25 * k, 0.18 - 0.3 * (1 - k)]} scale={[0.4 + 0.6 * k, 1, 1]}>
+        <mesh geometry={g.heartFin} material={toy(NUBI_GREEN, { rough: 0.42, glow: 0.14 })} position={[-1.5, 0, 0]} />
+      </group>
     </group>
   );
 };
