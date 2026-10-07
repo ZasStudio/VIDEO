@@ -48,8 +48,8 @@ export const DOOR = { x: 0.6, w: 1.85, h: 2.8 };
 /** Where the boss stands, blocking the doorway. */
 export const BOSS_DOOR: V3 = [DOOR.x, 0, OFI.zBack + 0.3];
 export const EXIT_SIGN_AT: V3 = [DOOR.x, DOOR.h + 0.42, OFI.zBack + 0.12];
-export const OFI_CLOCK_AT: V3 = [-1.55, 2.95, OFI.zBack + 0.08];
-export const SCREEN = { x: 3.55, y: 2.0, w: 2.4, h: 1.5 };
+export const OFI_CLOCK_AT: V3 = [2.35, 2.95, OFI.zBack + 0.08];
+export const SCREEN = { x: -1.35, y: 1.85, w: 1.95, h: 1.25 };
 /** The three swivel chairs (facing the door) the workers walk back to: [x, z]. */
 export const CHAIR_SPOTS: [number, number][] = [
   [-3.3, 2.0],
@@ -397,7 +397,7 @@ export const OficinaSet: React.FC<{ g: number; sun?: number; slide?: number }> =
       <group position={OFI_CLOCK_AT}>
         <NightClock seconds={clockSeconds} radius={0.5} />
       </group>
-      {/* Projector screen (right of the door): off, then «1 / 68». */}
+      {/* Projector screen (left of the door): off, then «1 / 68». */}
       <group position={[SCREEN.x, SCREEN.y, z + 0.06]}>
         <mesh geometry={r.roller} material={toy("#3A3F4A", { rough: 0.4 })} position={[0, SCREEN.h / 2 + 0.08, 0.04]} />
         <mesh geometry={r.screen} material={slide > 0 ? slideMat : screenOff} />
@@ -410,7 +410,7 @@ export const OficinaSet: React.FC<{ g: number; sun?: number; slide?: number }> =
       <SunPatch position={[-2.4, 0.01, 0.4]} rotation={[-Math.PI / 2, 0, 0]} w={2.2} h={3.4} skew={0.35} opacity={0.22 * sun} />
       <SunPatch position={[3.6, 0.01, -0.6]} rotation={[-Math.PI / 2, 0, 0]} w={2.0} h={3.0} skew={0.35} opacity={0.2 * sun} />
       {/* Filing cabinet, cork board, water corner and plants. */}
-      <group position={[-0.95, 0, z + 0.4]}>
+      <group position={[-3.0, 0, z + 0.4]}>
         <mesh geometry={r.cabinet} material={toy("#9AA5B8", { rough: 0.5, glow: 0.12 })} position={[0, 0.65, 0]} />
         {[0.3, 0.7, 1.1].map((y) => (
           <mesh key={y} geometry={r.drawer} material={toy("#B4BED0", { rough: 0.5 })} position={[0, y, 0.36]} />
@@ -419,7 +419,7 @@ export const OficinaSet: React.FC<{ g: number; sun?: number; slide?: number }> =
           <Plant />
         </group>
       </group>
-      <group position={[-3.6, 2.35, z + 0.03]}>
+      <group position={[-4.3, 2.35, z + 0.03]}>
         <mesh geometry={r.board} material={toy("#C08A55", { rough: 0.9 })} />
         {["#FFE45C", "#FF8FB1", "#7FE0A8", "#8FC7FF", "#FFE45C", "#FF8FB1"].map((c, i) => (
           <mesh key={i} geometry={r.note} material={toy(c, { glow: 0.25 })} position={[-0.6 + 0.24 * i, 0.18 * Math.sin(i * 2.1), 0.03]} rotation={[0, 0, (hash(i) - 0.5) * 0.4]} />
@@ -428,7 +428,7 @@ export const OficinaSet: React.FC<{ g: number; sun?: number; slide?: number }> =
       <group position={[5.9, 0, z + 0.45]}>
         <CoffeeCorner t={g / 30} />
       </group>
-      <group position={[2.0, 0, z + 0.35]}>
+      <group position={[3.6, 0, z + 0.35]}>
         <Plant />
       </group>
       {/* Desks along the sides, monitors facing the room's centre line. */}

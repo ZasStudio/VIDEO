@@ -116,7 +116,10 @@ const jefe = (): Cue[] => {
     [BLOCK + 4, "impact", 0.25],
     [TAG - 1, "mentiras/truth", 0.85],
     [DETAIL, "pop", 0.4],
+    [TAG + 3, "ia/switch", 0.4],
     [GROAN, "mentiras/groan", 0.85],
+    // Everyone drops back into their chairs.
+    [JEFE.L14 - 8, "dormir/bed", 0.4],
     [DUN, "mentiras/dundun", 0.75, GIRO.START - DUN + 8],
   ];
 };

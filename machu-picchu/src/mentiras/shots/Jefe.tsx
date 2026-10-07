@@ -85,7 +85,7 @@ export const JefeShot: React.FC = () => {
     hop: 0.6 * Math.abs(settle),
     squash: 1 - 0.08 * Math.abs(settle) + 0.03 * Math.sin(t * 3) * (g > BLOCK + 10 ? 1 : 0),
     finL: lerp(0.3, 1.0, wide) + 0.55 * fiveUp,
-    finR: lerp(0.2, 1.05, wide),
+    finR: lerp(0.2, 0.42, wide),
     eyeScale: 1.15,
     lookX: 0,
     lookY: -0.05,
@@ -100,7 +100,7 @@ export const JefeShot: React.FC = () => {
   }
   const laptop = (
     <Upright raise={bPose.finR ?? 0}>
-      <group position={[0.7, -1.5, 0.9]} rotation={[0, -0.35, 0.08]} scale={10 / BOSS_SIZE}>
+      <group position={[0.2, -1.9, 1.4]} rotation={[0, -0.25, 0.06]} scale={10 / BOSS_SIZE}>
         <ClosedLaptop />
       </group>
     </Upright>

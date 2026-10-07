@@ -14,10 +14,11 @@ export const MentirasOverlays: React.FC = () => {
       <TitleSticker frame={frame} at={-4} out={GANCHO.TAG - 12} />
 
       {/* The date reads Nubi's message on her phone. */}
-      <ChatBubble frame={frame} at={CITA.BUBBLE} out={CITA.TAG - 4} x={540} y={470} scale={0.95} />
+      <ChatBubble frame={frame} at={CITA.BUBBLE} out={CITA.L11 - 2} x={430} y={520} scale={0.95} />
 
       {/* 6 pm at the office: everyone's free... */}
-      <ClockStamp frame={frame} at={JEFE.START + 2} out={JEFE.TAG - 6} />
+      {/* High in the band, so it clears the «SALIDA» sign over the boss in the medium shot. */}
+      <ClockStamp frame={frame} at={JEFE.START + 2} out={JEFE.L13 + 40} y={262} />
 
       {/* The question: the three lies to vote for, then the comment bait. */}
       <OptionCards frame={frame} at1={FINAL.OPT1} at2={FINAL.OPT2} at3={FINAL.OPT3} out={FINAL.TAG - 2} poke={FINAL.L19 + 12} />
