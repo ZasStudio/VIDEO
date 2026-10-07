@@ -144,6 +144,9 @@ const final = (): Cue[] => {
     [SWAT - 2, "mentiras/swat", 0.9],
     [CARD, "pop", 0.35],
     [RING, "mentiras/phonering", 0.65, END - RING],
+    // Nubi dives for the phone and flops back into bed (into the loop).
+    [RING + 10, "pop", 0.3],
+    [RING + 14, "dormir/bed", 0.45],
   ];
 };
 
