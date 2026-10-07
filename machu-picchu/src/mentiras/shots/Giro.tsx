@@ -209,7 +209,8 @@ export const GiroShot: React.FC = () => {
   const toTwo = ramp(g, BOX - 2, BOX + 8, [0, 1], EASE_IN_OUT);
   const pushTwo = ramp(g, BOX, END, [0, 1], (x) => x);
   let cam = mixCam(camSolo(ramp(g, START, BOX, [0, 1], (x) => x)), camTwo(pushTwo), toTwo);
-  const chicoAt: Vec3 = [chicoX, 0, CHICO_RUG[2]];
+  // (During the cheese insert Chico steps a little aside, out of the close-up's way: a cheat.)
+  const chicoAt: Vec3 = [chicoX + (shotInsert ? 0.9 : 0), 0, CHICO_RUG[2]];
   if (shotClose) {
     const ce = nubiPoint(chicoAt, chico, EYES, CHICO_YAW);
     const k = ramp(g, CLOSE_IN, SILENCIO, [0, 1], (x) => x);
@@ -219,7 +220,7 @@ export const GiroShot: React.FC = () => {
   const tipBase = nubiPoint(NUBI_RUG, { yaw: WHISTLE_YAW }, finTip(-1.0));
   if (shotInsert) {
     const k = ramp(g, INSERT_IN, INSERT_OUT, [0, 1], (x) => x);
-    cam = aim([tipBase[0] - 2.5 + 0.25 * k, tipBase[1] + 0.5, tipBase[2] + 0.95 - 0.1 * k], FOV, [tipBase[0], tipBase[1] - 0.25, tipBase[2]], 540, 860);
+    cam = aim([tipBase[0] + 0.85 - 0.1 * k, tipBase[1] + 0.45, tipBase[2] + 1.85 - 0.2 * k], FOV, [tipBase[0], tipBase[1] - 0.25, tipBase[2]], 540, 860);
   }
 
   // ---- 2D anchors.
