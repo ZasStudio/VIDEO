@@ -210,7 +210,7 @@ export const FinalShot: React.FC = () => {
               <CasaPhone screen={ringing ? "call" : "off"} glow={ringing ? 0.8 + 0.2 * Math.sin(g * 1.3) : 0} />
             </group>
           ) : null}
-          <Nubi size={2} position={nubiAt} pose={pose} shadow={false} palette={{ eyeRough: 0.7 }} holdR={grabbed ? <EarPhone raise={pose.finR ?? EAR_RAISE} /> : undefined}>
+          <Nubi size={2} position={nubiAt} pose={pose} shadow={false} palette={{ eyeRough: 0.7 }} holdR={grabbed ? <EarPhone raise={pose.finR ?? EAR_RAISE} ear={flop} /> : undefined}>
             <Lids pose={pose} droop={droop} tilt={glare > 0.2 && !segRing ? -0.35 * glare : segRing ? 0.12 : 0} color={NUBI_GREEN} />
             {segRing ? <EyeBags pose={pose} color="#6D9F86" amount={SLEEPY.bags * ramp(g, GRAB + 2, GRAB + 10)} /> : null}
           </Nubi>

@@ -45,7 +45,7 @@ const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 /** Chico faces us, turned a little towards Nubi (screen-left). */
 const CHICO_YAW = -0.45;
 /** Whistling, Nubi turns its face away (screen-left): the fin with the cheese swings to the front. */
-const WHISTLE_YAW = -0.75;
+const WHISTLE_YAW = -0.6;
 const NUBI_EYES = nubiPoint(NUBI_RUG, {}, EYES);
 /** Nubi's body centre (stays put when it turns its face away). */
 const NUBI_MID: Vec3 = [NUBI_RUG[0], 1.1, NUBI_RUG[2]];
@@ -53,7 +53,7 @@ const NUBI_MID: Vec3 = [NUBI_RUG[0], 1.1, NUBI_RUG[2]];
 /** Nubi alone, medium, centred. */
 const camSolo = (push: number): Cam => aim([NUBI_RUG[0] + 0.2, 2.0 - 0.05 * push, NUBI_RUG[2] + 8.8 - 0.6 * push], FOV, NUBI_EYES, 540, 980);
 /** The two-shot: Nubi left of centre, Chico in the right foreground with the box. */
-const camTwo = (push: number): Cam => aim([0.0 - 0.1 * push, 2.75 - 0.05 * push, 13.6 - 0.6 * push], FOV, NUBI_MID, 405, 930);
+const camTwo = (push: number): Cam => aim([0.1 - 0.05 * push, 2.8 - 0.05 * push, 14.2 - 0.4 * push], FOV, NUBI_MID, 465, 930);
 
 /** 2D music notes rising from a screen point (whistling). */
 const Notes: React.FC<{ g: number; from: number; x: number; y: number; on: number; scale?: number }> = ({ g, from, x, y, on, scale = 1 }) => {
@@ -66,7 +66,7 @@ const Notes: React.FC<{ g: number; from: number; x: number; y: number; on: numbe
     if (a < 0 || a > 1) continue;
     const double = n % 2 === 1;
     const col = ["#FFFFFF", "#FFE14D", "#7FE0FF"][n % 3];
-    const px = x - (20 + 60 * a) * scale + 30 * Math.sin(a * 7 + n) * scale;
+    const px = x - (30 + 120 * a) * scale + 26 * Math.sin(a * 7 + n) * scale;
     const py = y - (20 + 300 * a) * scale;
     items.push(
       <svg
@@ -220,7 +220,7 @@ export const GiroShot: React.FC = () => {
   const tipBase = nubiPoint(NUBI_RUG, { yaw: WHISTLE_YAW }, finTip(-1.0));
   if (shotInsert) {
     const k = ramp(g, INSERT_IN, INSERT_OUT, [0, 1], (x) => x);
-    cam = aim([tipBase[0] + 0.85 - 0.1 * k, tipBase[1] + 0.45, tipBase[2] + 1.85 - 0.2 * k], FOV, [tipBase[0], tipBase[1] - 0.25, tipBase[2]], 540, 860);
+    cam = aim([tipBase[0] + 0.8 - 0.1 * k, tipBase[1] + 1.0, tipBase[2] + 5.0 - 0.35 * k], FOV, [tipBase[0], tipBase[1] - 0.25, tipBase[2]], 700, 760);
   }
 
   // ---- 2D anchors.

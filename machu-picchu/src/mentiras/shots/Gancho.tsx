@@ -42,7 +42,7 @@ const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 /** Pedalling of the fake run (radians per frame). */
 export const RUN_RATE = 0.42;
 /** Fin raise that holds the phone at Nubi's ear. */
-export const EAR_RAISE = 2.3;
+export const EAR_RAISE = 1.2;
 
 /**
  * Nubi lying back in bed, fake-running on the phone: `d` = frames from the loop seam (hook:
@@ -74,7 +74,7 @@ const LIE_EYES = nubiPoint(NUBI_LIE, { pitch: LIE_PITCH }, EYES);
 export const camBed = (d: number): Cam => {
   const k = d / 110;
   const pos: Vec3 = [0.9 - 0.3 * k, 9.6 - 0.55 * k, 4.9 - 0.75 * k];
-  return aim(pos, FOV, LIE_EYES, 500, 915);
+  return aim(pos, FOV, LIE_EYES, 478, 915);
 };
 
 const SIT_EYES = nubiPoint(NUBI_SIT, {}, EYES);

@@ -41,7 +41,7 @@ export const PHONE_STAND: V3 = [NIGHTSTAND.x - 0.06, NIGHTSTAND.top + 0.03, NIGH
 export const RUG: V3 = [0.25, 0, 2.7];
 export const NUBI_RUG: V3 = [-1.05, 0, 2.3];
 /** Chico stands right of Nubi (a little closer to the camera), holding the pizza box. */
-export const CHICO_RUG: V3 = [0.8, 0, 3.4];
+export const CHICO_RUG: V3 = [0.7, 0, 3.3];
 
 /** Model units of a <Nubi size={2}> per world unit. */
 export const M = 5;
@@ -772,7 +772,7 @@ export const CasaLights: React.FC<{ keyLight?: number; keyFrom?: V3; sun?: numbe
 // =======================================================================================
 // The phone (world units, screen towards +z, centred).
 
-export type CasaPhoneScreen = "off" | "call";
+export type CasaPhoneScreen = "off" | "call" | "talk";
 const phoneDraw =
   (mode: CasaPhoneScreen): Draw =>
   (ctx, w, h) => {
@@ -788,15 +788,16 @@ const phoneDraw =
       ctx.fill();
       return;
     }
+    const talk = mode === "talk";
     const g = ctx.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, "#2E3A8C");
-    g.addColorStop(1, "#4FC3F7");
+    g.addColorStop(0, talk ? "#46EBA0" : "#2E3A8C");
+    g.addColorStop(1, talk ? "#3CC8FF" : "#4FC3F7");
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
     // The caller: the friend (a light-blue cube with an orange cap).
     const cx = w / 2;
     const cy = h * 0.33;
-    ctx.fillStyle = "rgba(255,255,255,0.25)";
+    ctx.fillStyle = talk ? "#FFFFFF" : "rgba(255,255,255,0.25)";
     ctx.beginPath();
     ctx.arc(cx, cy, w * 0.34, 0, Math.PI * 2);
     ctx.fill();
@@ -814,6 +815,19 @@ const phoneDraw =
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText("AMIGO", cx, h * 0.6);
+    if (talk) {
+      // In call: the timer and a big red hang-up button.
+      ctx.font = `800 ${Math.round(w * 0.13)}px ${FONT.heavy}`;
+      ctx.fillText("0:47", cx, h * 0.69);
+      ctx.fillStyle = "#FF4757";
+      ctx.beginPath();
+      ctx.arc(cx, h * 0.85, w * 0.14, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#FFFFFF";
+      roundRect(ctx, cx - w * 0.08, h * 0.85 - w * 0.025, w * 0.16, w * 0.05, w * 0.025);
+      ctx.fill();
+      return;
+    }
     // Answer / decline.
     ctx.fillStyle = "#2ED573";
     ctx.beginPath();
@@ -841,22 +855,30 @@ export const CasaPhone: React.FC<{ screen?: CasaPhoneScreen; glow?: number }> = 
       <mesh geometry={g.body} material={toy("#FF5E6C", { rough: 0.4, glow: 0.18 })} />
       <mesh geometry={g.screen} material={mat} position={[0, 0, 0.0255]} />
       <mesh geometry={g.cam} material={toy("#1A1C26")} position={[-0.09, 0.23, -0.03]} />
-      {glow > 0 ? <Glow color="#9FE0FF" size={1.3} opacity={0.5 * glow} position={[0, 0, 0.1]} /> : null}
+      {glow > 0 ? <Glow color="#9FFFE0" size={0.85} opacity={0.5 * glow} position={[0, 0, 0.08]} /> : null}
     </group>
   );
 };
 
+/** Where the phone sits at Nubi's "ear" (body frame, model units): beside the head, a bit forward. */
+export const EAR_AT: Vec3 = [6.25, 7.3, 2.1];
 /**
- * The phone held at Nubi's "ear" (pass as holdR with the same raise, ~2.3): upright against the
- * side of the head, the back turned a little towards the camera.
+ * The phone held by the fin (pass as holdR with the same raise). `ear` 1: big, upright against the
+ * side of the head at EAR_AT, its lit in-call screen turned half towards the camera (soft glow);
+ * `ear` 0: just held at the fin tip (e.g. grabbed off the nightstand).
  */
-export const EarPhone: React.FC<{ raise: number; screen?: CasaPhoneScreen; turn?: number }> = ({ raise, screen = "call", turn = 0.5 }) => (
-  <OnFin raise={raise} offset={[-0.15, -0.35, 0.2]}>
-    <group scale={M} rotation={[0, -Math.PI / 2 + turn, 0]}>
-      <CasaPhone screen={screen} />
-    </group>
-  </OnFin>
-);
+export const EarPhone: React.FC<{ raise: number; screen?: CasaPhoneScreen; ear?: number }> = ({ raise, screen = "talk", ear = 1 }) => {
+  const tip = finTip(raise);
+  const hold: Vec3 = [0.6, 1.0, 0.9];
+  const off: Vec3 = [mix(hold[0], EAR_AT[0] - tip[0], ear), mix(hold[1], EAR_AT[1] - tip[1], ear), mix(hold[2], EAR_AT[2] - tip[2], ear)];
+  return (
+    <OnFin raise={raise} offset={off}>
+      <group scale={M * 1.5} rotation={[0, mix(-0.3, -0.72, ear), 0.2 * ear]}>
+        <CasaPhone screen={screen} glow={0.75} />
+      </group>
+    </OnFin>
+  );
+};
 
 // =======================================================================================
 // The EMPTY pizza box (world units: base 1.0 x 1.0 centred on the origin, hinge at −z, the lid
