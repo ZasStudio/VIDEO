@@ -1,0 +1,27 @@
+{
+  "_title": "¿Y si tus mentiras salieran sobre tu cabeza?",
+  "_voices": "Magnific TTS, ElevenLabs v3. nubi = Nerea Escudero (1081: stability 0.45, similarity 0.75, speed 0.95); amigo = Joaquín Arrieta (1080, Nubi's friend: the one waiting, the one who owes money, the pizza owner); cita = Clara Torres (64, Nubi's date); jefe = Ernesto Calderón (643, the same boss as in the AI and sleep shorts). L17 is Nubi's thought (voice-over, Nubi keeps whistling on screen).",
+  "_captions": "Same syntax as src/narration.json. Nubi: white with highlights; amigo cyan (^c), cita orange (^o), jefe red (^r). The truth tags over the heads are drawn by the shots, not by the captions.",
+  "lines": [
+    {"id": "L01", "voice": "nubi", "scene": "gancho", "tts": "[out of breath] ¡Sí, sí! Ya estoy llegando.", "captions": "¡SÍ, SÍ! / YA ESTOY LLEGANDO."},
+    {"id": "L02", "voice": "nubi", "scene": "gancho", "tts": "[mischievously] ¿Qué pasaría si cada mentira mostrara la verdad sobre tu cabeza? [pause 0.2s] [deadpan] Yo no duré ni cinco segundos.", "captions": "¿QUÉ PASARÍA / SI CADA MENTIRA^r / MOSTRARA LA VERDAD^y / SOBRE TU CABEZA?^y / YO NO DURÉ / NI CINCO SEGUNDOS.^r"},
+    {"id": "L03", "voice": "nubi", "scene": "escape", "tts": "[smug] [whispers] Esta vez vine preparado.", "captions": "ESTA VEZ / VINE PREPARADO.^y"},
+    {"id": "L04", "voice": "amigo", "scene": "escape", "tts": "[annoyed] ¿Y por qué llegaste tarde?", "captions": "¿Y POR QUÉ^c / LLEGASTE TARDE?^c"},
+    {"id": "L05", "voice": "nubi", "scene": "escape", "tts": "[confident] Había tráfico.", "captions": "HABÍA TRÁFICO."},
+    {"id": "L06", "voice": "nubi", "scene": "escape", "tts": "[annoyed] [whispering] Esta cosa da demasiados detalles.", "captions": "ESTA COSA DA / DEMASIADOS DETALLES.^y"},
+    {"id": "L07", "voice": "nubi", "scene": "deuda", "tts": "[sweetly] ¿Y mis cien soles?", "captions": "¿Y MIS / CIEN SOLES?^g"},
+    {"id": "L08", "voice": "amigo", "scene": "deuda", "tts": "[nervous] Te pagaría, pero estoy misio.", "captions": "TE PAGARÍA,^c / PERO ESTOY MISIO.^c"},
+    {"id": "L09", "voice": "nubi", "scene": "deuda", "tts": "[calm] [menacing] Tranquilo… tus zapatillas pueden esperar.", "captions": "TRANQUILO… / TUS ZAPATILLAS^g / PUEDEN ESPERAR.^g"},
+    {"id": "L10", "voice": "cita", "scene": "cita", "tts": "[suspicious] ¿Usas esa frase con todo el mundo?", "captions": "¿USAS ESA FRASE^o / CON TODO EL MUNDO?^o"},
+    {"id": "L11", "voice": "nubi", "scene": "cita", "tts": "[smooth] [charming] No, solo contigo.", "captions": "NO, / SOLO CONTIGO.^y"},
+    {"id": "L12", "voice": "nubi", "scene": "cita", "tts": "[desperate] ¡Pero contigo le puse un corazón!", "captions": "¡PERO CONTIGO / LE PUSE UN CORAZÓN!^r"},
+    {"id": "L13", "voice": "jefe", "scene": "jefe", "tts": "[cheerful] Una reunión rapidita. [pause 0.2s] Cinco minutos.", "captions": "UNA REUNIÓN / RAPIDITA.^r / CINCO MINUTOS.^r"},
+    {"id": "L14", "voice": "nubi", "scene": "jefe", "tts": "[whispers] [dramatic] La mentira más peligrosa de todas.", "captions": "LA MENTIRA / MÁS PELIGROSA / DE TODAS.^r"},
+    {"id": "L15", "voice": "nubi", "scene": "giro", "tts": "[proudly] Encontré la solución: [pause 0.2s] no volver a mentir.", "captions": "ENCONTRÉ / LA SOLUCIÓN:^y / NO VOLVER / A MENTIR.^y"},
+    {"id": "L16", "voice": "amigo", "scene": "giro", "tts": "[suspicious] ¿Te comiste mi pizza?", "captions": "¿TE COMISTE^c / MI PIZZA?^c"},
+    {"id": "L17", "voice": "nubi", "scene": "giro", "tts": "[whispers] [smug] Descubrí que callarme todavía era gratis.", "captions": "DESCUBRÍ QUE / CALLARME^y / TODAVÍA ERA GRATIS.^g"},
+    {"id": "L18", "voice": "nubi", "scene": "final", "tts": "[playful] Ahora confiesa: ¿qué mentira aparecería primero sobre tu cabeza? [pause 0.2s] ¿«Estoy llegando», «ya te pagué»… [pause 0.2s] o «no me pasa nada»?", "captions": "AHORA CONFIESA:^y / ¿QUÉ MENTIRA / APARECERÍA PRIMERO / SOBRE TU CABEZA? / ¿«ESTOY LLEGANDO»,^c / «YA TE PAGUÉ»…^g / O «NO ME PASA NADA»?^o"},
+    {"id": "L19", "voice": "nubi", "scene": "final", "tts": "[smug] Yo nunca digo esa última.", "captions": "YO NUNCA DIGO / ESA ÚLTIMA."},
+    {"id": "L20", "voice": "nubi", "scene": "final", "tts": "[shouting] [outraged] ¡A ti nadie te preguntó!", "captions": "¡A TI NADIE / TE PREGUNTÓ!^r"}
+  ]
+}

@@ -16,11 +16,14 @@ import { MatusitaShort, MatusitaSoundtrack } from "./matusita/MatusitaShort";
 import { IaShort, IaSoundtrack } from "./ia/IaShort";
 import { DormirShort, DormirSoundtrack } from "./dormir/DormirShort";
 import { DORMIR } from "./dormir/timeline";
+import { MentirasShort, MentirasSoundtrack } from "./mentiras/MentirasShort";
+import { MENTIRAS } from "./mentiras/timeline";
 import { IA } from "./ia/timeline";
 import { MATUSITA, MATUSITA_HEIGHT, MATUSITA_WIDTH } from "./matusita/timeline";
 import { MATUSITA_UI_SHEET_DURATION, MatusitaUISheet } from "./dev/MatusitaUISheet";
 import { IA_UI_SHEET_DURATION, IaUISheet } from "./dev/IaUISheet";
 import { DORMIR_UI_SHEET_DURATION, DormirUISheet } from "./dev/DormirUISheet";
+import { MENTIRAS_UI_SHEET_DURATION, MentirasUISheet } from "./dev/MentirasUISheet";
 import { OXI, OXI_HEIGHT, OXI_WIDTH } from "./oxigeno/timeline";
 import { INCA, INCA_HEIGHT, INCA_WIDTH } from "./inca/timeline";
 import { NubiShort, NubiSoundtrack } from "./nubi/NubiShort";
@@ -250,6 +253,24 @@ export const RemotionRoot: React.FC = () => {
         width={1080}
         height={1920}
       />
+      {/* Nubi's vertical comedy short: what if your lies showed up over your head (72 s). */}
+      <Composition
+        id="MentirasShort"
+        component={MentirasShort}
+        durationInFrames={MENTIRAS.DURATION}
+        fps={FPS}
+        width={1080}
+        height={1920}
+        defaultProps={{ withAudio: true }}
+      />
+      <Composition
+        id="MentirasShortAudio"
+        component={MentirasSoundtrack}
+        durationInFrames={MENTIRAS.DURATION}
+        fps={FPS}
+        width={1080}
+        height={1920}
+      />
       <Folder name="Dev">
         <Composition
           id="WorldTest"
@@ -431,6 +452,14 @@ export const RemotionRoot: React.FC = () => {
           id="DormirUISheet"
           component={DormirUISheet}
           durationInFrames={DORMIR_UI_SHEET_DURATION}
+          fps={30}
+          width={1080}
+          height={1920}
+        />
+        <Composition
+          id="MentirasUISheet"
+          component={MentirasUISheet}
+          durationInFrames={MENTIRAS_UI_SHEET_DURATION}
           fps={30}
           width={1080}
           height={1920}

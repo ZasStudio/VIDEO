@@ -32,7 +32,8 @@ export type Sfx =
   | `tiempo/${string}`
   | `matusita/${string}`
   | `ia/${string}`
-  | `dormir/${string}`;
+  | `dormir/${string}`
+  | `mentiras/${string}`;
 
 /** [global frame, sound, volume, optional max length in frames, optional frames skipped at its start] */
 export type Cue = [number, Sfx, number, number?, number?];
@@ -40,4 +41,4 @@ export type Cue = [number, Sfx, number, number?, number?];
 export type Bed = [number, number, Sfx, number, number?];
 
 /** Length in frames of the looping beds (their files). */
-export const BED_FRAMES: Partial<Record<Sfx, number>> = { rain: 180, rumble: 90, "inca/run": 90, "dino/city": 90, "thanos/battle": 150, "thanos/castle": 150, "agua/wind": 150, "agua/crowd": 150, "agua/stampede": 150, "tiempo/tick": 178, "tiempo/city": 300, "tiempo/office": 240, "tiempo/machine": 180, "tiempo/heartbeat": 120, "matusita/hum": 240, "matusita/rain": 297, "matusita/roomtone": 183, "matusita/vhs": 120, "ia/clock": 118, "ia/office": 180, "ia/night": 167, "dormir/snore": 119, "dormir/officesnore": 180, "dormir/construction": 150 };
+export const BED_FRAMES: Partial<Record<Sfx, number>> = { rain: 180, rumble: 90, "inca/run": 90, "dino/city": 90, "thanos/battle": 150, "thanos/castle": 150, "agua/wind": 150, "agua/crowd": 150, "agua/stampede": 150, "tiempo/tick": 178, "tiempo/city": 300, "tiempo/office": 240, "tiempo/machine": 180, "tiempo/heartbeat": 120, "matusita/hum": 240, "matusita/rain": 297, "matusita/roomtone": 183, "matusita/vhs": 120, "ia/clock": 118, "ia/office": 180, "ia/night": 167, "dormir/snore": 119, "dormir/officesnore": 180, "dormir/construction": 150, "mentiras/cafe": 300, "mentiras/restaurant": 171, "mentiras/birds": 450 };
