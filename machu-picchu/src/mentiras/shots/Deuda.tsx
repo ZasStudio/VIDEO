@@ -34,12 +34,12 @@ const PED = CALLE.pedestal;
 const PRESS: Vec3 = [3.72, 0, CALLE.glassZ + 0.9];
 const PRESS_YAW = Math.PI - 0.32;
 /** After the jump: back to the window, facing Nubi (and the camera). */
-const FACE: Vec3 = [3.95, 0, -0.32];
-const FACE_YAW = -0.28;
-/** Nubi behind him (inside view), then beside him (outside). */
-const NUBI_BEHIND: Vec3 = [2.75, 0, 0.45];
-const NUBI_D: Vec3 = [2.05, 0, -1.2];
-const NUBI_GRAB: Vec3 = [2.5, 0, -0.72];
+const FACE: Vec3 = [4.1, 0, -1.0];
+const FACE_YAW = -0.3;
+/** Nubi behind him (inside view), then in front of him on the sidewalk, to the left (outside). */
+const NUBI_BEHIND: Vec3 = [1.3, 0, 0.55];
+const NUBI_D: Vec3 = [2.05, 0, 0.15];
+const NUBI_GRAB: Vec3 = [2.5, 0, -0.2];
 
 const L07_END = MENTIRAS.lineEnd("L07");
 const MISIO = MENTIRAS.wordAt("L08", 4);
@@ -85,7 +85,7 @@ export const DeudaShot: React.FC = () => {
       ? [PRESS[0] + 0.03 * rub, 0, PRESS[2]]
       : g < RUN
         ? lerp3(PRESS, FACE, ramp(g, JUMP, JUMP + 11, [0, 1], EASE_OUT))
-        : [FACE[0] + runX * (1 - giveUp) - 0.12 * giveUp, 0, FACE[2]];
+        : [FACE[0] + runX * (1 - giveUp) + 0.3 * giveUp, 0, FACE[2]];
   const runBob = running * Math.abs(Math.sin(g * 1.2));
   const friendBase: NubiPose = {
     hop: 3.4 * hopArc + 0.5 * shrug + 1.2 * runBob + 0.9 * yank,
@@ -120,13 +120,14 @@ export const DeudaShot: React.FC = () => {
   const took = g >= PAGA + 3 ? 1 : 0;
   const raise = ramp(g, PAGA + 3, PAGA + 12, [0, 1], EASE_OUT);
   const nubiPos: Vec3 =
-    g < JUMP ? [NUBI_BEHIND[0] - 1.6 * (1 - slideIn), 0, NUBI_BEHIND[2]] : lerp3(NUBI_D, NUBI_GRAB, lunge * (1 - 0.6 * ramp(g, PAGA + 4, PAGA + 16, [0, 1], EASE_IN_OUT)));
-  const nubiYaw = g < JUMP ? 2.62 : lerp(0.72, 0.3, lunge) + 0.1 * raise;
+    g < JUMP ? [NUBI_BEHIND[0] - 1.4 * (1 - slideIn), 0, NUBI_BEHIND[2]] : lerp3(NUBI_D, NUBI_GRAB, lunge * (1 - 0.8 * ramp(g, PAGA + 4, PAGA + 16, [0, 1], EASE_IN_OUT)));
+  // Turned 3/4 towards the friend: its screen-right fin then reaches him (palm out, his hood).
+  const nubiYaw = g < JUMP ? 2.2 : lerp(0.55, 0.85, lunge) - 0.35 * raise;
   const nubiBase: NubiPose = {
     hop: 0.5 * windowIn(g, L07 - 10, L07 - 2, 3) * (g < JUMP ? 1 : 0) + 0.6 * raise * windowIn(g, PAGA + 3, PAGA + 14, 2),
     roll: 0.14 * sweet,
     pitch: 0.06 * sweet + 0.13 * menace,
-    finR: 0.3 * sweet + 0.32 * handOut + gimme + holding * 1.15 + raise * 1.25,
+    finR: 0.3 * sweet + 0.32 * handOut + gimme + holding * 1.15 + raise * 1.6,
     finL: 0.3 * sweet + 0.05,
     eyeScale: 1 + 0.18 * sweet - 0.04 * menace,
     lookX: (g < JUMP ? 0 : 0.55) - 0.4 * menace * windowIn(g, TUS, PAGA - 4, 4),
@@ -141,21 +142,22 @@ export const DeudaShot: React.FC = () => {
   // D3 tighter for L09 and the payment.
   const faceOnGlass: Vec3 = [PRESS[0], 1.15, CALLE.glassZ];
   const drift = ramp(g, START, CUT_OUT, [0, 1], (x) => x);
-  const camD1 = aim([PED[0] - 0.55 + 0.1 * drift, 2.05, -9.6 + 0.5 * drift], FOV, faceOnGlass, 540, 760);
+  // A wider lens inside the shop window, so Nubi fits beside him.
+  const camD1 = aim([PED[0] + 0.05 * drift, 1.25, -9.6 + 0.45 * drift], 55, faceOnGlass, 420, 990);
   const track = ramp(g, RUN, GRAB + 6, [0, 1], EASE_IN_OUT);
   const pushD2 = ramp(g, CUT_OUT, CUT_L09, [0, 1], (x) => x);
   const friendEyes: Vec3 = [FACE[0] + 0.35 * track, 1.12, FACE[2]];
-  const camD2 = aim([lerp(5.6, 5.5, pushD2) + 0.35 * track, 1.95, lerp(10.0, 9.5, pushD2)], FOV, friendEyes, 600, 1010);
+  const camD2 = aim([lerp(3.2, 3.3, pushD2) + 0.35 * track, 1.9, lerp(12.0, 11.6, pushD2)], FOV, friendEyes, 668, 1010);
   const pushD3 = ramp(g, CUT_L09, END, [0, 1], (x) => x);
-  const camD3 = aim([lerp(5.5, 5.35, pushD3), 1.7, lerp(8.6, 8.1, pushD3)], FOV, [FACE[0] + 0.4, 1.12, FACE[2]], 620, 1020);
+  const camD3 = aim([lerp(3.75, 3.65, pushD3), 1.6, lerp(11.0, 10.6, pushD3)], FOV, [FACE[0] + 0.5, 1.12, FACE[2]], 660, 1005);
   const cam: Cam = g < CUT_OUT ? camD1 : g < CUT_L09 ? camD2 : camD3;
 
   // ---- The truth tag over the friend's head (his backwards cap's top ≈ 11.9 model units).
   const fs = friendPose.squash ?? 1;
   const headTop = 0.2 * ((friendPose.hop ?? 0) + fs * 11.9) + 0.22;
   const lean = 0.2 * 6 * Math.sin(friendPose.pitch ?? 0);
-  const tg = tagAt(cam, [friendPos[0] + lean * Math.sin(friendYaw), headTop, friendPos[2] + lean * Math.cos(friendYaw)], { max: 1.05 });
-  const tagX = Math.min(620, Math.max(460, tg.x));
+  const tg = tagAt(cam, [friendPos[0] + lean * Math.sin(friendYaw), headTop, friendPos[2] + lean * Math.cos(friendYaw)], { min: 0.85, max: 1.05 });
+  const tagX = Math.min(680, Math.max(460, tg.x));
   const tagY = Math.max(600, Math.min(1000, tg.y));
 
   return (
@@ -191,7 +193,7 @@ export const DeudaShot: React.FC = () => {
             holdL={hand > 0.02 && !took ? <HeldBill raise={friendBase.finL ?? 0} side="L" turn={-0.4} /> : null}
           />
           {g < JUMP ? <HeartStream g={g} at={[PRESS[0], 2.15, PRESS[2] - 0.6]} on={1} size={0.17} /> : null}
-          <Nubi size={2} position={nubiPos} rotationY={nubiYaw} pose={nubiPose} shadowOpacity={0.4} palette={{ eyeRough: 0.6 }} holdR={took ? <HeldBill raise={nubiPose.finR ?? 0} turn={0.5} /> : null}>
+          <Nubi size={2} position={nubiPos} rotationY={nubiYaw} pose={nubiPose} shadowOpacity={0.4} palette={{ eyeRough: 0.6 }} holdR={took ? <HeldBill raise={nubiPose.finR ?? 0} turn={-0.4} scale={1.3} /> : null}>
             <NubiCap rip={0.92} wobble={g} />
             <Lids pose={nubiPose} droop={nubiDroop} tilt={-0.3} color={NUBI_GREEN} />
           </Nubi>

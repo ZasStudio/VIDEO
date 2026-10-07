@@ -79,10 +79,14 @@ const deuda = (): Cue[] => {
   return [
     [START - 2, "whoosh-short", 0.3],
     [START, "mentiras/choir", 0.55],
+    // His startled hop as Nubi speaks behind him (the cut outside lands on it).
     [L08 - 8, "whoosh-short", 0.25],
+    [L08 - 4, "pop", 0.35],
     [TAG - 1, "mentiras/truth", 0.85],
     [DETAIL, "pop", 0.4],
+    // The legs keep spinning in place after the grab, until he gives up.
     [RUN, "mentiras/scramble", 0.75],
+    [RUN + 52, "mentiras/scramble", 0.5, PAGA - 16 - (RUN + 52)],
     [GRAB, "mentiras/grab", 0.85],
     [PAGA - 4, "dormir/chaching", 0.55],
     [PAGA + 2, "pop", 0.35],

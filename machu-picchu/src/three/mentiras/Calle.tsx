@@ -106,7 +106,7 @@ export const CALLE = {
   seat: 0.5,
   shop: { x0: 0.3, x1: 9.0, h: 6.6, win: { x0: 1.2, x1: 6.5, y0: 0.5, y1: 3.3 }, door: { x0: 7.15, x1: 8.35, h: 2.7 }, backZ: -10.5, ceil: 3.75 },
   sill: 0.5,
-  pedestal: [4.85, 0.5, -3.35] as V3,
+  pedestal: [4.3, 0.5, -3.35] as V3,
   pedestalH: 0.42,
   /** Glass of the shop window (z of its plane). */
   glassZ: FZ - 0.12,
@@ -443,9 +443,9 @@ const glassMat = once(() => {
 const coneMat = once(() => {
   const tex = canvasTexture("calle-cone", 8, 128, (ctx, W, H) => {
     const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, "rgba(255,255,255,0.75)");
-    g.addColorStop(0.7, "rgba(255,255,255,0.25)");
-    g.addColorStop(1, "rgba(255,255,255,0.05)");
+    g.addColorStop(0, "rgba(255,255,255,0.5)");
+    g.addColorStop(0.7, "rgba(255,255,255,0.16)");
+    g.addColorStop(1, "rgba(255,255,255,0.03)");
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
   });
@@ -889,17 +889,21 @@ export const BreathFog: React.FC<{ position: V3; amount: number }> = ({ position
 // Nubi's cap: the anti-tag shield (model units, child of <Nubi>)
 
 const CAP_BLUE = "#2E48D0";
-const CAP_BRIM = "#1E2F98";
-/** Crown dome (an ellipsoid cut at its equator): centre height, radii, and the top's petals. */
-const CAP = { y: 6.7, z: -0.2, rx: 5.6, ry: 5.0, rz: 5.3, theta0: 0.62, petals: 7 };
+const CAP_BRIM = "#2639B4";
+/**
+ * The cap fitted to Nubi's cube head (model units): a rounded box crown wrapping the top of the
+ * head down to the eyes, a low dome on top (cut at `theta0` into the petals that tear open) and a
+ * curved bill on the front.
+ */
+const CAP = { crownY0: 7.0, crownH: 3.3, w: 10.7, d: 9.6, z: -0.1, domeY: 9.95, rx: 4.75, ry: 1.9, rz: 4.25, theta0: 0.95, petals: 7 };
 /** Model-unit height of the top of the closed cap (its button), for the truth tag's anchor. */
-export const CAP_TOP = CAP.y + CAP.ry + 0.4;
+export const CAP_TOP = CAP.domeY + CAP.ry + 0.5;
 /** Model-unit height of the torn hole's rim (the tag rises out of it). */
-export const CAP_HOLE = CAP.y + CAP.ry * Math.cos(CAP.theta0);
+export const CAP_HOLE = CAP.domeY + CAP.ry * Math.cos(CAP.theta0);
 
 const capGeos = once(() => {
   const { rx, ry, rz, theta0, petals } = CAP;
-  const band = new THREE.SphereGeometry(1, 40, 8, 0, Math.PI * 2, theta0, Math.PI / 2 - theta0);
+  const band = new THREE.SphereGeometry(1, 40, 6, 0, Math.PI * 2, theta0, Math.PI / 2 - theta0);
   band.scale(rx, ry, rz);
   const rnd = mulberry(77);
   const leaves = Array.from({ length: petals }, (_, i) => {
@@ -912,7 +916,7 @@ const capGeos = once(() => {
     for (let k = 0; k < p.count; k++) {
       const y = p.getY(k);
       if (y > Math.cos(theta0 * 0.55)) {
-        const j = 1 + (rnd() - 0.5) * 0.18;
+        const j = 1 + (rnd() - 0.5) * 0.22;
         p.setXYZ(k, p.getX(k) * j, y, p.getZ(k) * j);
       }
     }
@@ -924,24 +928,39 @@ const capGeos = once(() => {
     return { g, hinge: [hinge.x, hinge.y, hinge.z] as V3, axis, wobble: 0.8 + 0.4 * rnd() };
   });
   const brim = new THREE.CylinderGeometry(1, 1, 0.45, 32, 2, false, -Math.PI / 2, Math.PI);
-  brim.scale(4.6, 1, 3.6);
+  brim.scale(4.8, 1, 4.1);
   // A curved bill: the sides and the front edge bend down.
   const bp = brim.attributes.position as THREE.BufferAttribute;
   for (let k = 0; k < bp.count; k++) {
-    const x = bp.getX(k) / 4.6;
-    const z = bp.getZ(k) / 3.6;
-    bp.setY(k, bp.getY(k) - 1.1 * x * x - 0.35 * z * z);
+    const x = bp.getX(k) / 4.8;
+    const z = bp.getZ(k) / 4.1;
+    bp.setY(k, bp.getY(k) - 0.5 * x * x - 0.08 * z * z);
   }
   brim.computeVertexNormals();
   return {
+    crown: rbox(CAP.w, CAP.crownH, CAP.d, 1.1, 3),
     band,
     leaves,
     brim,
     button: new THREE.SphereGeometry(0.62, 12, 8),
     shred: new THREE.PlaneGeometry(1.3, 0.8),
-    patch: new THREE.CircleGeometry(1.25, 24),
   };
 });
+
+/** The cap's front logo: a white disc with a bold blue N. */
+const drawCapLogo: Draw = (ctx, W, H) => {
+  ctx.fillStyle = "#FFFFFF";
+  ctx.beginPath();
+  ctx.arc(W / 2, H / 2, W / 2 - 6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `176px ${TITLE}`;
+  ctx.fillStyle = "#FFC21A";
+  ctx.fillText("N", W / 2 + 6, H / 2 + 20);
+  ctx.fillStyle = "#2E48D0";
+  ctx.fillText("N", W / 2, H / 2 + 14);
+};
 
 const qTmp = new THREE.Quaternion();
 const eTmp = new THREE.Euler();
@@ -953,7 +972,7 @@ const petalRotation = (axis: THREE.Vector3, a: number): V3 => {
 
 /**
  * Nubi's big baseball cap pulled right down to its eyes (model units; pass as a child of <Nubi>).
- * `bulge` 0..1 swells the crown (the tag pushing from inside); `rip` 0..1(+) peels the top open into
+ * `bulge` 0..1 swells the top (the tag pushing from inside); `rip` 0..1(+) peels the top open into
  * torn flaps (1 = fully open; the deuda shot keeps it torn); `ripAge` = frames since the rip (shreds
  * and the burst of light); `pull` 0..1 yanks the cap down over the eyes; `tap` 0..1 a little dip.
  */
@@ -965,61 +984,59 @@ export const NubiCap: React.FC<{ bulge?: number; rip?: number; ripAge?: number; 
   tap = 0,
   wobble = 0,
 }) => {
+  const ready = useFontsReady();
   const G = capGeos();
   const crown = toy(CAP_BLUE, { rough: 0.7, glow: 0.14, side: THREE.DoubleSide });
   const brimMat = toy(CAP_BRIM, { rough: 0.7, glow: 0.12 });
   const white = toy("#FFFFFF", { rough: 0.5, glow: 0.16 });
-  const yellow = toy("#FFD23F", { rough: 0.45, glow: 0.25 });
   const hingeY = CAP.ry * Math.cos(CAP.theta0);
   const b = bulge * (1 + 0.12 * Math.sin(wobble * 2.6));
-  const open = 2.15 * rip;
+  const open = 2.0 * rip;
   const showButton = rip < 0.05;
   // Shreds of fabric and the button flying out of the hole, then falling (model units).
   const shreds =
     ripAge >= 0 && ripAge < 26
       ? Array.from({ length: 8 }, (_, i) => {
           const ang = (i / 8) * Math.PI * 2 + 0.4;
-          const sp = 0.55 + 0.35 * ((i * 37) % 5) / 5;
+          const sp = 0.55 + (0.35 * ((i * 37) % 5)) / 5;
           const a = ripAge;
           const x = Math.cos(ang) * sp * a;
           const z = Math.sin(ang) * sp * a * 0.8;
-          const y = 1.5 + (1.05 + 0.25 * (i % 3)) * a - 0.075 * a * a;
-          const s = clamp01((26 - a) / 10);
-          return { x, y, z, s, r: a * (0.35 + 0.08 * i), i };
+          const y = 1.0 + (1.05 + 0.25 * (i % 3)) * a - 0.075 * a * a;
+          const sc = clamp01((26 - a) / 10);
+          return { x, y, z, s: sc, r: a * (0.35 + 0.08 * i), i };
         })
       : [];
+  const sb = 1 + 0.04 * b;
   return (
-    <group position={[0, CAP.y - 1.15 * pull - 0.35 * tap, CAP.z]} scale={[1 + 0.05 * b, 1 - 0.07 * pull, 1 + 0.05 * b]}>
-      <mesh geometry={G.band} material={crown} />
-      {/* A round white logo on the front panel, a yellow dot in it. */}
-      <group position={[0, 2.0, CAP.rz * 0.915]} rotation={[-0.4, 0, 0]}>
-        <mesh geometry={G.patch} material={white} position={[0, 0, 0.05]} />
-        <mesh geometry={G.patch} material={yellow} position={[0, 0, 0.1]} scale={0.5} />
-      </group>
-      {/* The top: petals that swell, then peel open like torn flaps. */}
-      <group position={[0, hingeY, 0]} scale={[1 + 0.16 * b, 1 + 0.75 * b, 1 + 0.16 * b]}>
-        <group position={[0, -hingeY, 0]}>
-          {G.leaves.map((l, i) => (
-            <mesh
-              key={i}
-              geometry={l.g}
-              material={crown}
-              position={l.hinge}
-              rotation={petalRotation(l.axis, open * l.wobble * (1 + 0.06 * Math.sin(wobble * 3 + i)))}
-            />
-          ))}
+    <group position={[0, -1.2 * pull - 0.35 * tap, CAP.z]} scale={[sb, 1 - 0.05 * pull, sb]}>
+      <mesh geometry={G.crown} material={crown} position={[0, CAP.crownY0 + CAP.crownH / 2, 0]} />
+      <group position={[0, CAP.domeY, 0]}>
+        <mesh geometry={G.band} material={crown} />
+        {/* The top: petals that swell, then peel open like torn flaps. */}
+        <group position={[0, hingeY, 0]} scale={[1 + 0.18 * b, 1 + 1.6 * b, 1 + 0.18 * b]}>
+          <group position={[0, -hingeY, 0]}>
+            {G.leaves.map((l, i) => (
+              <mesh key={i} geometry={l.g} material={crown} position={l.hinge} rotation={petalRotation(l.axis, open * l.wobble * (1 + 0.06 * Math.sin(wobble * 3 + i)))} />
+            ))}
+          </group>
         </group>
+        {showButton ? <mesh geometry={G.button} material={white} position={[0, CAP.ry * (1 + 1.6 * b * (1 - Math.cos(CAP.theta0))) + 0.1, 0]} /> : null}
+        {shreds.map((sh) => (
+          <mesh key={sh.i} geometry={G.shred} material={sh.i === 3 ? white : crown} position={[sh.x, CAP.ry + sh.y, sh.z]} rotation={[sh.r, sh.r * 0.7, sh.r * 0.4]} scale={sh.s} />
+        ))}
+        {ripAge >= 0 && ripAge < 16 ? (
+          <>
+            <Glow color="#FFF3B0" size={(14 + 1.4 * ripAge) * (1 - ripAge / 18)} opacity={1 - ripAge / 16} position={[0, CAP.ry + 1.0, 0]} />
+            <Glow color="#FFFFFF" size={8 * (1 - ripAge / 16)} opacity={1} position={[0, CAP.ry + 0.6, 0]} />
+          </>
+        ) : null}
       </group>
-      {showButton ? <mesh geometry={G.button} material={white} position={[0, CAP.ry * (1 + 0.75 * b) - 0.05, 0]} /> : null}
-      <mesh geometry={G.brim} material={brimMat} position={[0, 0.05, CAP.rz - 0.6]} rotation={[0.08, 0, 0]} />
-      {shreds.map((s) => (
-        <mesh key={s.i} geometry={G.shred} material={s.i === 3 ? white : crown} position={[s.x, CAP.ry + s.y, s.z]} rotation={[s.r, s.r * 0.7, s.r * 0.4]} scale={s.s} />
-      ))}
-      {ripAge >= 0 && ripAge < 16 ? (
-        <>
-          <Glow color="#FFF3B0" size={(14 + 1.4 * ripAge) * (1 - ripAge / 18)} opacity={1 - ripAge / 16} position={[0, CAP.ry + 1.2, 0]} />
-          <Glow color="#FFFFFF" size={8 * (1 - ripAge / 16)} opacity={1} position={[0, CAP.ry + 0.8, 0]} />
-        </>
+      <mesh geometry={G.brim} material={brimMat} position={[0, CAP.crownY0 + 0.25, CAP.d / 2 - 0.45]} rotation={[-0.1, 0, 0]} />
+      {ready ? (
+        <mesh position={[0, CAP.crownY0 + CAP.crownH / 2 + 0.15, CAP.d / 2 + 0.03]} material={texMat("cap-logo", 256, 256, drawCapLogo, { glow: 0.3, transparent: true })}>
+          <planeGeometry args={[2.6, 2.6]} />
+        </mesh>
       ) : null}
     </group>
   );
@@ -1114,7 +1131,7 @@ export const Banknote: React.FC = () => {
  */
 export const HeldBill: React.FC<{ raise: number; side?: "R" | "L"; turn?: number; scale?: number }> = ({ raise, side = "R", turn = 0, scale = 1 }) => (
   <group rotation={[0, side === "R" ? 0.12 : -0.12, -raise * 0.55]}>
-    <group scale={5 * scale} position={[0.6, 0.6, 0.6]} rotation={[0, turn, side === "R" ? 0.25 : -0.25]}>
+    <group scale={6.5 * scale} position={[0.6, 0.8, 0.6]} rotation={[0, turn, side === "R" ? 0.25 : -0.25]}>
       <Banknote />
     </group>
   </group>

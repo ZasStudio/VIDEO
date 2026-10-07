@@ -87,10 +87,10 @@ export const EscapeShot: React.FC = () => {
     hop: walking * step * 1.5 * (1 - 0.6 * walk) + 2.2 * jolt + 0.6 * flinch1,
     squash: 1 - 0.05 * walking * (1 - step) + 0.05 * proud - 0.14 * jolt * (g < TAG + 3 ? 1 : -0.6) - 0.1 * tug - 0.04 * bulge,
     yaw,
-    pitch: 0.13 * whisper - 0.1 * proud + 0.1 * nod - 0.06 * walking + 0.1 * annoyed - 0.08 * lookUp,
+    pitch: 0.07 * whisper - 0.1 * proud + 0.1 * nod - 0.06 * walking + 0.1 * annoyed - 0.08 * lookUp,
     roll: walking * 0.07 * Math.sin((g - START) * 0.5) + 0.04 * tremble,
-    finR: 0.22 * walking * Math.sin((g - START) * 0.5) + 2.4 * tapK - 0.35 * proud + grab * 2.35 + 0.15 * tremble + pointUp * 1.9,
-    finL: -0.22 * walking * Math.sin((g - START) * 0.5) - 0.35 * proud + grab * 2.35 - 0.15 * tremble + 0.12 * annoyed,
+    finR: 0.22 * walking * Math.sin((g - START) * 0.5) - 0.35 * proud + grab * 1.55 + 0.15 * tremble + pointUp * 1.9,
+    finL: -0.22 * walking * Math.sin((g - START) * 0.5) + 2.4 * tapK - 0.35 * proud + grab * 1.55 - 0.15 * tremble + 0.12 * annoyed,
     wiggle: walking * 0.85 + 0.3 * jolt,
     wigglePhase: (g - START) * 0.65,
     eyeScale: 1 + 0.32 * shock + 0.15 * jolt - 0.05 * whisper,
@@ -100,7 +100,7 @@ export const EscapeShot: React.FC = () => {
   const talked = nubiTalk(g, nubiBase, g < L05 ? 0.75 : 0.85);
   const nubiPose: NubiPose = shock > 0.2 ? { ...talked, blink: 0 } : talked;
   const smug = (1 - shock) * (g < L06 - 4 ? 0.42 : 0);
-  const nubiDroop = smug + 0.5 * annoyed;
+  const nubiDroop = smug + 0.34 * annoyed;
   const nubiTilt = smug > 0.2 ? 0.12 : -0.32;
 
   // ---- The friend: waiting (drumming, tapping a foot, bored lids), glares, asks, looks up at the
@@ -111,22 +111,23 @@ export const EscapeShot: React.FC = () => {
   const glare = ramp(g, ARRIVE - 6, ARRIVE + 4) * (1 - ramp(g, TAG, TAG + 6));
   const upAtTag = windowIn(g, TAG + 2, DETAIL2 + 2, 4);
   const unimpressed = ramp(g, DETAIL2 - 2, DETAIL2 + 8, [0, 1], EASE_IN_OUT);
-  const headShake = windowIn(g, DETAIL2 + 6, CUT_C, 3) * Math.sin((g - DETAIL2) * 0.5);
+  /** In the reaction shot he turns to us, deadpan. */
+  const deadpan = ramp(g, DETAIL2 + 4, DETAIL2 + 12, [0, 1], EASE_IN_OUT);
   const friendBase: NubiPose = {
     finL: -0.12 + 0.32 * drum(0) * waiting + 0.2 * glare,
     finR: -0.12 + 0.32 * drum(Math.PI * 0.9) * waiting + 0.2 * glare,
     wiggle: 0.55 * footTap * waiting + 0.25 * footTap * (1 - waiting) * (1 - unimpressed),
     wigglePhase: 1.3,
     pitch: 0.04 + 0.06 * glare * windowIn(g, L04, L04 + 30, 6) - 0.06 * upAtTag,
-    yaw: 0.04 * Math.sin(t * 0.8) + 0.08 * headShake,
+    yaw: 0.04 * Math.sin(t * 0.8) - 0.5 * deadpan,
     roll: 0.03 * Math.sin(t * 1.1) * waiting,
-    lookX: 0.55 * (1 - waiting) + 0.35 * waiting * Math.sin(t * 0.7) + 0.25 * upAtTag,
+    lookX: (0.55 * (1 - waiting) + 0.35 * waiting * Math.sin(t * 0.7) + 0.25 * upAtTag) * (1 - deadpan),
     lookY: -0.1 * waiting + 0.65 * upAtTag - 0.15 * unimpressed,
     eyeScale: 1 + 0.18 * windowIn(g, TAG, TAG + 10, 2),
     squash: 1 + 0.02 * Math.sin(t * 2),
   };
   const friendPose = amigoTalk(g, friendBase, 0.95);
-  const friendDroop = Math.max(0.5 * waiting, 0.42 * glare, 0.78 * unimpressed) * (1 - 0.8 * upAtTag * (1 - unimpressed));
+  const friendDroop = Math.max(0.5 * waiting, 0.42 * glare, 0.58 * unimpressed) * (1 - 0.8 * upAtTag * (1 - unimpressed));
   const friendTilt = glare > 0.5 && unimpressed < 0.5 ? -0.28 : 0.06;
 
   // ---- Cameras.
@@ -136,14 +137,14 @@ export const EscapeShot: React.FC = () => {
   const nubiEyes: Vec3 = [NUBI_END[0], 1.12, NUBI_END[2]];
   const camB = aim([lerp(0.35, 0.2, pushB), 1.95, lerp(8.9, 8.4, pushB)], FOV, nubiEyes, 548, 1035);
   const friendEyes: Vec3 = [FRIEND[0], FRIEND[1] + 1.12, FRIEND[2]];
-  const camR = aim([-1.75, 2.0, 5.2 - 0.25 * ramp(g, CUT_R, CUT_C, [0, 1], (x) => x)], FOV, friendEyes, 545, 980);
+  const camR = aim([-1.65, 2.2, 9.4 - 0.4 * ramp(g, CUT_R, CUT_C, [0, 1], (x) => x)], FOV, friendEyes, 740, 960);
   const pushC = ramp(g, CUT_C, END, [0, 1], (x) => x);
-  const camC = aim([lerp(-0.45, -0.55, pushC), 1.42, lerp(7.3, 6.9, pushC)], FOV, nubiEyes, 540, 1070);
+  const camC = aim([lerp(-0.45, -0.55, pushC), 1.2, lerp(7.3, 6.9, pushC)], FOV, nubiEyes, 540, 1060);
   const cam: Cam = g < CUT_B ? camA : g < CUT_R ? camB : g < CUT_C ? camR : camC;
 
   // ---- The truth tag, rising out of the torn cap.
   const s = (nubiPose.squash ?? 1) * (1 - 0.07 * pull);
-  const holeY = 0.2 * ((nubiPose.hop ?? 0) + s * (CAP_HOLE - 1.15 * pull)) + 0.12;
+  const holeY = 0.2 * ((nubiPose.hop ?? 0) + s * (CAP_HOLE - 1.2 * pull)) + 0.1;
   const tg = tagAt(cam, [nubiPos[0] - 0.03, holeY, nubiPos[2] - 0.03], { max: g >= CUT_C ? 1.0 : 1.1 });
 
   return (
